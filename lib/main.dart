@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'views/registration_page.dart'; // Import the RegistrationPage from the views folder
 
 void main() => runApp(
   MaterialApp(
@@ -61,7 +62,10 @@ class _HomePageState extends State<HomePage> {
         const SizedBox(height: 20),
         OutlinedButton(
           onPressed: () {
-            // TODO: Implement Register navigation/view change
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => RegistrationPage()),
+            );
           },
           style: OutlinedButton.styleFrom(
             foregroundColor: const Color(0xFF8C0404),
