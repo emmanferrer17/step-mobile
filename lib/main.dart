@@ -1,24 +1,70 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'views/registration_page.dart'; // Import the RegistrationPage from the views folder
+import 'data/services/api_service.dart';
+import 'features/auth/registration_page.dart';
+import 'features/home/home_page.dart';
 
 void main() => runApp(
   MaterialApp(
     debugShowCheckedModeBanner: false,
-    home: HomePage(),
+    home: WelcomePage(), // Renamed for clarity
     theme: ThemeData(
       fontFamily: 'Nunito', // Global font family
     ),
   ),
 );
 
-class HomePage extends StatefulWidget {
+class WelcomePage extends StatefulWidget {
   @override
-  _HomePageState createState() => _HomePageState();
+  _WelcomePageState createState() => _WelcomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _WelcomePageState extends State<WelcomePage> {
+  // Controllers for the text fields
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _apiService = ApiService();
+
   bool _isLoginFormVisible = false;
+  bool _isLoading = false;
+  String? _errorMessage;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  // The login logic is now in its own function
+  void _login() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    final result = await _apiService.login(
+      _emailController.text,
+      _passwordController.text,
+    );
+
+    setState(() {
+      _isLoading = false;
+    });
+
+    if (result['status'] == 'success') {
+      // Navigate to a new screen on successful login
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const HomePage()),
+      );
+    } else {
+      // Show an error message on failure
+      setState(() {
+        _errorMessage = result['message'] ?? 'An unknown error occurred.';
+      });
+    }
+  }
 
   Widget _buildInitialView() {
     return Column(
@@ -123,11 +169,12 @@ class _HomePageState extends State<HomePage> {
                   color: Colors.grey.withOpacity(0.3),
                   spreadRadius: 1,
                   blurRadius: 5,
-                  offset: Offset(0, 3), // changes position of shadow to be at the bottom
+                  offset: const Offset(0, 3), // changes position of shadow to be at the bottom
                 ),
               ],
             ),
             child: TextField(
+              controller: _emailController,
               decoration: InputDecoration(
                 hintText: 'TUP Email',
                 hintStyle: TextStyle(fontSize: hintFontSize, color: Colors.grey[600]),
@@ -150,11 +197,12 @@ class _HomePageState extends State<HomePage> {
                   color: Colors.grey.withOpacity(0.3),
                   spreadRadius: 1,
                   blurRadius: 5,
-                  offset: Offset(0, 3), // changes position of shadow to be at the bottom
+                  offset: const Offset(0, 3), // changes position of shadow to be at the bottom
                 ),
               ],
             ),
             child: TextField(
+              controller: _passwordController,
               obscureText: true,
               decoration: InputDecoration(
                 hintText: 'Password',
@@ -166,12 +214,19 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
         const SizedBox(height: 30),
+        if (_errorMessage != null)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: Text(
+              _errorMessage!,
+              style: const TextStyle(color: Colors.red, fontSize: 14),
+              textAlign: TextAlign.center,
+            ),
+          ),
         SizedBox(
           height: fieldHeight,
           child: ElevatedButton(
-            onPressed: () {
-              // TODO: Implement actual login logic
-            },
+            onPressed: _isLoading ? null : _login,
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF8C0404),
               foregroundColor: Colors.white,
@@ -184,13 +239,18 @@ class _HomePageState extends State<HomePage> {
                 borderRadius: BorderRadius.circular(10),
               ),
             ),
-            child: const Text('LOGIN'),
+            child: _isLoading
+                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 3, color: Colors.white))
+                : const Text('LOGIN'),
           ),
         ),
         const SizedBox(height: 20),
         GestureDetector(
           onTap: () {
-            // TODO: Navigate to Register or switch view.
+             Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => RegistrationPage()),
+            );
           },
           child: RichText(
             textAlign: TextAlign.center,
@@ -198,7 +258,7 @@ class _HomePageState extends State<HomePage> {
               style: TextStyle(fontFamily: 'Nunito'), // Default style for the RichText
               children: <TextSpan>[
                 TextSpan(
-                  text: 'Already have an account? ',
+                  text: "Don\'t have an account? ",
                   style: TextStyle(color: Colors.black),
                 ),
                 TextSpan(
@@ -206,10 +266,6 @@ class _HomePageState extends State<HomePage> {
                   style: TextStyle(
                     color: Color(0xFF8C0404),
                   ),
-                  // TODO: Add a recognizer here if you want only "Register." to be clickable
-                  // recognizer: TapGestureRecognizer()..onTap = () {
-                  //   // Handle Register tap
-                  // },
                 ),
               ],
             ),
