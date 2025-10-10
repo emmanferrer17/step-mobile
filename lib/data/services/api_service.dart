@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 
 class ApiService {
   // IMPORTANT: Replace with your computer's current network IP address.
-  static const String _ipAddress = '192.168.0.44'; 
+  static const String _ipAddress = '192.168.254.102';
   static const String _baseUrl = 'http://$_ipAddress:8080/api';
 
   // --- Validation Methods ---
