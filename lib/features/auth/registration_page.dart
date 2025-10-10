@@ -38,6 +38,9 @@ class _RegistrationPageState extends State<RegistrationPage> {
   bool _isLoading = false;
   String? _errorMessage;
   bool _isPasswordVisibleInStep2 = false;
+  bool _isPasswordObscured = true; // For registration password
+  bool _isConfirmPasswordObscured = true; // For confirm password
+  AutovalidateMode _autovalidateMode = AutovalidateMode.disabled;
 
   // Live Validation State
   Timer? _tupIdDebounce;
@@ -159,8 +162,18 @@ class _RegistrationPageState extends State<RegistrationPage> {
     if (!mounted) return;
     setState(() {
       _isEmailChecking = false;
-      if (result['status'] == 'success') { _isEmailValid = true; _emailError = null; } 
-      else { _isEmailValid = false; _emailError = result['message']; }
+      if (result['status'] == 'success') {
+        _isEmailValid = true;
+        _emailError = null;
+      } else {
+        _isEmailValid = false;
+        // Provide a more user-friendly error for existing emails
+        if (result['message'] != null && (result['message'] as String).contains('unique')) {
+          _emailError = 'The email you typed already exists.';
+        } else {
+          _emailError = result['message'];
+        }
+      }
     });
   }
 
@@ -168,9 +181,28 @@ class _RegistrationPageState extends State<RegistrationPage> {
     _departmentsFuture = _apiService.getDepartments();
   }
 
+  void _goToNextStep() {
+    // This will trigger the validators for all fields
+    if (_formKey.currentState!.validate()) {
+      // Check live validations separately
+      if (!_isTupIdValid || !_isEmailValid) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please wait for TUP-ID and Email to be validated.')),
+        );
+      } else {
+        setState(() {
+          _currentStep = 1;
+        });
+      }
+    } else {
+      // If validation fails, switch to validating fields on user interaction.
+      setState(() {
+        _autovalidateMode = AutovalidateMode.onUserInteraction;
+      });
+    }
+  }
+
   Future<void> _proceedToVerification() async {
-    // FIX: Removed the redundant and faulty validation check.
-    // The user can only get to this step if the form was valid on Step 1.
     setState(() { _isLoading = true; _errorMessage = null; });
     final userData = { 'user_firstname': _firstNameController.text, 'user_middlename': _middleNameController.text, 'user_lastname': _lastNameController.text, 'user_suffix': _suffixController.text, 'user_tupid': _tuptIdController.text, 'user_email': _tupEmailController.text, 'user_password': _passwordController.text, 'user_type': _userType ?? '', 'selected_department_id': _selectedDepartmentId ?? '', };
     final result = await _apiService.register(userData);
@@ -280,11 +312,9 @@ class _RegistrationPageState extends State<RegistrationPage> {
   }
 
   Widget _buildStep1() {
-    bool isNextButtonEnabled = (_formKey.currentState?.validate() ?? false) && _isTupIdValid && _isEmailValid;
     return Form(
       key: _formKey,
-      autovalidateMode: AutovalidateMode.onUserInteraction,
-      onChanged: () => setState(() {}),
+      autovalidateMode: _autovalidateMode, // Use state variable
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -321,13 +351,13 @@ class _RegistrationPageState extends State<RegistrationPage> {
             validator: (value) => (value == null || value.isEmpty) ? 'Required' : (!RegExp(r'^[a-zA-Z0-9._%+-]+@tup\.edu\.ph$').hasMatch(value)) ? 'Invalid TUP email' : null,
           ),
           const SizedBox(height: 20),
-          _buildTextField('Password', controller: _passwordController, obscureText: true),
+          _buildPasswordTextField('Password', controller: _passwordController, isObscured: _isPasswordObscured, onToggle: () => setState(() => _isPasswordObscured = !_isPasswordObscured)),
           const SizedBox(height: 20),
-          _buildTextField('Confirm Password', controller: _confirmPasswordController, obscureText: true),
+          _buildPasswordTextField('Confirm Password', controller: _confirmPasswordController, isObscured: _isConfirmPasswordObscured, onToggle: () => setState(() => _isConfirmPasswordObscured = !_isConfirmPasswordObscured)),
           const SizedBox(height: 20),
           Row(children: [Expanded(child: _buildUserTypeDropdown()), const SizedBox(width: 20), Expanded(child: _buildDepartmentDropdown())]),
           const SizedBox(height: 40),
-          SizedBox(width: double.infinity, child: ElevatedButton(onPressed: isNextButtonEnabled ? () => setState(() => _currentStep = 1) : null, style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF8C0404), disabledBackgroundColor: Colors.grey.shade400, padding: const EdgeInsets.symmetric(vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))), child: const Text('Next', style: TextStyle(fontFamily: 'Nunito', color: Colors.white, fontSize: 18)))),
+          SizedBox(width: double.infinity, child: ElevatedButton(onPressed: _goToNextStep, style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF8C0404), padding: const EdgeInsets.symmetric(vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))), child: const Text('Next', style: TextStyle(fontFamily: 'Nunito', color: Colors.white, fontSize: 18)))),
         ],
       ),
     );
@@ -363,10 +393,22 @@ class _RegistrationPageState extends State<RegistrationPage> {
         const Text('Email Verification', style: TextStyle(fontFamily: 'Nunito', fontSize: 22, fontWeight: FontWeight.bold)), const SizedBox(height: 12),
         const Text('Enter the code sent to your TUP email for verification.', style: TextStyle(fontFamily: 'Nunito', fontSize: 16, color: Colors.grey)), const SizedBox(height: 32),
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly, 
           children: List.generate(6, (index) => SizedBox(
-            width: 40, height: 50,
-            child: TextFormField(controller: _otpControllers[index], focusNode: _otpFocusNodes[index], textAlign: TextAlign.center, keyboardType: TextInputType.number, maxLength: 1, decoration: const InputDecoration(counterText: '', border: OutlineInputBorder()),
+            width: 42, // Increased width slightly
+            height: 52,
+            child: TextFormField(
+              controller: _otpControllers[index], 
+              focusNode: _otpFocusNodes[index], 
+              textAlign: TextAlign.center, 
+              keyboardType: TextInputType.number, 
+              maxLength: 1, 
+              style: const TextStyle(fontSize: 22, fontFamily: 'Nunito', fontWeight: FontWeight.bold), 
+              decoration: const InputDecoration(
+                counterText: '', 
+                border: OutlineInputBorder(),
+                contentPadding: EdgeInsets.zero, // FIX: Remove internal padding
+              ),
               onChanged: (value) {
                 if (value.isNotEmpty && index < 5) _otpFocusNodes[index + 1].requestFocus();
                 if (value.isEmpty && index > 0) _otpFocusNodes[index - 1].requestFocus();
@@ -407,17 +449,40 @@ class _RegistrationPageState extends State<RegistrationPage> {
     );
   }
 
-  Widget _buildTextField(String hintText, {required TextEditingController controller, bool obscureText = false, bool isRequired = true, TextInputType keyboardType = TextInputType.text}) {
+  Widget _buildTextField(String hintText, {required TextEditingController controller, bool isRequired = true, TextInputType keyboardType = TextInputType.text}) {
     return TextFormField(
       controller: controller,
-      obscureText: obscureText,
       keyboardType: keyboardType,
       decoration: InputDecoration(hintText: hintText, filled: true, fillColor: Colors.grey[200], border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none), contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12)),
       validator: (value) {
         if (isRequired && (value == null || value.isEmpty)) {
           return 'This field is required';
         }
-        if (hintText == 'Password' && (value?.length ?? 0) < 8) {
+        return null;
+      },
+    );
+  }
+
+  Widget _buildPasswordTextField(String hintText, {required TextEditingController controller, required bool isObscured, required VoidCallback onToggle}) {
+     return TextFormField(
+      controller: controller,
+      obscureText: isObscured,
+      decoration: InputDecoration(
+        hintText: hintText, 
+        filled: true, 
+        fillColor: Colors.grey[200], 
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none), 
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        suffixIcon: IconButton(
+          icon: Icon(isObscured ? Icons.visibility_off : Icons.visibility),
+          onPressed: onToggle,
+        ),
+      ),
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'This field is required';
+        }
+        if (hintText == 'Password' && value.length < 8) {
           return 'Password must be at least 8 characters';
         }
         if (hintText == 'Confirm Password' && value != _passwordController.text) {

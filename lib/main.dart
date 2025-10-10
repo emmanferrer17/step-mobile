@@ -25,19 +25,48 @@ class _WelcomePageState extends State<WelcomePage> {
   final _passwordController = TextEditingController();
   final _apiService = ApiService();
 
+  // Focus Nodes to detect when a field is selected for keyboard animation
+  final _emailFocusNode = FocusNode();
+  final _passwordFocusNode = FocusNode();
+
   bool _isLoginFormVisible = false;
   bool _isLoading = false;
   String? _errorMessage;
+  bool _isPasswordObscured = true; // For password toggle
+
+  @override
+  void initState() {
+    super.initState();
+    // Add listeners to trigger a rebuild when focus changes for the animation
+    _emailFocusNode.addListener(_onFocusChange);
+    _passwordFocusNode.addListener(_onFocusChange);
+  }
+
+  void _onFocusChange() {
+    // This just forces a rebuild to update the layout based on focus
+    setState(() {});
+  }
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+
+    // Clean up focus node listeners and nodes
+    _emailFocusNode.removeListener(_onFocusChange);
+    _passwordFocusNode.removeListener(_onFocusChange);
+    _emailFocusNode.dispose();
+    _passwordFocusNode.dispose();
+
     super.dispose();
   }
 
   // The login logic is now in its own function
   void _login() async {
+    // Hide keyboard before processing login
+    _emailFocusNode.unfocus();
+    _passwordFocusNode.unfocus();
+
     setState(() {
       _isLoading = true;
       _errorMessage = null;
@@ -47,6 +76,8 @@ class _WelcomePageState extends State<WelcomePage> {
       _emailController.text,
       _passwordController.text,
     );
+    
+    if (!mounted) return; // Check if the widget is still in the widget tree
 
     setState(() {
       _isLoading = false;
@@ -162,24 +193,25 @@ class _WelcomePageState extends State<WelcomePage> {
           height: fieldHeight,
           child: Container(
             decoration: BoxDecoration(
-              color: Colors.white, // Or a slightly off-white if needed for contrast
+              color: Colors.white,
               borderRadius: BorderRadius.circular(10),
               boxShadow: [
                 BoxShadow(
                   color: Colors.grey.withOpacity(0.3),
                   spreadRadius: 1,
                   blurRadius: 5,
-                  offset: const Offset(0, 3), // changes position of shadow to be at the bottom
+                  offset: const Offset(0, 3), 
                 ),
               ],
             ),
             child: TextField(
+              focusNode: _emailFocusNode, // Attach focus node
               controller: _emailController,
               decoration: InputDecoration(
                 hintText: 'TUP Email',
                 hintStyle: TextStyle(fontSize: hintFontSize, color: Colors.grey[600]),
                 border: InputBorder.none,
-                contentPadding: EdgeInsets.symmetric(horizontal: 15, vertical: (fieldHeight - hintFontSize) / 2 - 2), // Adjust vertical padding carefully
+                contentPadding: EdgeInsets.symmetric(horizontal: 15, vertical: (fieldHeight - hintFontSize) / 2 - 2),
               ),
               keyboardType: TextInputType.emailAddress,
             ),
@@ -197,18 +229,30 @@ class _WelcomePageState extends State<WelcomePage> {
                   color: Colors.grey.withOpacity(0.3),
                   spreadRadius: 1,
                   blurRadius: 5,
-                  offset: const Offset(0, 3), // changes position of shadow to be at the bottom
+                  offset: const Offset(0, 3),
                 ),
               ],
             ),
             child: TextField(
+              focusNode: _passwordFocusNode, // Attach focus node
               controller: _passwordController,
-              obscureText: true,
+              obscureText: _isPasswordObscured, // Use state variable
               decoration: InputDecoration(
                 hintText: 'Password',
                 hintStyle: TextStyle(fontSize: hintFontSize, color: Colors.grey[600]),
                 border: InputBorder.none,
-                contentPadding: EdgeInsets.symmetric(horizontal: 15, vertical: (fieldHeight - hintFontSize) / 2 - 2), // Adjust vertical padding carefully
+                contentPadding: EdgeInsets.symmetric(horizontal: 15, vertical: (fieldHeight - hintFontSize) / 2 - 2),
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _isPasswordObscured ? Icons.visibility_off : Icons.visibility,
+                    color: Colors.grey[600],
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _isPasswordObscured = !_isPasswordObscured;
+                    });
+                  },
+                ),
               ),
             ),
           ),
@@ -254,12 +298,11 @@ class _WelcomePageState extends State<WelcomePage> {
           },
           child: RichText(
             textAlign: TextAlign.center,
-            text: TextSpan(
-              style: TextStyle(fontFamily: 'Nunito'), // Default style for the RichText
+            text: const TextSpan(
+              style: TextStyle(fontFamily: 'Nunito', color: Colors.black), 
               children: <TextSpan>[
                 TextSpan(
-                  text: "Don\'t have an account? ",
-                  style: TextStyle(color: Colors.black),
+                  text: "Don't have an account? ",
                 ),
                 TextSpan(
                   text: 'Register.',
@@ -277,44 +320,56 @@ class _WelcomePageState extends State<WelcomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final bool isKeyboardVisible = _emailFocusNode.hasFocus || _passwordFocusNode.hasFocus;
+
     return Scaffold(
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: const BoxDecoration(
-          color: Color(0xFF8C0404),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: <Widget>[
-            const SizedBox(height: 160),
-            SvgPicture.asset(
-              'assets/images/step-logo.svg',
-              width: 100,
-              height: 100,
-              fit: BoxFit.contain,
-            ),
-            const SizedBox(height: 120),
-            Expanded(
-              child: Container(
-                width: double.infinity,
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(50),
-                    topRight: Radius.circular(50),
+      body: SingleChildScrollView(
+        child: Container(
+          width: double.infinity,
+          height: MediaQuery.of(context).size.height, // Ensure it takes full screen height
+          decoration: const BoxDecoration(
+            color: Color(0xFF8C0404),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: <Widget>[
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+                height: isKeyboardVisible ? 60 : 160,
+              ),
+              SvgPicture.asset(
+                'assets/images/step-logo.svg',
+                width: 100,
+                height: 100,
+                fit: BoxFit.contain,
+              ),
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+                height: isKeyboardVisible ? 20 : 120,
+              ),
+              Expanded(
+                child: Container(
+                  width: double.infinity,
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(50),
+                      topRight: Radius.circular(50),
+                    ),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(30),
+                    child: SingleChildScrollView(
+                       child: _isLoginFormVisible ? _buildLoginForm() : _buildInitialView(),
+                    )
                   ),
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.all(30),
-                  child: SingleChildScrollView(
-                     child: _isLoginFormVisible ? _buildLoginForm() : _buildInitialView(),
-                  )
-                ),
-              ),
-            )
-          ],
+              )
+            ],
+          ),
         ),
       ),
     );
