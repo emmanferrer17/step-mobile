@@ -2,15 +2,19 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:async';
 import 'package:http/http.dart' as http;
+import '../../app/config/constants.dart'; // [MVC] Use ApiConstants instead of hardcoded URLs
+import '../models/department_model.dart';  // [MVC] Typed model for Department data
+import '../models/user_model.dart';        // [MVC] Typed model for User data
+
+// [MVC - SERVICE LAYER]
+// ApiService is responsible for ALL communication with the backend.
+// It should NOT contain any UI logic (no setState, no Navigator).
+// Controllers will call these methods and handle the results.
 
 class ApiService {
-  // IMPORTANT: Replace with your computer's current network IP address.
-  static const String _ipAddress = '192.168.254.102';
-  static const String _baseUrl = 'http://$_ipAddress:8080/api';
-
   // --- Validation Methods ---
   Future<Map<String, dynamic>> checkTupId(String tupId) async {
-    final url = Uri.parse('$_baseUrl/user/check-tupid');
+    final url = Uri.parse(ApiConstants.checkTupIdUrl);
     try {
       final response = await http.post(
         url,
@@ -27,7 +31,7 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> checkEmail(String email) async {
-    final url = Uri.parse('$_baseUrl/user/check-email');
+    final url = Uri.parse(ApiConstants.checkEmailUrl);
     try {
       final response = await http.post(
         url,
@@ -42,10 +46,10 @@ class ApiService {
       return {'status': 'error', 'message': 'Connection failed: ${e.toString()}'};
     }
   }
-  
-  // --- NEW: Resend OTP Method ---
+
+  // --- Resend OTP Method ---
   Future<Map<String, dynamic>> resendOtp(String email) async {
-    final url = Uri.parse('$_baseUrl/user/resend-otp');
+    final url = Uri.parse(ApiConstants.resendOtpUrl);
     try {
       final response = await http.post(
         url,
@@ -62,8 +66,8 @@ class ApiService {
   }
 
   // --- Department Fetch Method ---
-  Future<List<dynamic>> getDepartments() async {
-    final url = Uri.parse('$_baseUrl/departments');
+  Future<List<DepartmentModel>> getDepartments() async {
+    final url = Uri.parse(ApiConstants.departmentsUrl);
     try {
       final response = await http.get(
         url,
@@ -73,7 +77,9 @@ class ApiService {
       ).timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
-        return json.decode(response.body);
+        final List<dynamic> rawList = json.decode(response.body);
+        // Convert each raw Map into a typed DepartmentModel object
+        return rawList.map((item) => DepartmentModel.fromMap(item)).toList();
       } else {
         throw Exception('Failed to load departments. Status code: ${response.statusCode}');
       }
@@ -88,7 +94,7 @@ class ApiService {
 
   // --- Auth Methods ---
   Future<Map<String, dynamic>> login(String email, String password) async {
-    final url = Uri.parse('$_baseUrl/user/login');
+    final url = Uri.parse(ApiConstants.loginUrl);
     try {
       final response = await http.post(
         url,
@@ -113,7 +119,7 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> register(Map<String, String> userData) async {
-    final url = Uri.parse('$_baseUrl/user/register');
+    final url = Uri.parse(ApiConstants.registerUrl);
     try {
       final response = await http.post(
         url,
@@ -135,7 +141,7 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> verify(Map<String, String> verificationData) async {
-    final url = Uri.parse('$_baseUrl/user/verify');
+    final url = Uri.parse(ApiConstants.verifyUrl);
     try {
       final response = await http.post(
         url,
