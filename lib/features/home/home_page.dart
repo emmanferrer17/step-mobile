@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../app/config/routes.dart';
+import '../../app/config/constants.dart';
+import '../../app/controllers/auth_controller.dart';
 import 'widgets/filter_bottom_sheet.dart';
 
 class HomePage extends StatefulWidget {
@@ -10,7 +13,6 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final String userName = "Patrick Justin Ariado";
   final int notificationCount = 2;
 
   final List<Map<String, dynamic>> categories = [
@@ -36,6 +38,9 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     final double statusBarHeight = MediaQuery.of(context).padding.top;
+    final user = context.watch<AuthController>().loggedInUser;
+    final displayName = user?.fullName ?? 'User';
+    final profilePhoto = user?.profilePhoto;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5EFE6), // Light beige background
@@ -57,7 +62,7 @@ class _HomePageState extends State<HomePage> {
                 decoration: const BoxDecoration(
                   color: Color(0xFF8C0404),
                 ),
-                child: _buildHeaderContent(),
+                child: _buildHeaderContent(displayName, profilePhoto),
               ),
               // Search Bar & Filter
               Positioned(
@@ -96,7 +101,7 @@ class _HomePageState extends State<HomePage> {
   /// - User profile picture (CircleAvatar)
   /// - Greeting text ("Hello", User Name)
   /// - Notification bell icon with an unread count badge
-  Widget _buildHeaderContent() {
+  Widget _buildHeaderContent(String userName, String? profilePhoto) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -108,10 +113,15 @@ class _HomePageState extends State<HomePage> {
                 shape: BoxShape.circle,
                 border: Border.all(color: Colors.blueAccent, width: 2),
               ),
-              child: const CircleAvatar(
+              child: CircleAvatar(
                 radius: 26,
                 backgroundColor: Colors.white,
-                child: Icon(Icons.person, size: 35, color: Colors.grey),
+                backgroundImage: profilePhoto != null 
+                    ? NetworkImage('${ApiConstants.storageUrl}$profilePhoto')
+                    : null,
+                child: profilePhoto == null 
+                    ? const Icon(Icons.person, size: 35, color: Colors.grey)
+                    : null,
               ),
             ),
             const SizedBox(width: 15),

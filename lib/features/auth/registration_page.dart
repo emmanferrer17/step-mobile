@@ -491,6 +491,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
   Widget _buildUserTypeDropdown(RegistrationController reg) {
     return DropdownButtonFormField<String>(
       value: reg.userType,
+      isExpanded: true,
       hint: const Text('Choose User Type', style: TextStyle(fontFamily: 'Nunito', color: Colors.grey)),
       decoration: InputDecoration(filled: true, fillColor: Colors.grey[200], border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none), contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12)),
       items: ['Faculty', 'Staff'].map((v) => DropdownMenuItem<String>(value: v, child: Text(v))).toList(),
