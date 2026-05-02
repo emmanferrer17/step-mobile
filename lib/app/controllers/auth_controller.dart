@@ -35,12 +35,19 @@ class AuthController extends ChangeNotifier {
 
     if (result['status'] == 'success') {
       // Optionally store logged-in user data if the API returns it
-      if (result['data'] != null) {
+      if (result['data'] != null && result['data']['user'] != null) {
         try {
-          loggedInUser = UserModel.fromMap(result['data']);
-        } catch (_) {
-          // If the response format differs, we just skip storing the user
+          loggedInUser = UserModel.fromMap(result['data']['user']);
+        } catch (e) {
+          debugPrint('Error parsing user data: $e');
+          errorMessage = 'Parse error: $e';
+          notifyListeners();
+          return false;
         }
+      } else {
+        errorMessage = 'No user object returned from API. Raw data: ${result['data']}';
+        notifyListeners();
+        return false;
       }
       notifyListeners();
       return true; // signal success to the View → View will then navigate

@@ -15,6 +15,9 @@ class UserModel {
   final String email;
   final String userType;
   final int? departmentId; // nullable — some user types may not have a dept
+  final String? roleName;
+  final String? departmentName;
+  final String? profilePhoto;
 
   const UserModel({
     required this.id,
@@ -26,23 +29,33 @@ class UserModel {
     required this.email,
     required this.userType,
     this.departmentId,
+    this.roleName,
+    this.departmentName,
+    this.profilePhoto,
   });
 
   // fromMap: converts raw API Map data into a UserModel object.
   // Called after a successful login or registration response.
   factory UserModel.fromMap(Map<String, dynamic> map) {
     return UserModel(
-      id: map['user_id'] as int,
-      firstName: map['user_firstname'] as String,
+      id: map['user_id'] is int ? map['user_id'] : int.tryParse(map['user_id']?.toString() ?? '0') ?? 0,
+      firstName: (map['user_firstname'] as String?) ?? '',
       middleName: (map['user_middlename'] as String?) ?? '',
-      lastName: map['user_lastname'] as String,
+      lastName: (map['user_lastname'] as String?) ?? '',
       suffix: (map['user_suffix'] as String?) ?? '',
-      tupId: map['user_tupid'] as String,
-      email: map['user_email'] as String,
-      userType: map['user_type'] as String,
+      tupId: (map['user_tupid'] as String?) ?? '',
+      email: (map['user_email'] as String?) ?? '',
+      userType: (map['user_type'] as String?) ?? '',
       departmentId: map['selected_department_id'] != null
           ? int.tryParse(map['selected_department_id'].toString())
           : null,
+      roleName: map['roles'] != null && (map['roles'] as List).isNotEmpty
+          ? map['roles'][0]['role_name'] as String?
+          : null,
+      departmentName: map['departments'] != null && (map['departments'] as List).isNotEmpty
+          ? (map['departments'] as List).map((d) => d['dep_name']).join(', ')
+          : null,
+      profilePhoto: map['user_profile_photo'] as String?,
     );
   }
 

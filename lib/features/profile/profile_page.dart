@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../app/config/routes.dart';
+import '../../app/config/constants.dart';
+import '../../app/controllers/auth_controller.dart';
+import '../../data/models/user_model.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -8,6 +12,7 @@ class ProfilePage extends StatelessWidget {
   Widget build(BuildContext context) {
     // Get status bar height so we manually push content below system status bar icons
     final double statusBarHeight = MediaQuery.of(context).padding.top;
+    final user = context.watch<AuthController>().loggedInUser;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5EFE6), // Light beige background
@@ -63,7 +68,7 @@ class ProfilePage extends StatelessWidget {
                 children: [
                   // ── Profile Card (overlapping Avatar) ──────────────────
                   // Uses a Stack so the CircleAvatar can "float" above the white card
-                  _buildProfileCard(),
+                  _buildProfileCard(user),
 
                   const SizedBox(height: 20),
 
@@ -87,7 +92,13 @@ class ProfilePage extends StatelessWidget {
   /// Builds the white profile card that overlaps the red header via a top Stack.
   /// The CircleAvatar is Positioned above the card so it appears to float on the
   /// boundary between the red header and the white card.
-  Widget _buildProfileCard() {
+  Widget _buildProfileCard(UserModel? user) {
+    final name = user?.fullName ?? 'User Name';
+    final email = user?.email ?? 'user@tup.edu.ph';
+    final userType = user?.userType ?? 'Unassigned';
+    final role = user?.roleName ?? user?.departmentName ?? 'Unassigned Role/Department';
+    final profilePhoto = user?.profilePhoto;
+
     return Stack(
       alignment: Alignment.topCenter,
       clipBehavior: Clip.none,
@@ -111,9 +122,9 @@ class ProfilePage extends StatelessWidget {
           child: Column(
             children: [
               // User's full name
-              const Text(
-                'Patrick Justin Ariado',
-                style: TextStyle(
+              Text(
+                name,
+                style: const TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.w600,
                   color: Colors.black87,
@@ -124,17 +135,17 @@ class ProfilePage extends StatelessWidget {
               // ── Info Rows – Email, Role, Department ─────────────────
               _buildInfoRow(
                 icon: Icons.email_outlined,
-                text: 'gilbert.pinili@tup.edu.ph',
+                text: email,
               ),
               const Divider(height: 25, color: Color(0xFFEEEEEE)),
               _buildInfoRow(
                 icon: Icons.work_outline,
-                text: 'Faculty',
+                text: userType,
               ),
               const Divider(height: 25, color: Color(0xFFEEEEEE)),
               _buildInfoRow(
                 icon: Icons.groups_outlined,
-                text: 'Assistant Director for Research and Extension Office',
+                text: role,
               ),
 
               const SizedBox(height: 30),
@@ -201,10 +212,15 @@ class ProfilePage extends StatelessWidget {
                 ),
               ],
             ),
-            child: const CircleAvatar(
+            child: CircleAvatar(
               radius: 55,
-              backgroundColor: Color(0xFF2C2F33),
-              child: Icon(Icons.person, size: 80, color: Colors.white54),
+              backgroundColor: const Color(0xFF2C2F33),
+              backgroundImage: profilePhoto != null 
+                  ? NetworkImage('${ApiConstants.storageUrl}$profilePhoto')
+                  : null,
+              child: profilePhoto == null 
+                  ? const Icon(Icons.person, size: 80, color: Colors.white54)
+                  : null,
             ),
           ),
         ),
