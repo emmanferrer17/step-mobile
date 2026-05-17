@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../app/config/routes.dart';
 import '../../app/config/constants.dart';
 import '../../app/controllers/auth_controller.dart';
@@ -68,7 +69,7 @@ class ProfilePage extends StatelessWidget {
                 children: [
                   // ── Profile Card (overlapping Avatar) ──────────────────
                   // Uses a Stack so the CircleAvatar can "float" above the white card
-                  _buildProfileCard(user),
+                  _buildProfileCard(context, user),
 
                   const SizedBox(height: 20),
 
@@ -83,7 +84,7 @@ class ProfilePage extends StatelessWidget {
           ),
         ],
       ),
-      floatingActionButton: _buildQRButton(),
+      floatingActionButton: _buildQRButton(context),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: _buildBottomNav(context),
     );
@@ -92,10 +93,8 @@ class ProfilePage extends StatelessWidget {
   /// Builds the white profile card that overlaps the red header via a top Stack.
   /// The CircleAvatar is Positioned above the card so it appears to float on the
   /// boundary between the red header and the white card.
-  Widget _buildProfileCard(UserModel? user) {
+  Widget _buildProfileCard(BuildContext context, UserModel? user) {
     final name = user?.fullName ?? 'User Name';
-    final email = user?.email ?? 'user@tup.edu.ph';
-    final userType = user?.userType ?? 'Unassigned';
     final role = user?.roleName ?? user?.departmentName ?? 'Unassigned Role/Department';
     final profilePhoto = user?.profilePhoto;
 
@@ -124,72 +123,44 @@ class ProfilePage extends StatelessWidget {
               // User's full name
               Text(
                 name,
+                textAlign: TextAlign.center,
                 style: const TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w600,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
                   color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 5),
+
+              // Role/Dept (Red text)
+              Text(
+                role,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF8C0404),
                 ),
               ),
               const SizedBox(height: 25),
 
-              // ── Info Rows – Email, Role, Department ─────────────────
-              _buildInfoRow(
-                icon: Icons.email_outlined,
-                text: email,
+              // ── Menu Buttons – General Info, Edit Profile & Log out ─────────────
+              _buildMenuButton(
+                label: 'General Information',
+                onPressed: () => _showGeneralInfoModal(context, user),
               ),
-              const Divider(height: 25, color: Color(0xFFEEEEEE)),
-              _buildInfoRow(
-                icon: Icons.work_outline,
-                text: userType,
+              const SizedBox(height: 12),
+              _buildMenuButton(
+                label: 'Edit Profile',
+                icon: Icons.edit_outlined,
+                onPressed: () {},
               ),
-              const Divider(height: 25, color: Color(0xFFEEEEEE)),
-              _buildInfoRow(
-                icon: Icons.groups_outlined,
-                text: role,
-              ),
-
-              const SizedBox(height: 30),
-
-              // ── Action Buttons – Edit Profile & Log out ─────────────
-              Row(
-                children: [
-                  // "edit profile" button – solid red fill
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () {}, // Logic will be added later
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF8C0404),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        elevation: 0,
-                      ),
-                      child: const Text(
-                        'Edit',
-                        style: TextStyle(color: Colors.white, fontSize: 15),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 15),
-                  // "Log out" button – white fill with red border
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () {}, // Logic will be added later
-                      style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Color(0xFF8C0404)),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
-                      child: const Text(
-                        'Log out',
-                        style: TextStyle(color: Color(0xFF8C0404), fontSize: 15),
-                      ),
-                    ),
-                  ),
-                ],
+              const SizedBox(height: 12),
+              _buildMenuButton(
+                label: 'Log out',
+                icon: Icons.logout,
+                isPrimary: true,
+                onPressed: () {},
               ),
             ],
           ),
@@ -199,62 +170,92 @@ class ProfilePage extends StatelessWidget {
         // Positioned at top so it straddles the header/card boundary
         Positioned(
           top: 0,
-          child: Container(
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(color: Colors.blueAccent, width: 4),
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 8,
-                  offset: const Offset(0, 4),
+          child: Stack(
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.blueAccent, width: 4),
+                  color: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            child: CircleAvatar(
-              radius: 55,
-              backgroundColor: const Color(0xFF2C2F33),
-              backgroundImage: profilePhoto != null 
-                  ? NetworkImage('${ApiConstants.storageUrl}$profilePhoto')
-                  : null,
-              child: profilePhoto == null 
-                  ? const Icon(Icons.person, size: 80, color: Colors.white54)
-                  : null,
-            ),
+                child: CircleAvatar(
+                  radius: 55,
+                  backgroundColor: const Color(0xFF2C2F33),
+                  backgroundImage: profilePhoto != null 
+                      ? NetworkImage('${ApiConstants.storageUrl}$profilePhoto')
+                      : null,
+                  child: profilePhoto == null 
+                      ? const Icon(Icons.person, size: 80, color: Colors.white54)
+                      : null,
+                ),
+              ),
+              // Edit Icon Overlay
+              Positioned(
+                bottom: 5,
+                right: 5,
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.grey.shade400),
+                  ),
+                  child: const Icon(Icons.edit_outlined, size: 18, color: Colors.black54),
+                ),
+              ),
+            ],
           ),
         ),
       ],
     );
   }
 
-  /// Helper: builds one info row with a circular red icon and detail text.
-  Widget _buildInfoRow({required IconData icon, required String text}) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        // Circular red icon container
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: const BoxDecoration(
-            color: Color(0xFF8C0404),
-            shape: BoxShape.circle,
-          ),
-          child: Icon(icon, color: Colors.white, size: 18),
+  /// Helper: builds a menu button for the profile card.
+  Widget _buildMenuButton({
+    required String label,
+    IconData? icon,
+    bool isPrimary = false,
+    required VoidCallback onPressed,
+  }) {
+    return InkWell(
+      onTap: onPressed,
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+        decoration: BoxDecoration(
+          color: isPrimary ? const Color(0xFF8C0404) : Colors.white,
+          borderRadius: BorderRadius.circular(10),
+          border: isPrimary ? null : Border.all(color: Colors.grey.shade400),
         ),
-        const SizedBox(width: 15),
-        // Detail text, wrapped so it doesn't overflow
-        Expanded(
-          child: Text(
-            text,
-            style: const TextStyle(
-              color: Colors.black87,
-              fontSize: 14,
-              height: 1.4,
+        child: Row(
+          children: [
+            if (icon != null) ...[
+              Icon(
+                icon,
+                color: isPrimary ? Colors.white : Colors.black54,
+                size: 24,
+              ),
+              const SizedBox(width: 15),
+            ],
+            Text(
+              label,
+              style: TextStyle(
+                color: isPrimary ? Colors.white : Colors.black54,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-          ),
+          ],
         ),
-      ],
+      ),
     );
   }
 
@@ -374,7 +375,7 @@ class ProfilePage extends StatelessWidget {
   }
 
   /// Builds the QR scanner floating action button (center-docked).
-  Widget _buildQRButton() {
+  Widget _buildQRButton(BuildContext context) {
     return Container(
       width: 75,
       height: 75,
@@ -388,13 +389,31 @@ class ProfilePage extends StatelessWidget {
         elevation: 0,
         backgroundColor: Colors.white,
         shape: const CircleBorder(),
-        onPressed: () {},
-        child: const Column(
+        onPressed: () {
+          Navigator.pushNamed(context, AppRoutes.qrScanner);
+        },
+        child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.qr_code_scanner, color: Color(0xFF8C0404), size: 28),
-            SizedBox(height: 2),
-            Text(
+            SvgPicture.asset(
+              'assets/images/qr.svg',
+              colorFilter: const ColorFilter.mode(
+                Color(0xFF8C0404),
+                BlendMode.srcIn,
+              ),
+              width: 28,
+              height: 28,
+              errorBuilder: (context, error, stackTrace) {
+                debugPrint('SVG QR FAB Error (Profile View): $error');
+                return const Icon(
+                  Icons.qr_code_scanner,
+                  color: Color(0xFF8C0404),
+                  size: 28,
+                );
+              },
+            ),
+            const SizedBox(height: 4),
+            const Text(
               'QR',
               style: TextStyle(
                 color: Color(0xFF8C0404),
@@ -427,13 +446,29 @@ class ProfilePage extends StatelessWidget {
                 onTap: () {
                   Navigator.pushReplacementNamed(context, AppRoutes.home);
                 },
-                child: const Column(
+                child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.inventory_2_outlined, color: Color(0xFF8C0404)),
-                    SizedBox(height: 4),
-                    Text(
+                    SvgPicture.asset(
+                      'assets/images/inventory.svg',
+                      colorFilter: const ColorFilter.mode(
+                        Color(0xFF8C0404),
+                        BlendMode.srcIn,
+                      ),
+                      width: 24,
+                      height: 24,
+                      errorBuilder: (context, error, stackTrace) {
+                        debugPrint('SVG Inventory Nav Error (Profile View): $error');
+                        return const Icon(
+                          Icons.inventory_2_outlined,
+                          color: Color(0xFF8C0404),
+                          size: 24,
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 4),
+                    const Text(
                       'Inventory',
                       style: TextStyle(color: Color(0xFF8C0404), fontSize: 12),
                     ),
@@ -446,13 +481,36 @@ class ProfilePage extends StatelessWidget {
             Expanded(
               child: InkWell(
                 onTap: () {}, // Already on Profile, no-op
-                child: const Column(
+                child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.person, color: Color(0xFF8C0404)),
-                    SizedBox(height: 4),
-                    Text(
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF8C0404).withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: SvgPicture.asset(
+                        'assets/images/profile.svg',
+                        colorFilter: const ColorFilter.mode(
+                          Color(0xFF8C0404),
+                          BlendMode.srcIn,
+                        ),
+                        width: 24,
+                        height: 24,
+                        errorBuilder: (context, error, stackTrace) {
+                          debugPrint('SVG Profile Nav Error (Profile View): $error');
+                          return const Icon(
+                            Icons.person,
+                            color: Color(0xFF8C0404),
+                            size: 24,
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    const Text(
                       'Profile',
                       style: TextStyle(
                         color: Color(0xFF8C0404),
@@ -466,6 +524,164 @@ class ProfilePage extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  /// Displays a modal containing the user's detailed information.
+  void _showGeneralInfoModal(BuildContext context, UserModel? user) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+      ),
+      builder: (context) {
+        return DraggableScrollableSheet(
+          initialChildSize: 0.9,
+          minChildSize: 0.5,
+          maxChildSize: 0.95,
+          expand: false,
+          builder: (_, controller) {
+            return Column(
+              children: [
+                // Modal Header
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
+                  child: Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.arrow_back, color: Colors.black87),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                      const Expanded(
+                        child: Center(
+                          child: Text(
+                            'General Information',
+                            style: TextStyle(
+                              color: Color(0xFF8C0404),
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 48), // Spacer to balance the back button
+                    ],
+                  ),
+                ),
+                const Divider(height: 1),
+                Expanded(
+                  child: ListView(
+                    controller: controller,
+                    padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 25),
+                    children: [
+                      _buildSectionTitle('Personal Information'),
+                      _buildInfoField('First Name', user?.firstName ?? 'N/A'),
+                      _buildInfoField('Middle Name', (user?.middleName == null || user!.middleName.isEmpty) ? 'N/A' : user.middleName),
+                      _buildInfoField('Last Name', user?.lastName ?? 'N/A'),
+                      _buildInfoField('Suffix', (user?.suffix == null || user!.suffix.isEmpty) ? 'N/A' : user.suffix),
+                      _buildInfoField('Contact No.', user?.contactNo ?? 'N/A'),
+                      
+                      const SizedBox(height: 20),
+                      _buildSectionTitle('Account Setup'),
+                      _buildInfoField('TUP-ID', user?.tupId ?? 'N/A'),
+                      _buildInfoField('TUP Email', user?.email ?? 'N/A'),
+                      _buildInfoField('User Type', user?.userType ?? 'N/A'),
+                      _buildInfoField('Department/Office', user?.departmentName ?? 'N/A'),
+                      _buildPasswordField('Password'),
+                    ],
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  /// Helper: builds a section title for the modal.
+  Widget _buildSectionTitle(String title) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 20),
+      child: Text(
+        title,
+        style: const TextStyle(
+          fontSize: 17,
+          fontWeight: FontWeight.bold,
+          color: Colors.black87,
+        ),
+      ),
+    );
+  }
+
+  /// Helper: builds a single labeled info field.
+  Widget _buildInfoField(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 25),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey.shade500,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Helper: builds a masked password field with a visibility icon.
+  Widget _buildPasswordField(String label) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 25),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey.shade500,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                '••••••••••••',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                  letterSpacing: 2,
+                ),
+              ),
+              Icon(
+                Icons.visibility_off_outlined,
+                color: Colors.grey.shade600,
+                size: 22,
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

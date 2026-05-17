@@ -18,6 +18,7 @@ class UserModel {
   final String? roleName;
   final String? departmentName;
   final String? profilePhoto;
+  final String contactNo;
 
   const UserModel({
     required this.id,
@@ -32,6 +33,7 @@ class UserModel {
     this.roleName,
     this.departmentName,
     this.profilePhoto,
+    required this.contactNo,
   });
 
   // fromMap: converts raw API Map data into a UserModel object.
@@ -56,6 +58,7 @@ class UserModel {
           ? (map['departments'] as List).map((d) => d['dep_name']).join(', ')
           : null,
       profilePhoto: map['user_profile_photo'] as String?,
+      contactNo: (map['user_contactno'] as String?) ?? 'N/A',
     );
   }
 

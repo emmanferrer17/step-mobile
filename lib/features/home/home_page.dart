@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../app/config/routes.dart';
 import '../../app/config/constants.dart';
 import '../../app/controllers/auth_controller.dart';
@@ -16,11 +17,10 @@ class _HomePageState extends State<HomePage> {
   final int notificationCount = 2;
 
   final List<Map<String, dynamic>> categories = [
-    {'name': 'All', 'icon': Icons.inventory_2_outlined, 'isSelected': true},
-    {'name': 'Equipment', 'icon': Icons.memory_outlined, 'isSelected': false},
-    {'name': 'Appliances', 'icon': Icons.power_outlined, 'isSelected': false},
-    {'name': 'Furnitures', 'icon': Icons.chair_outlined, 'isSelected': false},
-    {'name': 'Materials', 'icon': Icons.handyman_outlined, 'isSelected': false},
+    {'name': 'All', 'iconPath': 'assets/images/all.svg', 'isSelected': true},
+    {'name': 'Equipment', 'iconPath': 'assets/images/equipment.svg', 'isSelected': false},
+    {'name': 'Semi-Expendable', 'iconPath': 'assets/images/semi-expendable.svg', 'isSelected': false},
+    {'name': 'Supplies', 'iconPath': 'assets/images/supplies.svg', 'isSelected': false},
   ];
 
   final List<Map<String, String>> items = [
@@ -83,9 +83,11 @@ class _HomePageState extends State<HomePage> {
           Expanded(
             child: Container(
               margin: const EdgeInsets.symmetric(horizontal: 20),
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 color: Colors.white,
+                borderRadius: BorderRadius.circular(10),
               ),
+              clipBehavior: Clip.antiAlias,
               child: _buildItemList(),
             ),
           ),
@@ -223,7 +225,7 @@ class _HomePageState extends State<HomePage> {
             ],
           ),
           child: IconButton(
-            icon: const Icon(Icons.tune, color: Colors.grey),
+            icon: const Icon(Icons.tune, color: Color(0xFF333333)),
             onPressed: () {
               showModalBottomSheet(
                 context: context,
@@ -238,36 +240,56 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  /// Builds a horizontally scrollable list of categories.
+  /// Builds a horizontally distributed list of categories.
   /// It highlights the currently selected category (e.g., 'All') with a solid
-  /// red background and white icon, while unselected ones have a red border.
+  /// red background and white SVG icon, while unselected ones have a red border and red SVG icon.
   Widget _buildCategories() {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
+    return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 10),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: categories.map((category) {
           final isSelected = category['isSelected'] as bool;
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10),
+          return GestureDetector(
+            onTap: () {
+              setState(() {
+                for (var cat in categories) {
+                  cat['isSelected'] = (cat == category);
+                }
+              });
+            },
             child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
                   width: 65,
                   height: 65,
+                  alignment: Alignment.center,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: isSelected ? const Color(0xFF8C0404) : Colors.white,
                     border: Border.all(
-                      color: isSelected ? Colors.transparent : const Color(0xFF8C0404),
+                      color: const Color(0xFF8C0404),
                       width: 1.5,
                     ),
                   ),
-                  child: Icon(
-                    category['icon'] as IconData,
-                    color: isSelected ? Colors.white : const Color(0xFF8C0404),
-                    size: 28,
+                  child: SvgPicture.asset(
+                    category['iconPath'] as String,
+                    colorFilter: ColorFilter.mode(
+                      isSelected ? Colors.white : const Color(0xFF8C0404),
+                      BlendMode.srcIn,
+                    ),
+                    width: 28,
+                    height: 28,
+                    errorBuilder: (context, error, stackTrace) {
+                      debugPrint('SVG Category Error (${category['name']}): $error');
+                      return Icon(
+                        Icons.broken_image,
+                        color: isSelected ? Colors.white : const Color(0xFF8C0404),
+                        size: 28,
+                      );
+                    },
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -326,9 +348,273 @@ class _HomePageState extends State<HomePage> {
             color: Colors.grey,
             size: 22,
           ),
-          onTap: () {},
+          onTap: () {
+            _showItemDetailsModal(context);
+          },
         );
       },
+    );
+  }
+
+  /// Displays the full-screen modal showing details of the clicked item (Nintendo Switch).
+  void _showItemDetailsModal(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return Container(
+          height: MediaQuery.of(context).size.height * 0.9,
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(20),
+              topRight: Radius.circular(20),
+            ),
+          ),
+          child: Column(
+            children: [
+              // Modal Top Navigation Bar
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                child: Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.arrow_back, color: Colors.black87),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                    const Expanded(
+                      child: Text(
+                        'Nintendo Switch',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Color(0xFF8C0404),
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 48), // Balancing width for centered title
+                  ],
+                ),
+              ),
+              const Divider(height: 1, color: Color(0xFFEEEEEE)),
+              
+              // Scrollable Body Content
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Upload Photo Box with Red Border
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 25),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(15),
+                          border: Border.all(
+                            color: const Color(0xFF8C0404),
+                            width: 1.5,
+                          ),
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            SvgPicture.asset(
+                              'assets/images/upload-photo.svg',
+                              height: 130,
+                              fit: BoxFit.contain,
+                              errorBuilder: (context, error, stackTrace) {
+                                debugPrint('SVG Upload Photo Error: $error');
+                                return const Icon(
+                                  Icons.cloud_upload_outlined,
+                                  size: 80,
+                                  color: Color(0xFF8C0404),
+                                );
+                              },
+                            ),
+                            const SizedBox(height: 15),
+                            const Text(
+                              'Tap to upload photo',
+                              style: TextStyle(
+                                color: Color(0xFF8C0404),
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(Icons.info_outline, size: 13, color: Colors.grey),
+                                const SizedBox(width: 4),
+                                const Text(
+                                  'Supported files: .svg, .png, .jpeg',
+                                  style: TextStyle(
+                                    color: Colors.grey,
+                                    fontSize: 11,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 20),
+                            // Divider Row with "or"
+                            Row(
+                              children: [
+                                Expanded(child: Divider(color: Colors.grey[300], thickness: 1)),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                                  child: Text(
+                                    'or',
+                                    style: TextStyle(color: Colors.grey[400], fontSize: 14),
+                                  ),
+                                ),
+                                Expanded(child: Divider(color: Colors.grey[300], thickness: 1)),
+                              ],
+                            ),
+                            const SizedBox(height: 20),
+                            // Open Camera Button
+                            ElevatedButton(
+                              onPressed: () {},
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF8C0404),
+                                padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 14),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                elevation: 0,
+                              ),
+                              child: const Text(
+                                'Open camera',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 25),
+                      
+                      // Metadata Table / Details List
+                      _buildDetailRow('Location', 'Add Location', showEdit: true),
+                      const Divider(height: 1, color: Color(0xFFEEEEEE)),
+                      _buildDetailRow('Date', '10/09/2020'),
+                      const Divider(height: 1, color: Color(0xFFEEEEEE)),
+                      _buildDetailRow('Stock', '1'),
+                      const Divider(height: 1, color: Color(0xFFEEEEEE)),
+                      _buildDetailRow('Unit', '1'),
+                      const Divider(height: 1, color: Color(0xFFEEEEEE)),
+                      _buildDescriptionDetailRow(
+                        'Description',
+                        'Custom NVIDIA T239 chip featuring an 8-core ARM Cortex-A78C C... ',
+                        'See more',
+                      ),
+                      const Divider(height: 1, color: Color(0xFFEEEEEE)),
+                      _buildDetailRow('Quantity', '1'),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  /// Builds a standard row for key-value pair item details.
+  Widget _buildDetailRow(String label, String value, {bool showEdit = false}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 14),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          SizedBox(
+            width: 110,
+            child: Text(
+              label,
+              style: const TextStyle(
+                color: Colors.grey,
+                fontSize: 15,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: TextStyle(
+                color: showEdit ? Colors.grey[600] : Colors.black87,
+                fontSize: 15,
+                fontWeight: showEdit ? FontWeight.w500 : FontWeight.bold,
+              ),
+            ),
+          ),
+          if (showEdit)
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF1F1F1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(
+                Icons.edit_outlined,
+                size: 20,
+                color: Colors.black54,
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  /// Builds a details row specifically styled for multi-line description.
+  Widget _buildDescriptionDetailRow(String label, String text, String actionText) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 14),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 110,
+            child: Text(
+              label,
+              style: const TextStyle(
+                color: Colors.grey,
+                fontSize: 15,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          Expanded(
+            child: RichText(
+              text: TextSpan(
+                style: const TextStyle(
+                  color: Colors.black87,
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  height: 1.3,
+                ),
+                children: [
+                  TextSpan(text: text),
+                  TextSpan(
+                    text: actionText,
+                    style: const TextStyle(
+                      color: Colors.grey,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -348,13 +634,32 @@ class _HomePageState extends State<HomePage> {
         elevation: 0,
         backgroundColor: Colors.white,
         shape: const CircleBorder(),
-        onPressed: () {},
-        child: const Column(
+        onPressed: () {
+          // [NAVIGATION] Open the QR Scanner page
+          Navigator.pushNamed(context, AppRoutes.qrScanner);
+        },
+        child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.qr_code_scanner, color: Color(0xFF8C0404), size: 28),
-            SizedBox(height: 2),
-            Text(
+            SvgPicture.asset(
+              'assets/images/qr.svg',
+              colorFilter: const ColorFilter.mode(
+                Color(0xFF8C0404),
+                BlendMode.srcIn,
+              ),
+              width: 28,
+              height: 28,
+              errorBuilder: (context, error, stackTrace) {
+                debugPrint('SVG QR FAB Error: $error');
+                return const Icon(
+                  Icons.qr_code_scanner,
+                  color: Color(0xFF8C0404),
+                  size: 28,
+                );
+              },
+            ),
+            const SizedBox(height: 4),
+            const Text(
               'QR',
               style: TextStyle(
                 color: Color(0xFF8C0404),
@@ -384,13 +689,36 @@ class _HomePageState extends State<HomePage> {
             Expanded(
               child: InkWell(
                 onTap: () {},
-                child: const Column(
+                child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.inventory_2, color: Color(0xFF8C0404)),
-                    SizedBox(height: 4),
-                    Text(
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF8C0404).withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: SvgPicture.asset(
+                        'assets/images/inventory.svg',
+                        colorFilter: const ColorFilter.mode(
+                          Color(0xFF8C0404),
+                          BlendMode.srcIn,
+                        ),
+                        width: 24,
+                        height: 24,
+                        errorBuilder: (context, error, stackTrace) {
+                          debugPrint('SVG Inventory Nav Error: $error');
+                          return const Icon(
+                            Icons.inventory_2,
+                            color: Color(0xFF8C0404),
+                            size: 24,
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    const Text(
                       'Inventory',
                       style: TextStyle(color: Color(0xFF8C0404), fontSize: 12, fontWeight: FontWeight.bold),
                     ),
@@ -404,13 +732,29 @@ class _HomePageState extends State<HomePage> {
                 onTap: () {
                   Navigator.pushNamed(context, AppRoutes.profile);
                 },
-                child: const Column(
+                child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.person_outline, color: Color(0xFF8C0404)),
-                    SizedBox(height: 4),
-                    Text(
+                    SvgPicture.asset(
+                      'assets/images/profile.svg',
+                      colorFilter: const ColorFilter.mode(
+                        Color(0xFF8C0404),
+                        BlendMode.srcIn,
+                      ),
+                      width: 24,
+                      height: 24,
+                      errorBuilder: (context, error, stackTrace) {
+                        debugPrint('SVG Profile Nav Error: $error');
+                        return const Icon(
+                          Icons.person_outline,
+                          color: Color(0xFF8C0404),
+                          size: 24,
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 4),
+                    const Text(
                       'Profile',
                       style: TextStyle(color: Color(0xFF8C0404), fontSize: 12),
                     ),

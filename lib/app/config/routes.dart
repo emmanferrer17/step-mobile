@@ -5,6 +5,7 @@ import '../controllers/home_controller.dart';
 import '../../features/auth/registration_page.dart';
 import '../../features/home/home_page.dart';
 import '../../features/profile/profile_page.dart';
+import '../../features/qr_scanner/qr_scanner_page.dart'; // [MVC] Added QR Scanner feature
 
 // [MVC - ROUTING]
 // AppRoutes is the single source of truth for all navigation in the app.
@@ -23,6 +24,7 @@ class AppRoutes {
   static const String home     = '/home';
   static const String register = '/register';
   static const String profile  = '/profile';
+  static const String qrScanner = '/qr-scanner'; 
 
   // --- Route Generator ---
   // Registered in MaterialApp via: onGenerateRoute: AppRoutes.generateRoute
@@ -52,6 +54,10 @@ class AppRoutes {
 
       case profile:
         return _buildRoute(settings, const ProfilePage());
+
+      case qrScanner:
+        // [ROUTE] QRScannerPage is a basic camera view in Phase 2
+        return _buildRoute(settings, const QRScannerPage());
 
       default:
         // Fallback screen for any unknown route
