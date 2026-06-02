@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';                          // [MVC] Provider
-import 'app/controllers/auth_controller.dart';                   // [MVC] AuthController
+import 'package:mobile/app/controllers/auth_controller.dart';                   // [MVC] AuthController
+import 'package:mobile/app/controllers/profile_controller.dart';                // [MVC] ProfileController
 import 'app/config/routes.dart';                                 // [MVC] Centralized routing
 
 // [MVC - ENTRY POINT]
@@ -12,6 +13,10 @@ void main() => runApp(
   MultiProvider(
     providers: [
       ChangeNotifierProvider(create: (_) => AuthController()),
+      ChangeNotifierProxyProvider<AuthController, ProfileController>(
+        create: (context) => ProfileController(Provider.of<AuthController>(context, listen: false)),
+        update: (context, auth, previous) => ProfileController(auth),
+      ),
     ],
     child: MaterialApp(
       debugShowCheckedModeBanner: false,

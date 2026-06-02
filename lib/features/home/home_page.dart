@@ -5,6 +5,7 @@ import '../../app/config/routes.dart';
 import '../../app/config/constants.dart';
 import '../../app/controllers/auth_controller.dart';
 import 'widgets/filter_bottom_sheet.dart';
+import 'widgets/item_details_modal.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -131,10 +132,6 @@ class _HomePageState extends State<HomePage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text(
-                  'Hello',
-                  style: TextStyle(color: Colors.white70, fontSize: 13),
-                ),
                 Text(
                   userName,
                   style: const TextStyle(
@@ -147,31 +144,13 @@ class _HomePageState extends State<HomePage> {
             ),
           ],
         ),
-        Stack(
-          clipBehavior: Clip.none,
-          children: [
-            const Icon(Icons.notifications_none, color: Colors.white, size: 30),
-            if (notificationCount > 0)
-              Positioned(
-                right: -2,
-                top: 2,
-                child: Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: const BoxDecoration(
-                    color: Colors.lightGreen,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Text(
-                    notificationCount.toString(),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
-          ],
+        IconButton(
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(),
+          icon: const Icon(Icons.notifications_none, color: Colors.white, size: 30),
+          onPressed: () {
+            Navigator.pushNamed(context, AppRoutes.archive);
+          },
         ),
       ],
     );
@@ -356,264 +335,15 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  /// Displays the full-screen modal showing details of the clicked item (Nintendo Switch).
+  /// Displays the floating pop-up dialog showing details of the clicked item (Nintendo Switch).
   void _showItemDetailsModal(BuildContext context) {
-    showModalBottomSheet(
+    showDialog(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) {
-        return Container(
-          height: MediaQuery.of(context).size.height * 0.9,
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(20),
-              topRight: Radius.circular(20),
-            ),
-          ),
-          child: Column(
-            children: [
-              // Modal Top Navigation Bar
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                child: Row(
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.arrow_back, color: Colors.black87),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                    const Expanded(
-                      child: Text(
-                        'Nintendo Switch',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: Color(0xFF8C0404),
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 48), // Balancing width for centered title
-                  ],
-                ),
-              ),
-              const Divider(height: 1, color: Color(0xFFEEEEEE)),
-              
-              // Scrollable Body Content
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Upload Photo Box with Red Border
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 25),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(15),
-                          border: Border.all(
-                            color: const Color(0xFF8C0404),
-                            width: 1.5,
-                          ),
-                        ),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            SvgPicture.asset(
-                              'assets/images/upload-photo.svg',
-                              height: 130,
-                              fit: BoxFit.contain,
-                              errorBuilder: (context, error, stackTrace) {
-                                debugPrint('SVG Upload Photo Error: $error');
-                                return const Icon(
-                                  Icons.cloud_upload_outlined,
-                                  size: 80,
-                                  color: Color(0xFF8C0404),
-                                );
-                              },
-                            ),
-                            const SizedBox(height: 15),
-                            const Text(
-                              'Tap to upload photo',
-                              style: TextStyle(
-                                color: Color(0xFF8C0404),
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Icon(Icons.info_outline, size: 13, color: Colors.grey),
-                                const SizedBox(width: 4),
-                                const Text(
-                                  'Supported files: .svg, .png, .jpeg',
-                                  style: TextStyle(
-                                    color: Colors.grey,
-                                    fontSize: 11,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 20),
-                            // Divider Row with "or"
-                            Row(
-                              children: [
-                                Expanded(child: Divider(color: Colors.grey[300], thickness: 1)),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                                  child: Text(
-                                    'or',
-                                    style: TextStyle(color: Colors.grey[400], fontSize: 14),
-                                  ),
-                                ),
-                                Expanded(child: Divider(color: Colors.grey[300], thickness: 1)),
-                              ],
-                            ),
-                            const SizedBox(height: 20),
-                            // Open Camera Button
-                            ElevatedButton(
-                              onPressed: () {},
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF8C0404),
-                                padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 14),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                elevation: 0,
-                              ),
-                              child: const Text(
-                                'Open camera',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 25),
-                      
-                      // Metadata Table / Details List
-                      _buildDetailRow('Location', 'Add Location', showEdit: true),
-                      const Divider(height: 1, color: Color(0xFFEEEEEE)),
-                      _buildDetailRow('Date', '10/09/2020'),
-                      const Divider(height: 1, color: Color(0xFFEEEEEE)),
-                      _buildDetailRow('Stock', '1'),
-                      const Divider(height: 1, color: Color(0xFFEEEEEE)),
-                      _buildDetailRow('Unit', '1'),
-                      const Divider(height: 1, color: Color(0xFFEEEEEE)),
-                      _buildDescriptionDetailRow(
-                        'Description',
-                        'Custom NVIDIA T239 chip featuring an 8-core ARM Cortex-A78C C... ',
-                        'See more',
-                      ),
-                      const Divider(height: 1, color: Color(0xFFEEEEEE)),
-                      _buildDetailRow('Quantity', '1'),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  /// Builds a standard row for key-value pair item details.
-  Widget _buildDetailRow(String label, String value, {bool showEdit = false}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 14),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          SizedBox(
-            width: 110,
-            child: Text(
-              label,
-              style: const TextStyle(
-                color: Colors.grey,
-                fontSize: 15,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-          Expanded(
-            child: Text(
-              value,
-              style: TextStyle(
-                color: showEdit ? Colors.grey[600] : Colors.black87,
-                fontSize: 15,
-                fontWeight: showEdit ? FontWeight.w500 : FontWeight.bold,
-              ),
-            ),
-          ),
-          if (showEdit)
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF1F1F1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(
-                Icons.edit_outlined,
-                size: 20,
-                color: Colors.black54,
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  /// Builds a details row specifically styled for multi-line description.
-  Widget _buildDescriptionDetailRow(String label, String text, String actionText) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 14),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 110,
-            child: Text(
-              label,
-              style: const TextStyle(
-                color: Colors.grey,
-                fontSize: 15,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-          Expanded(
-            child: RichText(
-              text: TextSpan(
-                style: const TextStyle(
-                  color: Colors.black87,
-                  fontSize: 15,
-                  fontWeight: FontWeight.bold,
-                  height: 1.3,
-                ),
-                children: [
-                  TextSpan(text: text),
-                  TextSpan(
-                    text: actionText,
-                    style: const TextStyle(
-                      color: Colors.grey,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
+      barrierDismissible: true,
+      builder: (context) => const Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+        child: ItemDetailsModal(),
       ),
     );
   }

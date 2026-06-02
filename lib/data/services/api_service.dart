@@ -4,7 +4,6 @@ import 'dart:async';
 import 'package:http/http.dart' as http;
 import '../../app/config/constants.dart'; // [MVC] Use ApiConstants instead of hardcoded URLs
 import '../models/department_model.dart';  // [MVC] Typed model for Department data
-import '../models/user_model.dart';        // [MVC] Typed model for User data
 
 // [MVC - SERVICE LAYER]
 // ApiService is responsible for ALL communication with the backend.
@@ -162,6 +161,95 @@ class ApiService {
     }
   }
 
+  Future<Map<String, dynamic>> logout(String token) async {
+    final url = Uri.parse(ApiConstants.logoutUrl);
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      ).timeout(const Duration(seconds: 10));
+
+      return _handleResponse(response);
+    } on SocketException {
+      return {'status': 'error', 'message': 'Connection Error: Could not connect to the server.'};
+    } on TimeoutException {
+      return {'status': 'error', 'message': 'Connection Timeout: The server took too long to respond.'};
+    } catch (e) {
+      return {'status': 'error', 'message': 'An unexpected error occurred: ${e.toString()}'};
+    }
+  }
+
+  // --- Profile Edit Methods ---
+  Future<Map<String, dynamic>> updateProfile(Map<String, String> profileData, String token) async {
+    final url = Uri.parse(ApiConstants.updateProfileUrl);
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: profileData,
+      ).timeout(const Duration(seconds: 10));
+
+      return _handleResponse(response);
+    } on SocketException {
+      return {'status': 'error', 'message': 'Connection Error: Could not connect to the server.'};
+    } on TimeoutException {
+      return {'status': 'error', 'message': 'Connection Timeout: The server took too long to respond.'};
+    } catch (e) {
+      return {'status': 'error', 'message': 'An unexpected error occurred: ${e.toString()}'};
+    }
+  }
+
+  Future<Map<String, dynamic>> updatePassword(Map<String, String> passwordData, String token) async {
+    final url = Uri.parse(ApiConstants.updatePasswordUrl);
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: passwordData,
+      ).timeout(const Duration(seconds: 10));
+
+      return _handleResponse(response);
+    } on SocketException {
+      return {'status': 'error', 'message': 'Connection Error: Could not connect to the server.'};
+    } on TimeoutException {
+      return {'status': 'error', 'message': 'Connection Timeout: The server took too long to respond.'};
+    } catch (e) {
+      return {'status': 'error', 'message': 'An unexpected error occurred: ${e.toString()}'};
+    }
+  }
+  Future<Map<String, dynamic>> updateAvatar(File imageFile, String token) async {
+    final url = Uri.parse(ApiConstants.updateAvatarUrl);
+    try {
+      var request = http.MultipartRequest('POST', url);
+      request.headers.addAll({
+        'Accept': 'application/json',
+        'Authorization': 'Bearer $token',
+      });
+      request.files.add(await http.MultipartFile.fromPath('profile_photo', imageFile.path));
+
+      var streamedResponse = await request.send().timeout(const Duration(seconds: 30));
+      var response = await http.Response.fromStream(streamedResponse);
+      return _handleResponse(response);
+    } on SocketException {
+      return {'status': 'error', 'message': 'Connection Error: Could not connect to the server.'};
+    } on TimeoutException {
+      return {'status': 'error', 'message': 'Connection Timeout: The server took too long to respond.'};
+    } catch (e) {
+      return {'status': 'error', 'message': 'An unexpected error occurred: ${e.toString()}'};
+    }
+  }
+
   // --- Helper Function ---
   Map<String, dynamic> _handleResponse(http.Response response) {
     try {
@@ -173,6 +261,7 @@ class ApiService {
           'status': 'error',
           'message': responseBody['messages']?['error'] ?? responseBody['message'] ?? 'An unknown server error occurred.',
           'statusCode': response.statusCode,
+          'data': responseBody, // Include raw body so controllers can parse specific validation errors (e.g., password mismatch)
         };
       }
     } on FormatException {
