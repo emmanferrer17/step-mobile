@@ -81,6 +81,32 @@ class UserModel {
     };
   }
 
+  // Creates a new UserModel instance with selectively updated fields.
+  UserModel copyWith({
+    String? firstName,
+    String? middleName,
+    String? lastName,
+    String? suffix,
+    String? contactNo,
+    String? profilePhoto,
+  }) {
+    return UserModel(
+      id: id,
+      firstName: firstName ?? this.firstName,
+      middleName: middleName ?? this.middleName,
+      lastName: lastName ?? this.lastName,
+      suffix: suffix ?? this.suffix,
+      tupId: tupId,
+      email: email,
+      userType: userType,
+      departmentId: departmentId,
+      roleName: roleName,
+      departmentName: departmentName,
+      profilePhoto: profilePhoto ?? this.profilePhoto,
+      contactNo: contactNo ?? this.contactNo,
+    );
+  }
+
   // Get the user's full name in one convenient property
   String get fullName =>
       '$firstName $middleName $lastName ${suffix.isNotEmpty ? suffix : ''}'

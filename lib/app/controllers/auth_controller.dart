@@ -19,6 +19,7 @@ class AuthController extends ChangeNotifier {
   bool isLoading = false;
   String? errorMessage;
   UserModel? loggedInUser; // holds the user data after successful login
+  String? token; // holds the auth token for secure API requests
 
   // --- Login Logic (moved out of _WelcomePageState._login()) ---
   // Returns true if login was successful, false otherwise.
@@ -38,6 +39,7 @@ class AuthController extends ChangeNotifier {
       if (result['data'] != null && result['data']['user'] != null) {
         try {
           loggedInUser = UserModel.fromMap(result['data']['user']);
+          token = result['data']['access_token'];
         } catch (e) {
           debugPrint('Error parsing user data: $e');
           errorMessage = 'Parse error: $e';
@@ -58,8 +60,28 @@ class AuthController extends ChangeNotifier {
     }
   }
 
+  // Helper used by ProfileController to update the UI globally
+  void updateUserLocally(UserModel user) {
+    loggedInUser = user;
+    notifyListeners();
+  }
+
   // Clears the error message (e.g., when the user starts typing again)
   void clearError() {
+    errorMessage = null;
+    notifyListeners();
+  }
+
+  // --- Logout Logic ---
+  // Clears the user state and calls the API to invalidate the token.
+  Future<void> logout() async {
+    if (token != null) {
+      // Call the API service to revoke the token on the backend
+      await _apiService.logout(token!);
+    }
+    // Clear local state
+    loggedInUser = null;
+    token = null;
     errorMessage = null;
     notifyListeners();
   }

@@ -1,10 +1,16 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:image_cropper/image_cropper.dart';
 import '../../app/config/routes.dart';
 import '../../app/config/constants.dart';
-import '../../app/controllers/auth_controller.dart';
+import 'package:mobile/app/controllers/auth_controller.dart';
+import 'package:mobile/app/controllers/profile_controller.dart';
 import '../../data/models/user_model.dart';
+import 'widgets/general_info_dialog.dart';
+import 'widgets/faq_dialog.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -71,7 +77,7 @@ class ProfilePage extends StatelessWidget {
                   // Uses a Stack so the CircleAvatar can "float" above the white card
                   _buildProfileCard(context, user),
 
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 35),
 
                   // ── Statistics Section ──────────────────────────────────
                   _buildStatisticsSection(),
@@ -151,66 +157,76 @@ class ProfilePage extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               _buildMenuButton(
-                label: 'Edit Profile',
-                icon: Icons.edit_outlined,
-                onPressed: () {},
+                label: 'FAQS',
+                icon: Icons.help_outline,
+                onPressed: () => _showFaqModal(context),
               ),
               const SizedBox(height: 12),
               _buildMenuButton(
                 label: 'Log out',
                 icon: Icons.logout,
                 isPrimary: true,
-                onPressed: () {},
+                onPressed: () => _showLogoutConfirmation(context),
               ),
             ],
           ),
         ),
 
         // ── Floating CircleAvatar ──────────────────────────────────────
-        // Positioned at top so it straddles the header/card boundary
+        // Positioned at top spanning full width so hit-testing registers touch events perfectly.
         Positioned(
           top: 0,
-          child: Stack(
-            children: [
-              Container(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.blueAccent, width: 4),
-                  color: Colors.white,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 8,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: CircleAvatar(
-                  radius: 55,
-                  backgroundColor: const Color(0xFF2C2F33),
-                  backgroundImage: profilePhoto != null 
-                      ? NetworkImage('${ApiConstants.storageUrl}$profilePhoto')
-                      : null,
-                  child: profilePhoto == null 
-                      ? const Icon(Icons.person, size: 80, color: Colors.white54)
-                      : null,
-                ),
-              ),
-              // Edit Icon Overlay
-              Positioned(
-                bottom: 5,
-                right: 5,
-                child: Container(
-                  padding: const EdgeInsets.all(4),
+          left: 0,
+          right: 0,
+          child: Center(
+            child: Stack(
+              children: [
+                Container(
                   decoration: BoxDecoration(
-                    color: Colors.white,
                     shape: BoxShape.circle,
-                    border: Border.all(color: Colors.grey.shade400),
+                    border: Border.all(color: Colors.blueAccent, width: 4),
+                    color: Colors.white,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
-                  child: const Icon(Icons.edit_outlined, size: 18, color: Colors.black54),
+                  child: CircleAvatar(
+                    radius: 55,
+                    backgroundColor: const Color(0xFF2C2F33),
+                    backgroundImage: NetworkImage(
+                      profilePhoto != null 
+                          ? '${ApiConstants.storageUrl}$profilePhoto'
+                          : '${ApiConstants.storageUrl}img/profiles/blank.avif'
+                    ),
+                  ),
                 ),
-              ),
-            ],
+                // Edit Icon Overlay wrapped with GestureDetector for 100% robust touch response
+                Positioned(
+                  bottom: 5,
+                  right: 5,
+                  child: GestureDetector(
+                    onTap: () {
+                      debugPrint("Pencil avatar edit button tapped!");
+                      _showGalleryAccessModal(context);
+                    },
+                    behavior: HitTestBehavior.opaque,
+                    child: Container(
+                      padding: const EdgeInsets.all(6), // Slightly larger tap target
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: const Color(0xFF8C0404)),
+                      ),
+                      child: const Icon(Icons.edit_outlined, size: 18, color: Colors.black87),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ],
@@ -233,14 +249,14 @@ class ProfilePage extends StatelessWidget {
         decoration: BoxDecoration(
           color: isPrimary ? const Color(0xFF8C0404) : Colors.white,
           borderRadius: BorderRadius.circular(10),
-          border: isPrimary ? null : Border.all(color: Colors.grey.shade400),
+          border: isPrimary ? null : Border.all(color: const Color(0xFF8C0404)),
         ),
         child: Row(
           children: [
             if (icon != null) ...[
               Icon(
                 icon,
-                color: isPrimary ? Colors.white : Colors.black54,
+                color: isPrimary ? Colors.white : Colors.black87,
                 size: 24,
               ),
               const SizedBox(width: 15),
@@ -248,7 +264,7 @@ class ProfilePage extends StatelessWidget {
             Text(
               label,
               style: TextStyle(
-                color: isPrimary ? Colors.white : Colors.black54,
+                color: isPrimary ? Colors.white : Colors.black87,
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
               ),
@@ -260,60 +276,36 @@ class ProfilePage extends StatelessWidget {
   }
 
   /// Builds the statistics section below the profile card.
-  /// Shows a summary "All Items" row and four category boxes.
+  /// Shows four horizontal category boxes: All Items, Equipments, Appliances, and Supplies & Material.
   Widget _buildStatisticsSection() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 15.0),
       child: Column(
         children: [
-          // ── "All Items" Summary Row ────────────────────────────────
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 14),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: const Color(0xFF8C0404).withOpacity(0.4)),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    Icon(
-                      Icons.inventory_2_outlined,
-                      color: const Color(0xFF8C0404).withOpacity(0.8),
-                      size: 22,
-                    ),
-                    const SizedBox(width: 10),
-                    const Text(
-                      'All Items',
-                      style: TextStyle(color: Color(0xFF8C0404), fontSize: 16),
-                    ),
-                  ],
-                ),
-                // Total item count
-                const Text(
-                  '14',
-                  style: TextStyle(
-                    color: Color(0xFF8C0404),
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 10),
-
           // ── Category Breakdown Grid Row ─────────────────────────────
-          // Four equal-width boxes: Equipment, Appliances, Furniture, Materials
+          // Four equal-width boxes utilizing vector SVGs copied from the web app
           Row(
             children: [
-              _buildStatBox(icon: Icons.memory, count: '4', label: 'Equipment'),
-              _buildStatBox(icon: Icons.power, count: '2', label: 'Appliances'),
-              _buildStatBox(icon: Icons.chair_outlined, count: '5', label: 'Furniture'),
-              _buildStatBox(icon: Icons.handyman, count: '3', label: 'Materials'),
+              _buildStatBox(
+                svgPath: 'assets/images/mr-all.svg',
+                count: '14',
+                label: 'All Items',
+              ),
+              _buildStatBox(
+                svgPath: 'assets/images/mr-equipment.svg',
+                count: '4',
+                label: 'Equipments',
+              ),
+              _buildStatBox(
+                svgPath: 'assets/images/mr-semi-expandable.svg',
+                count: '2',
+                label: 'Appliances',
+              ),
+              _buildStatBox(
+                svgPath: 'assets/images/mr-supplies.svg',
+                count: '3',
+                label: 'Supplies & Material',
+              ),
             ],
           ),
         ],
@@ -321,55 +313,91 @@ class ProfilePage extends StatelessWidget {
     );
   }
 
-  /// Helper: builds one square category statistic box.
+  /// Helper: builds one square category statistic box using a vector SVG.
   Widget _buildStatBox({
-    required IconData icon,
+    required String svgPath,
     required String count,
     required String label,
   }) {
     return Expanded(
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 4),
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: const Color(0xFF8C0404).withOpacity(0.4)),
-        ),
-        child: Column(
-          children: [
-            // Red circular icon
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: const BoxDecoration(
-                color: Color(0xFF8C0404),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(icon, color: Colors.white, size: 22),
+      child: Stack(
+        alignment: Alignment.topCenter,
+        clipBehavior: Clip.none,
+        children: [
+          // ── White Card Body (Container) ─────────────────────────────────
+          Container(
+            // Top margin for overlap alignment, left/right margins for clean gaps
+            margin: const EdgeInsets.only(top: 30, left: 6, right: 6),
+            width: double.infinity,
+            height: 110, // Uniform slightly taller height
+            padding: const EdgeInsets.only(top: 35, left: 4, right: 4, bottom: 10),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFF8C0404)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.03),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
-            const SizedBox(height: 8),
-            // Item count
-            Text(
-              count,
-              style: const TextStyle(
-                color: Color(0xFF8C0404),
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Item count (increased to 22px)
+                Text(
+                  count,
+                  style: const TextStyle(
+                    color: Color(0xFF8C0404),
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                // Category label (increased to 11px, bold)
+                Text(
+                  label,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: Color(0xFF8C0404),
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
             ),
-            const SizedBox(height: 4),
-            // Category label
-            Text(
-              label,
-              style: const TextStyle(
-                color: Color(0xFF8C0404),
-                fontSize: 10,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+          ),
+
+          // ── Overlapping Circular SVG Icon (Top Layer) ────────────────────
+          Positioned(
+            top: 0,
+            child: SvgPicture.asset(
+              svgPath,
+              width: 60,
+              height: 60,
+              errorBuilder: (context, error, stackTrace) {
+                debugPrint('SVG Card Icon Error ($label): $error');
+                return Container(
+                  width: 60,
+                  height: 60,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF8C0404),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.broken_image_outlined,
+                    color: Colors.white,
+                    size: 30,
+                  ),
+                );
+              },
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -528,161 +556,256 @@ class ProfilePage extends StatelessWidget {
     );
   }
 
-  /// Displays a modal containing the user's detailed information.
+  /// Displays a floating pop-up dialog containing the user's detailed information.
   void _showGeneralInfoModal(BuildContext context, UserModel? user) {
-    showModalBottomSheet(
+    showDialog(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+      barrierDismissible: true,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+        child: GeneralInfoDialog(user: user),
       ),
-      builder: (context) {
-        return DraggableScrollableSheet(
-          initialChildSize: 0.9,
-          minChildSize: 0.5,
-          maxChildSize: 0.95,
-          expand: false,
-          builder: (_, controller) {
-            return Column(
-              children: [
-                // Modal Header
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
-                  child: Row(
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.arrow_back, color: Colors.black87),
-                        onPressed: () => Navigator.pop(context),
-                      ),
-                      const Expanded(
-                        child: Center(
-                          child: Text(
-                            'General Information',
-                            style: TextStyle(
-                              color: Color(0xFF8C0404),
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 48), // Spacer to balance the back button
-                    ],
-                  ),
-                ),
-                const Divider(height: 1),
-                Expanded(
-                  child: ListView(
-                    controller: controller,
-                    padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 25),
-                    children: [
-                      _buildSectionTitle('Personal Information'),
-                      _buildInfoField('First Name', user?.firstName ?? 'N/A'),
-                      _buildInfoField('Middle Name', (user?.middleName == null || user!.middleName.isEmpty) ? 'N/A' : user.middleName),
-                      _buildInfoField('Last Name', user?.lastName ?? 'N/A'),
-                      _buildInfoField('Suffix', (user?.suffix == null || user!.suffix.isEmpty) ? 'N/A' : user.suffix),
-                      _buildInfoField('Contact No.', user?.contactNo ?? 'N/A'),
-                      
-                      const SizedBox(height: 20),
-                      _buildSectionTitle('Account Setup'),
-                      _buildInfoField('TUP-ID', user?.tupId ?? 'N/A'),
-                      _buildInfoField('TUP Email', user?.email ?? 'N/A'),
-                      _buildInfoField('User Type', user?.userType ?? 'N/A'),
-                      _buildInfoField('Department/Office', user?.departmentName ?? 'N/A'),
-                      _buildPasswordField('Password'),
-                    ],
-                  ),
-                ),
-              ],
-            );
-          },
+    );
+  }
+
+  /// Displays a floating pop-up dialog containing the system FAQs.
+  void _showFaqModal(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) => const Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+        child: FaqDialog(),
+      ),
+    );
+  }
+
+  /// Displays a logout confirmation modal and logs the user out if confirmed.
+  void _showLogoutConfirmation(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+          title: const Text(
+            'Log out',
+            style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF8C0404)),
+          ),
+          content: const Text('Are you sure you want to log out?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Cancel', style: TextStyle(color: Colors.black54)),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF8C0404),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+              onPressed: () async {
+                Navigator.pop(dialogContext); // close modal
+                final authController = context.read<AuthController>();
+                await authController.logout();
+                if (context.mounted) {
+                   Navigator.pushNamedAndRemoveUntil(context, AppRoutes.welcome, (route) => false);
+                }
+              },
+              child: const Text('Log out'),
+            ),
+          ],
         );
       },
     );
   }
 
-  /// Helper: builds a section title for the modal.
-  Widget _buildSectionTitle(String title) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 20),
-      child: Text(
-        title,
-        style: const TextStyle(
-          fontSize: 17,
-          fontWeight: FontWeight.bold,
-          color: Colors.black87,
-        ),
-      ),
-    );
-  }
+  // ─── Avatar Upload Logic ─────────────────────────────────────────
 
-  /// Helper: builds a single labeled info field.
-  Widget _buildInfoField(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 25),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey.shade500,
-              fontWeight: FontWeight.w500,
+  /// Step 1: Shows the custom "Allow Access" modal exactly mimicking the screenshot.
+  void _showGalleryAccessModal(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(15),
+              color: Colors.white,
+              // Faint red gradient at the top to match screenshot
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.red.withValues(alpha: 0.1),
+                  Colors.white,
+                  Colors.white,
+                ],
+                stops: const [0.0, 0.3, 1.0],
+              ),
             ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Helper: builds a masked password field with a visibility icon.
-  Widget _buildPasswordField(String label) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 25),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey.shade500,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                '••••••••••••',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                  letterSpacing: 2,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Red question mark icon with circular border
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white,
+                    border: Border.all(color: Colors.red.shade100, width: 2),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.red.withValues(alpha: 0.1),
+                        blurRadius: 10,
+                        spreadRadius: 2,
+                      ),
+                    ],
+                  ),
+                  child: const Text(
+                    '?',
+                    style: TextStyle(
+                      fontSize: 48,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF8C0404),
+                    ),
+                  ),
                 ),
-              ),
-              Icon(
-                Icons.visibility_off_outlined,
-                color: Colors.grey.shade600,
-                size: 22,
-              ),
-            ],
+                const SizedBox(height: 20),
+                const Text(
+                  'Allow Access',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF8C0404),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                const Text(
+                  'Would you like to allow this app have access to your gallery ?',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.black54,
+                    height: 1.4,
+                  ),
+                ),
+                const SizedBox(height: 30),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(dialogContext),
+                      child: const Text(
+                        'Cancel',
+                        style: TextStyle(color: Colors.black54, fontSize: 16),
+                      ),
+                    ),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF8C0404),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                      ),
+                      onPressed: () {
+                        Navigator.pop(dialogContext); // Close modal
+                        _pickAndCropImage(context);   // Launch gallery
+                      },
+                      child: const Text(
+                        'Allow',
+                        style: TextStyle(color: Colors.white, fontSize: 16),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
-        ],
-      ),
+        );
+      },
     );
+  }
+
+  /// Step 2: Picks the image and opens the circular cropper.
+  Future<void> _pickAndCropImage(BuildContext context) async {
+    final ImagePicker picker = ImagePicker();
+    // Pick an image
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+    if (image == null) return; // User canceled picking
+
+    if (!context.mounted) return;
+
+    // Crop the image with a Circular UI
+    final CroppedFile? croppedFile = await ImageCropper().cropImage(
+      sourcePath: image.path,
+      uiSettings: [
+        AndroidUiSettings(
+          toolbarTitle: 'Crop',
+          toolbarColor: Colors.white,
+          toolbarWidgetColor: Colors.black87,
+          initAspectRatio: CropAspectRatioPreset.square,
+          lockAspectRatio: true,
+          cropStyle: CropStyle.circle, // Forces a circle overlay!
+          hideBottomControls: false,
+        ),
+        IOSUiSettings(
+          title: 'Crop',
+          cropStyle: CropStyle.circle,
+          aspectRatioLockEnabled: true,
+        ),
+      ],
+    );
+
+    if (croppedFile != null && context.mounted) {
+      // Proceed to upload!
+      _uploadAvatar(context, File(croppedFile.path));
+    }
+  }
+
+  /// Step 3: Uploads the cropped image and updates the UI state.
+  Future<void> _uploadAvatar(BuildContext context, File file) async {
+    // Show a loading overlay dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext ctx) {
+        return const Center(
+          child: CircularProgressIndicator(color: Color(0xFF8C0404)),
+        );
+      },
+    );
+
+    final profileController = Provider.of<ProfileController>(context, listen: false);
+    final error = await profileController.updateAvatar(file);
+
+    if (!context.mounted) return;
+    
+    // Dismiss loading overlay
+    Navigator.pop(context);
+
+    if (error == null) {
+      // Success
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Profile photo updated successfully!'),
+          backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } else {
+      // Failed
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 }
