@@ -4,6 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../../app/config/routes.dart';
 import '../../app/config/constants.dart';
 import '../../app/controllers/auth_controller.dart';
+import '../../data/services/api_service.dart';
 import 'widgets/filter_bottom_sheet.dart';
 import 'widgets/item_details_modal.dart';
 
@@ -24,17 +25,75 @@ class _HomePageState extends State<HomePage> {
     {'name': 'Supplies', 'iconPath': 'assets/images/supplies.svg', 'isSelected': false},
   ];
 
-  final List<Map<String, String>> items = [
-    {'name': 'Nintendo Switch', 'location': 'RM 103 - BASD'},
-    {'name': 'Table', 'location': 'RM 103 - BASD'},
-    {'name': 'Air Conditioning', 'location': 'RM 103 - BASD'},
-    {'name': 'Epson Printer', 'location': 'RM 103 - BASD'},
-    {'name': 'Chair', 'location': 'RM 103 - BASD'},
-    {'name': 'Chair', 'location': 'RM 103 - BASD'},
-    {'name': 'Chair', 'location': 'RM 103 - BASD'},
-    {'name': 'Chair', 'location': 'RM 103 - BASD'},
-    {'name': 'Chair', 'location': 'RM 103 - BASD'},
-  ];
+  // State variables for dynamic items and loading
+  List<dynamic> _assignedItems = [];
+  bool _isLoading = true;
+  String? _errorMessage;
+  String _searchQuery = '';
+  String _selectedCategory = 'All';
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchItems();
+  }
+
+  Future<void> _fetchItems() async {
+    if (!mounted) return;
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final authController = Provider.of<AuthController>(context, listen: false);
+      final token = authController.token;
+      if (token == null) {
+        setState(() {
+          _errorMessage = 'Session expired. Please log in again.';
+          _isLoading = false;
+        });
+        return;
+      }
+
+      final result = await ApiService().getMrItems(token);
+      if (!mounted) return;
+
+      if (result['status'] == 'success') {
+        setState(() {
+          _assignedItems = result['data']?['items'] ?? [];
+          _isLoading = false;
+        });
+      } else {
+        setState(() {
+          _errorMessage = result['message'] ?? 'Failed to load items.';
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _errorMessage = 'An error occurred: ${e.toString()}';
+        _isLoading = false;
+      });
+    }
+  }
+
+  List<dynamic> get _filteredItems {
+    List<dynamic> list = _assignedItems;
+    if (_selectedCategory != 'All') {
+      list = list.where((item) => item['category'] == _selectedCategory).toList();
+    }
+    if (_searchQuery.isNotEmpty) {
+      final query = _searchQuery.toLowerCase();
+      list = list.where((item) {
+        final name = (item['item_name'] ?? '').toString().toLowerCase();
+        final location = (item['location'] ?? '').toString().toLowerCase();
+        return name.contains(query) || location.contains(query);
+      }).toList();
+    }
+    return list;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -147,7 +206,23 @@ class _HomePageState extends State<HomePage> {
         IconButton(
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints(),
-          icon: const Icon(Icons.notifications_none, color: Colors.white, size: 30),
+          icon: SvgPicture.asset(
+            'assets/images/archive.svg',
+            colorFilter: const ColorFilter.mode(
+              Colors.white,
+              BlendMode.srcIn,
+            ),
+            width: 20,
+            height: 20,
+            errorBuilder: (context, error, stackTrace) {
+              debugPrint('SVG Archive Header Error: $error');
+              return const Icon(
+                Icons.archive,
+                color: Colors.white,
+                size: 30,
+              );
+            },
+          ),
           onPressed: () {
             Navigator.pushNamed(context, AppRoutes.archive);
           },
@@ -177,8 +252,13 @@ class _HomePageState extends State<HomePage> {
                 )
               ],
             ),
-            child: const TextField(
-              decoration: InputDecoration(
+            child: TextField(
+              onChanged: (value) {
+                setState(() {
+                  _searchQuery = value.trim();
+                });
+              },
+              decoration: const InputDecoration(
                 hintText: 'Search...',
                 hintStyle: TextStyle(color: Colors.grey, fontSize: 15),
                 border: InputBorder.none,
@@ -236,6 +316,7 @@ class _HomePageState extends State<HomePage> {
                 for (var cat in categories) {
                   cat['isSelected'] = (cat == category);
                 }
+                _selectedCategory = category['name'] as String;
               });
             },
             child: Column(
@@ -289,61 +370,131 @@ class _HomePageState extends State<HomePage> {
   }
 
   /// Builds the vertical list of inventory items.
-  /// This list is displayed inside a white container with rounded corners (if added)
-  /// or simply occupies the remaining space. Each item shows a name and location.
   Widget _buildItemList() {
-    return ListView.separated(
-      padding: const EdgeInsets.only(top: 10, bottom: 40),
-      itemCount: items.length,
-      separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFEEEEEE)),
-      itemBuilder: (context, index) {
-        final item = items[index];
-        return ListTile(
-          contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 2),
-          title: Text(
-            item['name']!,
-            style: const TextStyle(
-              color: Color(0xFF8C0404),
-              fontWeight: FontWeight.w600,
-              fontSize: 16,
-            ),
-          ),
-          subtitle: Row(
+    if (_isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(color: Color(0xFF8C0404)),
+      );
+    }
+
+    if (_errorMessage != null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.location_on, size: 14, color: Colors.grey),
-              const SizedBox(width: 4),
+              const Icon(Icons.error_outline, size: 40, color: Colors.red),
+              const SizedBox(height: 10),
               Text(
-                item['location']!,
-                style: const TextStyle(
-                  color: Colors.grey,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
+                _errorMessage!,
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.black87),
+              ),
+              const SizedBox(height: 15),
+              ElevatedButton(
+                onPressed: _fetchItems,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF8C0404),
+                  foregroundColor: Colors.white,
                 ),
+                child: const Text('RETRY'),
               ),
             ],
           ),
-          trailing: const Icon(
-            Icons.keyboard_double_arrow_right,
-            color: Colors.grey,
-            size: 22,
+        ),
+      );
+    }
+
+    final filtered = _filteredItems;
+
+    if (filtered.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.inventory_2_outlined, size: 50, color: Colors.grey),
+              const SizedBox(height: 12),
+              Text(
+                _searchQuery.isNotEmpty 
+                    ? 'No matching items found.' 
+                    : 'No items assigned to your account.',
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.black54, fontSize: 15),
+              ),
+            ],
           ),
-          onTap: () {
-            _showItemDetailsModal(context);
-          },
-        );
-      },
+        ),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: _fetchItems,
+      color: const Color(0xFF8C0404),
+      child: ListView.separated(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.only(top: 10, bottom: 40),
+        itemCount: filtered.length,
+        separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFEEEEEE)),
+        itemBuilder: (context, index) {
+          final item = filtered[index];
+          final name = item['item_name'] ?? 'Unknown Item';
+          final location = item['location'] ?? 'Unknown Location';
+          return ListTile(
+            contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 2),
+            title: Text(
+              name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: Color(0xFF8C0404),
+                fontWeight: FontWeight.w600,
+                fontSize: 16,
+              ),
+            ),
+            subtitle: Row(
+              children: [
+                const Icon(Icons.location_on, size: 14, color: Colors.grey),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    location,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: Colors.grey,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            trailing: const Icon(
+              Icons.keyboard_double_arrow_right,
+              color: Colors.grey,
+              size: 22,
+            ),
+            onTap: () {
+              _showItemDetailsModal(context, item);
+            },
+          );
+        },
+      ),
     );
   }
 
-  /// Displays the floating pop-up dialog showing details of the clicked item (Nintendo Switch).
-  void _showItemDetailsModal(BuildContext context) {
+  /// Displays the floating pop-up dialog showing details of the clicked item.
+  void _showItemDetailsModal(BuildContext context, Map<String, dynamic> item) {
     showDialog(
       context: context,
       barrierDismissible: true,
-      builder: (context) => const Dialog(
+      builder: (context) => Dialog(
         backgroundColor: Colors.transparent,
-        insetPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-        child: ItemDetailsModal(),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+        child: ItemDetailsModal(itemDetails: item),
       ),
     );
   }
@@ -364,9 +515,10 @@ class _HomePageState extends State<HomePage> {
         elevation: 0,
         backgroundColor: Colors.white,
         shape: const CircleBorder(),
-        onPressed: () {
+        onPressed: () async {
           // [NAVIGATION] Open the QR Scanner page
-          Navigator.pushNamed(context, AppRoutes.qrScanner);
+          await Navigator.pushNamed(context, AppRoutes.qrScanner);
+          _fetchItems(); // Refresh items when returning from the scanner
         },
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
