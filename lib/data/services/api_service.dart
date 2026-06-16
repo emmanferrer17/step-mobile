@@ -250,6 +250,52 @@ class ApiService {
     }
   }
 
+  // --- MR Assign Method ---
+  Future<Map<String, dynamic>> assignMrItems(String qrCode, String token) async {
+    final url = Uri.parse(ApiConstants.assignMrUrl);
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: {'mr_qr_code': qrCode},
+      ).timeout(const Duration(seconds: 10));
+
+      return _handleResponse(response);
+    } on SocketException {
+      return {'status': 'error', 'message': 'Connection Error: Could not connect to the server.'};
+    } on TimeoutException {
+      return {'status': 'error', 'message': 'Connection Timeout: The server took too long to respond.'};
+    } catch (e) {
+      return {'status': 'error', 'message': 'An unexpected error occurred: ${e.toString()}'};
+    }
+  }
+
+  // --- Fetch MR Items Method ---
+  Future<Map<String, dynamic>> getMrItems(String token) async {
+    final url = Uri.parse(ApiConstants.mrItemsUrl);
+    try {
+      final response = await http.get(
+        url,
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      ).timeout(const Duration(seconds: 10));
+
+      return _handleResponse(response);
+    } on SocketException {
+      return {'status': 'error', 'message': 'Connection Error: Could not connect to the server.'};
+    } on TimeoutException {
+      return {'status': 'error', 'message': 'Connection Timeout: The server took too long to respond.'};
+    } catch (e) {
+      return {'status': 'error', 'message': 'An unexpected error occurred: ${e.toString()}'};
+    }
+  }
+
   // --- Helper Function ---
   Map<String, dynamic> _handleResponse(http.Response response) {
     try {
