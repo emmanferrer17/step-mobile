@@ -2,17 +2,25 @@ import 'package:flutter/material.dart';
 
 class CustomAlertDialog extends StatelessWidget {
   final String message;
+  final String? subtitle;
   final IconData icon;
   final Color color;
   final VoidCallback? onClose;
+  final Widget? child;
+  final String? buttonText;
+  final VoidCallback? onButtonPressed;
 
   const CustomAlertDialog({
-    key,
+    super.key,
     required this.message,
+    this.subtitle,
     required this.icon,
     required this.color,
     this.onClose,
-  }) : super(key: key);
+    this.child,
+    this.buttonText,
+    this.onButtonPressed,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -74,7 +82,7 @@ class CustomAlertDialog extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 24),
-                // Message text
+                // Title Message text
                 Text(
                   message,
                   textAlign: TextAlign.center,
@@ -84,6 +92,60 @@ class CustomAlertDialog extends StatelessWidget {
                     color: color,
                   ),
                 ),
+                if (subtitle != null) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    subtitle!,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: Colors.black54,
+                      height: 1.4,
+                    ),
+                  ),
+                ],
+                if (child != null) ...[
+                  const SizedBox(height: 20),
+                  child!,
+                ],
+                if (buttonText != null) ...[
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: color,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        elevation: 0,
+                      ),
+                      onPressed: () {
+                        if (onButtonPressed != null) {
+                          onButtonPressed!();
+                        } else {
+                          Navigator.pop(context);
+                        }
+                      },
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            buttonText!,
+                            style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          const Icon(Icons.arrow_forward, size: 18),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ],
             ),
           ],

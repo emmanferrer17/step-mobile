@@ -7,6 +7,7 @@ import '../../app/controllers/auth_controller.dart';
 import '../../data/services/api_service.dart';
 import 'widgets/filter_bottom_sheet.dart';
 import 'widgets/item_details_modal.dart';
+import '../shared/widgets/camera_permission_modal.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -103,6 +104,7 @@ class _HomePageState extends State<HomePage> {
     final profilePhoto = user?.profilePhoto;
 
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       backgroundColor: const Color(0xFFF5EFE6), // Light beige background
       body: Column(
         children: [
@@ -516,8 +518,8 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: Colors.white,
         shape: const CircleBorder(),
         onPressed: () async {
-          // [NAVIGATION] Open the QR Scanner page
-          await Navigator.pushNamed(context, AppRoutes.qrScanner);
+          // [NAVIGATION] Open the QR Scanner page after permission verification
+          await CameraPermissionModal.startScannerFlow(context);
           _fetchItems(); // Refresh items when returning from the scanner
         },
         child: Column(

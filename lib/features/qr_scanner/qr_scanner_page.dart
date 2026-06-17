@@ -4,6 +4,7 @@ import 'package:permission_handler/permission_handler.dart'; // [NEW] For runtim
 import 'package:provider/provider.dart';
 import 'package:mobile/app/controllers/auth_controller.dart';
 import 'package:mobile/data/services/api_service.dart';
+import '../shared/widgets/custom_alert_dialog.dart';
 
 /// [MVC - VIEW]
 /// QRScannerPage provides a premium camera interface with an overlay,
@@ -32,7 +33,7 @@ class _QRScannerPageState extends State<QRScannerPage> with SingleTickerProvider
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this); // [OBSERVER] To detect when user returns from settings
-    _checkPermission(); // [PERMISSIONS] Check on startup
+    _checkPermissionSilently(); // [PERMISSIONS] Check status silently on startup
     // [ANIMATION] Initialize the scanning line animation
     _animationController = AnimationController(
       vsync: this,
@@ -40,12 +41,27 @@ class _QRScannerPageState extends State<QRScannerPage> with SingleTickerProvider
     )..repeat(reverse: true);
   }
 
-  // [LOGIC] Requests camera permission at runtime
-  Future<void> _checkPermission() async {
+  // [LOGIC] Checks camera permission silently without requesting
+  Future<void> _checkPermissionSilently() async {
+    final status = await Permission.camera.status;
+    if (mounted) {
+      setState(() {
+        _isPermissionGranted = status.isGranted;
+      });
+    }
+  }
+
+  // [LOGIC] Requests camera permission at runtime when clicking Allow
+  Future<void> _requestPermission() async {
     final status = await Permission.camera.request();
-    setState(() {
-      _isPermissionGranted = status.isGranted;
-    });
+    if (mounted) {
+      setState(() {
+        _isPermissionGranted = status.isGranted;
+      });
+    }
+    if (status.isPermanentlyDenied) {
+      await openAppSettings();
+    }
   }
 
   // [LOGIC] Handles the detected barcode data
@@ -109,7 +125,7 @@ class _QRScannerPageState extends State<QRScannerPage> with SingleTickerProvider
 
       if (result['status'] == 'success') {
         final List<dynamic> items = result['data']?['items'] ?? [];
-        _showSuccessSheet(qrCode, items);
+        _showSuccessDialog(qrCode, items);
       } else {
         _showErrorSheet(result['message'] ?? 'An unknown error occurred.');
       }
@@ -120,147 +136,110 @@ class _QRScannerPageState extends State<QRScannerPage> with SingleTickerProvider
     }
   }
 
-  // [UI] Displays a success bottom sheet with the list of claimed items
-  void _showSuccessSheet(String qrCode, List<dynamic> items) {
-    showModalBottomSheet(
+  // [UI] Displays a success dialog with the list of claimed items
+  void _showSuccessDialog(String qrCode, List<dynamic> items) {
+    showDialog(
       context: context,
-      backgroundColor: Colors.transparent,
-      isDismissible: false,
-      isScrollControlled: true, // Allow it to size dynamically
-      builder: (context) => Container(
-        padding: const EdgeInsets.only(left: 25, right: 25, top: 15, bottom: 25),
-        constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(context).size.height * 0.75, // Cap height at 75% of screen
-        ),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.only(topLeft: Radius.circular(30), topRight: Radius.circular(30)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 50,
-              height: 5,
-              decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(10)),
-            ),
-            const SizedBox(height: 15),
-            const Icon(Icons.check_circle, color: Colors.green, size: 50),
-            const SizedBox(height: 10),
-            const Text(
-              'Property is successfully Assigned!',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF8C0404)),
-            ),
-            const SizedBox(height: 5),
-            Text(
-              'Code: $qrCode',
-              style: const TextStyle(fontSize: 12, color: Colors.black54, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 15),
-            const Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                'Assigned Items:',
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.black45, letterSpacing: 1),
+      barrierDismissible: false,
+      builder: (dialogCtx) {
+        return CustomAlertDialog(
+          message: 'Property is successfully claimed.',
+          subtitle: 'The items are now available in your inventory.',
+          icon: Icons.check,
+          color: const Color(0xFF7CB342),
+          buttonText: 'View items',
+          onButtonPressed: () {
+            Navigator.pop(dialogCtx); // Close the dialog
+            Navigator.pop(context); // Go back to Home
+          },
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Divider(height: 1, color: Colors.black12),
+              const SizedBox(height: 12),
+              const Text(
+                'Summary of Scanned Items:',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black45,
+                ),
               ),
-            ),
-            const SizedBox(height: 8),
-            Flexible(
-              child: items.isEmpty
-                  ? const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 20),
-                      child: Text('No items to list.', style: TextStyle(color: Colors.black54)),
-                    )
-                  : ListView.separated(
-                      shrinkWrap: true,
-                      physics: const ClampingScrollPhysics(),
-                      itemCount: items.length,
-                      separatorBuilder: (context, index) => const Divider(height: 1),
-                      itemBuilder: (context, index) {
-                        final item = items[index];
-                        final name = item['item_name'] ?? 'Unknown Item';
-                        final qty = item['quantity'] ?? 1;
-                        final unit = item['unit'] ?? 'pcs';
-                        final specs = item['specification'] ?? '';
-                        final stock = item['stock'] ?? 'N/A';
+              const SizedBox(height: 8),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxHeight: 180),
+                child: items.isEmpty
+                    ? const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 20),
+                        child: Text(
+                          'No items to list.',
+                          style: TextStyle(color: Colors.black54),
+                        ),
+                      )
+                    : ListView.separated(
+                        shrinkWrap: true,
+                        itemCount: items.length,
+                        separatorBuilder: (context, index) => const Divider(height: 1),
+                        itemBuilder: (context, index) {
+                          final item = items[index];
+                          final name = item['item_name'] ?? 'Unknown Item';
+                          final qty = item['quantity'] ?? 1;
+                          final unit = item['unit'] ?? 'pcs';
+                          final specs = item['specification'] ?? '';
+                          final stock = item['stock'] ?? 'N/A';
 
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 10),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      name,
-                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.black87),
-                                    ),
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        name,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 13,
+                                          color: Colors.black87,
+                                        ),
+                                      ),
+                                      if (specs.toString().isNotEmpty) ...[
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          specs.toString(),
+                                          style: const TextStyle(
+                                            fontSize: 11,
+                                            color: Colors.black54,
+                                          ),
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ],
+                                    ],
                                   ),
-                                  Text(
-                                    '$qty $unit',
-                                    style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF8C0404), fontSize: 14),
-                                  ),
-                                ],
-                              ),
-                              if (specs.toString().isNotEmpty) ...[
-                                const SizedBox(height: 4),
+                                ),
+                                const SizedBox(width: 8),
                                 Text(
-                                  specs.toString(),
-                                  style: const TextStyle(fontSize: 13, color: Colors.black54),
+                                  '$qty $unit',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF7CB342),
+                                    fontSize: 13,
+                                  ),
                                 ),
                               ],
-                              const SizedBox(height: 4),
-                              Text(
-                                'Stock No: $stock',
-                                style: const TextStyle(fontSize: 11, color: Colors.grey, fontStyle: FontStyle.italic),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
-            ),
-            const SizedBox(height: 20),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                      setState(() => _isScanCompleted = false);
-                    },
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: const Color(0xFF8C0404),
-                      side: const BorderSide(color: Color(0xFF8C0404)),
-                      padding: const EdgeInsets.symmetric(vertical: 15),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    ),
-                    child: const Text('SCAN AGAIN', style: TextStyle(fontWeight: FontWeight.bold)),
-                  ),
-                ),
-                const SizedBox(width: 15),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                      Navigator.pop(context); // Go back to Home
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF8C0404),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 15),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    ),
-                    child: const Text('OK', style: TextStyle(fontWeight: FontWeight.bold)),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
+                            ),
+                          );
+                        },
+                      ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -341,9 +320,9 @@ class _QRScannerPageState extends State<QRScannerPage> with SingleTickerProvider
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // [LOGIC] Re-check permission if user returns to the app from Settings
+    // [LOGIC] Re-check permission silently if user returns to the app from Settings
     if (state == AppLifecycleState.resumed) {
-      _checkPermission();
+      _checkPermissionSilently();
     }
   }
 
@@ -365,9 +344,9 @@ class _QRScannerPageState extends State<QRScannerPage> with SingleTickerProvider
     );
 
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: _isPermissionGranted ? Colors.black : Colors.white,
       body: !_isPermissionGranted
-          ? _buildPermissionDeniedView() // [UI] Show error if no camera access
+          ? _buildCustomPermissionPromptView()
           : Stack(
               children: [
                 // [CAMERA VIEW]
@@ -470,48 +449,132 @@ class _QRScannerPageState extends State<QRScannerPage> with SingleTickerProvider
     );
   }
 
-  // [UI] Helper for permission denied state
-  Widget _buildPermissionDeniedView() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.camera_alt_outlined, color: Colors.white54, size: 80),
-          const SizedBox(height: 20),
-          const Text(
-            'Camera Access Denied',
-            style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 10),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 40),
-            child: Text(
-              'Please enable camera permissions in your settings to use the scanner.',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.white70, fontSize: 14),
+  // [UI] Premium Custom Camera Permission Access Prompt (replaces native primer/black denied screen)
+  Widget _buildCustomPermissionPromptView() {
+    return Container(
+      width: double.infinity,
+      height: double.infinity,
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Color(0xFFFFEAEA), // Soft light pink/red glow
+            Colors.white,
+          ],
+          stops: [0.0, 0.35],
+        ),
+      ),
+      child: SafeArea(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // Status Icon Container
+            Container(
+              width: 120,
+              height: 120,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 20,
+                    spreadRadius: 2,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: const Center(
+                child: Text(
+                  '?',
+                  style: TextStyle(
+                    color: Color(0xFF8C0404),
+                    fontSize: 56,
+                    fontWeight: FontWeight.w300,
+                  ),
+                ),
+              ),
             ),
-          ),
-          const SizedBox(height: 30),
-          ElevatedButton(
-            onPressed: () => openAppSettings(),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF8C0404),
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 12),
+            const SizedBox(height: 24),
+
+            // Title
+            const Text(
+              'Allow Access',
+              style: TextStyle(
+                color: Color(0xFF8C0404),
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            child: const Text('OPEN SETTINGS'),
-          ),
-          const SizedBox(height: 10),
-          TextButton(
-            onPressed: () => _checkPermission(),
-            child: const Text('RETRY', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-          ),
-          const SizedBox(height: 10),
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('GO BACK', style: TextStyle(color: Colors.white54)),
-          ),
-        ],
+            const SizedBox(height: 12),
+
+            // Description
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 40),
+              child: Text(
+                'Would you like to allow this app have access to your camera ?',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.grey.shade600,
+                  fontSize: 16,
+                  height: 1.4,
+                ),
+              ),
+            ),
+            const SizedBox(height: 48),
+
+            // Buttons row
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Cancel Action
+                GestureDetector(
+                  onTap: () => Navigator.pop(context),
+                  behavior: HitTestBehavior.opaque,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    child: Text(
+                      'Cancel',
+                      style: TextStyle(
+                        color: Colors.grey.shade500,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 36),
+
+                // Allow Action
+                SizedBox(
+                  width: 150,
+                  child: ElevatedButton(
+                    onPressed: _requestPermission,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF8C0404),
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: const Text(
+                      'Allow',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
