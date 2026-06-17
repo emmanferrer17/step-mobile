@@ -19,11 +19,14 @@ dependencies:
   image_picker: ^1.2.2
   image_cropper: ^12.2.1
   http_parser: ^4.1.2
+  flutter_launcher_icons: ^0.14.3
+  
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+  flutter_native_splash: ^2.4.5
 
 flutter:
   uses-material-design: true
@@ -36,3 +39,17 @@ flutter:
         - asset: assets/fonts/Nunito-Regular.ttf
         - asset: assets/fonts/Nunito-Bold.ttf
           weight: 700
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/itrac-app-icon.png"
+
+flutter_native_splash:
+  color: "#000000"          
+  image: "assets/images/itrac-app-icon.png"
+  fullscreen: true
+
+  android_12:
+    image: "assets/images/itrac-android12-splash.png"
+    color: "#000000"

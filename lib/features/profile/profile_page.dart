@@ -9,11 +9,77 @@ import '../../app/config/constants.dart';
 import 'package:mobile/app/controllers/auth_controller.dart';
 import 'package:mobile/app/controllers/profile_controller.dart';
 import '../../data/models/user_model.dart';
+import '../../data/services/api_service.dart';
 import 'widgets/general_info_dialog.dart';
 import 'widgets/faq_dialog.dart';
+import '../shared/widgets/camera_permission_modal.dart';
 
-class ProfilePage extends StatelessWidget {
+class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
+
+  @override
+  State<ProfilePage> createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
+  bool _isLoading = true;
+  List<dynamic> _items = [];
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchItems();
+  }
+
+  Future<void> _fetchItems() async {
+    if (!mounted) return;
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final authController = Provider.of<AuthController>(context, listen: false);
+      final token = authController.token;
+      if (token == null) {
+        setState(() {
+          _errorMessage = 'Session expired.';
+          _isLoading = false;
+        });
+        return;
+      }
+
+      final result = await ApiService().getMrItems(token);
+      if (!mounted) return;
+
+      if (result['status'] == 'success') {
+        setState(() {
+          _items = result['data']?['items'] ?? [];
+          _isLoading = false;
+        });
+      } else {
+        final errorMsg = result['message'] ?? 'Failed to load items.';
+        setState(() {
+          _errorMessage = errorMsg;
+          _isLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(errorMsg), backgroundColor: Colors.red),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      final errorMsg = 'An error occurred: ${e.toString()}';
+      setState(() {
+        _errorMessage = errorMsg;
+        _isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(errorMsg), backgroundColor: Colors.red),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -73,7 +139,8 @@ class ProfilePage extends StatelessWidget {
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  // ── Profile Card (overlapping Avatar) ──────────────────
+                  // ── Profile Card (overlapping Avatar) ────────────────
+                  // ──
                   // Uses a Stack so the CircleAvatar can "float" above the white card
                   _buildProfileCard(context, user),
 
@@ -278,6 +345,49 @@ class ProfilePage extends StatelessWidget {
   /// Builds the statistics section below the profile card.
   /// Shows four horizontal category boxes: All Items, Equipments, Appliances, and Supplies & Material.
   Widget _buildStatisticsSection() {
+    if (_errorMessage != null) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 15.0),
+        child: InkWell(
+          onTap: _fetchItems,
+          child: Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFF8C0404).withOpacity(0.05),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: const Color(0xFF8C0404).withOpacity(0.3)),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.refresh, color: Color(0xFF8C0404), size: 18),
+                const SizedBox(width: 8),
+                const Text(
+                  'Failed to load counts. Tap to retry.',
+                  style: TextStyle(
+                    color: Color(0xFF8C0404),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    final allCount = _isLoading ? '-' : _items.length.toString();
+    final equipmentCount = _isLoading
+        ? '-'
+        : _items.where((item) => item['category'] == 'Equipment').length.toString();
+    final appliancesCount = _isLoading
+        ? '-'
+        : _items.where((item) => item['category'] == 'Semi-Expendable').length.toString();
+    final suppliesCount = _isLoading
+        ? '-'
+        : _items.where((item) => item['category'] == 'Supplies').length.toString();
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 15.0),
       child: Column(
@@ -288,22 +398,22 @@ class ProfilePage extends StatelessWidget {
             children: [
               _buildStatBox(
                 svgPath: 'assets/images/mr-all.svg',
-                count: '14',
+                count: allCount,
                 label: 'All Items',
               ),
               _buildStatBox(
                 svgPath: 'assets/images/mr-equipment.svg',
-                count: '4',
+                count: equipmentCount,
                 label: 'Equipments',
               ),
               _buildStatBox(
                 svgPath: 'assets/images/mr-semi-expandable.svg',
-                count: '2',
-                label: 'Appliances',
+                count: appliancesCount,
+                label: 'Semi-expendables',
               ),
               _buildStatBox(
                 svgPath: 'assets/images/mr-supplies.svg',
-                count: '3',
+                count: suppliesCount,
                 label: 'Supplies & Material',
               ),
             ],
@@ -418,7 +528,7 @@ class ProfilePage extends StatelessWidget {
         backgroundColor: Colors.white,
         shape: const CircleBorder(),
         onPressed: () {
-          Navigator.pushNamed(context, AppRoutes.qrScanner);
+          CameraPermissionModal.startScannerFlow(context);
         },
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -640,7 +750,7 @@ class ProfilePage extends StatelessWidget {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  Colors.red.withValues(alpha: 0.1),
+                  Colors.red.withOpacity(0.1),
                   Colors.white,
                   Colors.white,
                 ],
@@ -659,7 +769,7 @@ class ProfilePage extends StatelessWidget {
                     border: Border.all(color: Colors.red.shade100, width: 2),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.red.withValues(alpha: 0.1),
+                        color: Colors.red.withOpacity(0.1),
                         blurRadius: 10,
                         spreadRadius: 2,
                       ),

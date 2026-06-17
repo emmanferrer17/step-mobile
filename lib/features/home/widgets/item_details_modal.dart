@@ -16,6 +16,12 @@ class ItemDetailsModal extends StatefulWidget {
 class _ItemDetailsModalState extends State<ItemDetailsModal> {
   bool _isDescriptionExpanded = false;
   late TapGestureRecognizer _tapGestureRecognizer;
+  
+  // Location editing UI state variables
+  bool _isEditingLocation = false;
+  late TextEditingController _buildingController;
+  late TextEditingController _roomController;
+  String? _currentLocation;
 
   @override
   void initState() {
@@ -26,11 +32,34 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
           _isDescriptionExpanded = !_isDescriptionExpanded;
         });
       };
+
+    // Initialize location state
+    _currentLocation = widget.itemDetails['location'];
+    if (_currentLocation == 'Unknown Location') {
+      _currentLocation = null;
+    }
+
+    // Parse existing location into building and room controllers
+    String building = '';
+    String room = '';
+    if (_currentLocation != null && _currentLocation!.isNotEmpty) {
+      final parts = _currentLocation!.split(',');
+      if (parts.length > 1) {
+        building = parts[0].trim();
+        room = parts[1].trim();
+      } else {
+        building = _currentLocation!.trim();
+      }
+    }
+    _buildingController = TextEditingController(text: building);
+    _roomController = TextEditingController(text: room);
   }
 
   @override
   void dispose() {
     _tapGestureRecognizer.dispose();
+    _buildingController.dispose();
+    _roomController.dispose();
     super.dispose();
   }
 
@@ -193,7 +222,7 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
                   const SizedBox(height: 18),
 
                   // Metadata Table / Details List
-                  _buildDetailRow('Location', location),
+                  _buildLocationRow(),
                   const Divider(height: 1, color: Color(0xFFEEEEEE)),
                   _buildDetailRow('Date Scanned', _formatDate(dateScanned)),
                   const Divider(height: 1, color: Color(0xFFEEEEEE)),
@@ -247,6 +276,214 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
           ),
         ],
       ),
+    );
+  }
+
+  /// Builds the Location row supporting View Mode and Edit Mode.
+  Widget _buildLocationRow() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 11),
+      child: Row(
+        crossAxisAlignment: _isEditingLocation ? CrossAxisAlignment.start : CrossAxisAlignment.center,
+        children: [
+          const SizedBox(
+            width: 110,
+            child: Text(
+              'Location',
+              style: TextStyle(
+                color: Colors.grey,
+                fontSize: 15,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          Expanded(
+            child: _isEditingLocation
+                ? _buildLocationEditFields()
+                : _buildLocationViewMode(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// View Mode: displays location string or "Add Location" placeholder with a pencil icon
+  Widget _buildLocationViewMode() {
+    final bool hasLocation = _currentLocation != null && _currentLocation!.isNotEmpty;
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Expanded(
+          child: Text(
+            hasLocation ? _currentLocation! : 'Add Location',
+            style: TextStyle(
+              color: hasLocation ? Colors.black87 : Colors.grey.shade500,
+              fontSize: 15,
+              fontWeight: hasLocation ? FontWeight.bold : FontWeight.w500,
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        GestureDetector(
+          onTap: () {
+            setState(() {
+              _isEditingLocation = true;
+            });
+          },
+          child: Container(
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(
+              color: const Color(0xFFF2F2F2),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Icon(
+              Icons.edit_outlined,
+              color: Colors.black87,
+              size: 20,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Edit Mode: displays Building / Office & Room number TextFields with save/cancel options
+  Widget _buildLocationEditFields() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        // Building / Office
+        Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFFF2F2F2),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: TextField(
+            controller: _buildingController,
+            style: const TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
+            decoration: InputDecoration(
+              hintText: 'Building / Office',
+              hintStyle: TextStyle(
+                color: Colors.grey.shade500,
+                fontSize: 15,
+                fontWeight: FontWeight.w500,
+              ),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              border: InputBorder.none,
+            ),
+          ),
+        ),
+        const SizedBox(height: 10),
+
+        // Room number
+        Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFFF2F2F2),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: TextField(
+            controller: _roomController,
+            style: const TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
+            decoration: InputDecoration(
+              hintText: 'Room number',
+              hintStyle: TextStyle(
+                color: Colors.grey.shade500,
+                fontSize: 15,
+                fontWeight: FontWeight.w500,
+              ),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              border: InputBorder.none,
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+
+        // Check (save) & X (cancel) buttons
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            // Save Button
+            GestureDetector(
+              onTap: () {
+                setState(() {
+                  final b = _buildingController.text.trim();
+                  final r = _roomController.text.trim();
+                  if (b.isNotEmpty && r.isNotEmpty) {
+                    _currentLocation = '$b, $r';
+                  } else if (b.isNotEmpty) {
+                    _currentLocation = b;
+                  } else if (r.isNotEmpty) {
+                    _currentLocation = r;
+                  } else {
+                    _currentLocation = null;
+                  }
+                  _isEditingLocation = false;
+                });
+              },
+              child: Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF8C0404),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(
+                  Icons.check,
+                  color: Colors.white,
+                  size: 24,
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+
+            // Cancel Button
+            GestureDetector(
+              onTap: () {
+                setState(() {
+                  // Revert inputs
+                  String building = '';
+                  String room = '';
+                  if (_currentLocation != null && _currentLocation!.isNotEmpty) {
+                    final parts = _currentLocation!.split(',');
+                    if (parts.length > 1) {
+                      building = parts[0].trim();
+                      room = parts[1].trim();
+                    } else {
+                      building = _currentLocation!.trim();
+                    }
+                  }
+                  _buildingController.text = building;
+                  _roomController.text = room;
+                  _isEditingLocation = false;
+                });
+              },
+              child: Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF2F2F2),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(
+                  Icons.close,
+                  color: Colors.black,
+                  size: 24,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 

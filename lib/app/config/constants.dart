@@ -1,6 +1,6 @@
 class ApiConstants {
   // IMPORTANT: Palitan lagi ang IP address kapag nagbago ang network.
-  static const String ipAddress = '192.168.100.8';
+  static const String ipAddress = '192.168.1.106';
   static const String baseUrl = 'http://$ipAddress:8080/api';
   static const String storageUrl = 'http://$ipAddress:8080/';
 
