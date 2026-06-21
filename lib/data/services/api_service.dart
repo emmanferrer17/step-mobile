@@ -77,7 +77,6 @@ class ApiService {
 
       if (response.statusCode == 200) {
         final List<dynamic> rawList = json.decode(response.body);
-        // Convert each raw Map into a typed DepartmentModel object
         return rawList.map((item) => DepartmentModel.fromMap(item)).toList();
       } else {
         throw Exception('Failed to load departments. Status code: ${response.statusCode}');
@@ -240,6 +239,123 @@ class ApiService {
 
       var streamedResponse = await request.send().timeout(const Duration(seconds: 30));
       var response = await http.Response.fromStream(streamedResponse);
+      return _handleResponse(response);
+    } on SocketException {
+      return {'status': 'error', 'message': 'Connection Error: Could not connect to the server.'};
+    } on TimeoutException {
+      return {'status': 'error', 'message': 'Connection Timeout: The server took too long to respond.'};
+    } catch (e) {
+      return {'status': 'error', 'message': 'An unexpected error occurred: ${e.toString()}'};
+    }
+  }
+
+  Future<Map<String, dynamic>> updateItemImage(int itemId, File imageFile, String token) async {
+    final url = Uri.parse(ApiConstants.updateItemImageUrl);
+    try {
+      var request = http.MultipartRequest('POST', url);
+      request.headers.addAll({
+        'Accept': 'application/json',
+        'Authorization': 'Bearer $token',
+      });
+      request.fields['item_id'] = itemId.toString();
+      
+      request.files.add(await http.MultipartFile.fromPath(
+        'item_image', 
+        imageFile.path,
+      ));
+
+      var streamedResponse = await request.send().timeout(const Duration(seconds: 30));
+      var response = await http.Response.fromStream(streamedResponse);
+      return _handleResponse(response);
+    } on SocketException {
+      return {'status': 'error', 'message': 'Connection Error: Could not connect to the server.'};
+    } on TimeoutException {
+      return {'status': 'error', 'message': 'Connection Timeout: The server took too long to respond.'};
+    } catch (e) {
+      return {'status': 'error', 'message': 'An unexpected error occurred: ${e.toString()}'};
+    }
+  }
+
+  /// Syncs all item images (ordered existing paths + new files) in one atomic request.
+  Future<Map<String, dynamic>> syncItemImages(int itemId, List<String> existingImages, List<File> newImages, String token) async {
+    final url = Uri.parse(ApiConstants.updateItemImageUrl);
+    try {
+      var request = http.MultipartRequest('POST', url);
+      request.headers.addAll({
+        'Accept': 'application/json',
+        'Authorization': 'Bearer $token',
+      });
+      request.fields['item_id'] = itemId.toString();
+      
+      // Add existing images using explicit array indices for Laravel compatibility
+      for (int i = 0; i < existingImages.length; i++) {
+        request.fields['existing_images[$i]'] = existingImages[i];
+      }
+
+      // Add new images as files using the array key 'item_image[]'
+      for (var file in newImages) {
+        var multipartFile = await http.MultipartFile.fromPath(
+          'item_image[]', 
+          file.path,
+        );
+        request.files.add(multipartFile);
+      }
+
+      var streamedResponse = await request.send().timeout(const Duration(seconds: 90));
+      var response = await http.Response.fromStream(streamedResponse);
+      return _handleResponse(response);
+    } on SocketException {
+      return {'status': 'error', 'message': 'Connection Error: Could not connect to the server.'};
+    } on TimeoutException {
+      return {'status': 'error', 'message': 'Connection Timeout: The server took too long to respond.'};
+    } catch (e) {
+      return {'status': 'error', 'message': 'An unexpected error occurred: ${e.toString()}'};
+    }
+  }
+
+  Future<Map<String, dynamic>> deleteItemImage(int itemId, String imagePath, String token) async {
+    final url = Uri.parse(ApiConstants.deleteItemImageUrl);
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: {
+          'item_id': itemId.toString(),
+          'image_path': imagePath,
+        },
+      ).timeout(const Duration(seconds: 10));
+
+      return _handleResponse(response);
+    } on SocketException {
+      return {'status': 'error', 'message': 'Connection Error: Could not connect to the server.'};
+    } on TimeoutException {
+      return {'status': 'error', 'message': 'Connection Timeout: The server took too long to respond.'};
+    } catch (e) {
+      return {'status': 'error', 'message': 'An unexpected error occurred: ${e.toString()}'};
+    }
+  }
+
+  Future<Map<String, dynamic>> updateItemLocation(int itemId, String? building, String? roomNo, String token) async {
+    final url = Uri.parse(ApiConstants.updateItemLocationUrl);
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: {
+          'item_id': itemId.toString(),
+          'building': building ?? '',
+          'room_no': roomNo ?? '',
+        },
+      ).timeout(const Duration(seconds: 10));
+
       return _handleResponse(response);
     } on SocketException {
       return {'status': 'error', 'message': 'Connection Error: Could not connect to the server.'};

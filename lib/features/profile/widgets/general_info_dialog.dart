@@ -526,11 +526,11 @@ class _GeneralInfoDialogState extends State<GeneralInfoDialog> {
   Widget _buildPasswordField(String label) {
     return Padding(
       padding: const EdgeInsets.only(left: 16, bottom: 10),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 label,
@@ -540,25 +540,7 @@ class _GeneralInfoDialogState extends State<GeneralInfoDialog> {
                   fontWeight: FontWeight.w500,
                 ),
               ),
-              const SizedBox(width: 6),
-              GestureDetector(
-                onTap: () {
-                  setState(() {
-                    _isChangingPassword = true;
-                  });
-                },
-                child: const Icon(
-                  Icons.edit_outlined,
-                  size: 14,
-                  color: Colors.grey,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 2),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
+              const SizedBox(height: 2),
               const Text(
                 '••••••••••••',
                 style: TextStyle(
@@ -569,6 +551,30 @@ class _GeneralInfoDialogState extends State<GeneralInfoDialog> {
                 ),
               ),
             ],
+          ),
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () {
+                setState(() {
+                  _isChangingPassword = true;
+                });
+              },
+              borderRadius: BorderRadius.circular(8),
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF5F5F5),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.grey.shade300),
+                ),
+                child: const Icon(
+                  Icons.edit_outlined,
+                  size: 20,
+                  color: Color.fromARGB(255, 73, 40, 40),
+                ),
+              ),
+            ),
           ),
         ],
       ),

@@ -4,6 +4,8 @@ import 'package:provider/provider.dart';                          // [MVC] Provi
 import 'package:mobile/app/controllers/auth_controller.dart';                   // [MVC] AuthController
 import 'package:mobile/app/controllers/profile_controller.dart';                // [MVC] ProfileController
 import 'app/config/routes.dart';                                 // [MVC] Centralized routing
+import 'app/config/size_config.dart';
+import 'app/config/ui_constants.dart';
 
 // [MVC - ENTRY POINT]
 // main() wraps the app in MultiProvider so that controllers are
@@ -25,6 +27,14 @@ void main() => runApp(
       theme: ThemeData(
         fontFamily: 'Nunito',
       ),
+      builder: (context, child) {
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(
+            textScaler: TextScaler.noScaling,
+          ),
+          child: child!,
+        );
+      },
     ),
   ),
 );
@@ -94,43 +104,43 @@ class _WelcomePageState extends State<WelcomePage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
-        const SizedBox(height: 40),
-        const Text(
+        SizedBox(height: 40.s),
+        Text(
           'Welcome to I-TRAC',
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black87),
+          style: TextStyle(fontSize: 24.s, fontWeight: FontWeight.bold, color: Colors.black87),
         ),
-        const SizedBox(height: 10),
-        const Text(
+        SizedBox(height: 10.s),
+        Text(
           'A Digital System for Item Status Tracking and QR-Code Enabled Material Requisition Control ',
-          style: TextStyle(fontSize: 14, color: Colors.black54),
+          style: TextStyle(fontSize: 14.s, color: Colors.black54),
         ),
-        const SizedBox(height: 40),
+        SizedBox(height: 40.s),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
+          padding: EdgeInsets.symmetric(horizontal: 20.s),
           child: ElevatedButton(
             onPressed: () => setState(() => _isLoginFormVisible = true),
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF8C0404),
               foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 18),
-              textStyle: const TextStyle(fontSize: 18, fontFamily: 'Nunito'),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              padding: EdgeInsets.symmetric(vertical: 18.s),
+              textStyle: TextStyle(fontSize: 18.s, fontFamily: 'Nunito'),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.s)),
             ),
             child: const Text('LOGIN'),
           ),
         ),
-        const SizedBox(height: 20),
+        SizedBox(height: 20.s),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
+          padding: EdgeInsets.symmetric(horizontal: 20.s),
           child: OutlinedButton(
             onPressed: () => Navigator.pushNamed(context, AppRoutes.register),
             style: OutlinedButton.styleFrom(
               foregroundColor: const Color(0xFF8C0404),
               backgroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 18),
-              textStyle: const TextStyle(fontSize: 18, fontFamily: 'Nunito', fontWeight: FontWeight.bold),
-              side: const BorderSide(color: Color(0xFF8C0404), width: 2),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              padding: EdgeInsets.symmetric(vertical: 18.s),
+              textStyle: TextStyle(fontSize: 18.s, fontFamily: 'Nunito', fontWeight: FontWeight.bold),
+              side: BorderSide(color: const Color(0xFF8C0404), width: 2.s),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.s)),
             ),
             child: const Text('REGISTER'),
           ),
@@ -141,34 +151,34 @@ class _WelcomePageState extends State<WelcomePage> {
 
   // [MVC] Consumer listens to AuthController and rebuilds only this form
   Widget _buildLoginForm() {
-    const double fieldHeight = 50.0;
-    const double hintFontSize = 14.0;
+    final double fieldHeight = 50.0.s;
+    final double hintFontSize = 14.0.s;
 
     return Consumer<AuthController>(
       builder: (context, auth, child) {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            const SizedBox(height: 50),
-            const Text(
+            SizedBox(height: 50.s),
+            Text(
               'LOGIN',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black87),
+              style: TextStyle(fontSize: 24.s, fontWeight: FontWeight.bold, color: Colors.black87),
             ),
-            const Text(
+            Text(
               'Enter your TUP email and password to login',
-              style: TextStyle(fontSize: 14, color: Colors.black54),
+              style: TextStyle(fontSize: 14.s, color: Colors.black54),
             ),
-            const SizedBox(height: 30),
+            SizedBox(height: 30.s),
             // Email field
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10), // Adjust this value to reduce width
+              padding: EdgeInsets.symmetric(horizontal: 10.s), // Adjust this value to reduce width
               child: SizedBox(
                 height: fieldHeight,
                 child: Container(
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(10),
-                    boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.3), spreadRadius: 1, blurRadius: 5, offset: const Offset(0, 3))],
+                    borderRadius: BorderRadius.circular(10.s),
+                    boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.3), spreadRadius: 1.s, blurRadius: 5.s, offset: Offset(0, 3.s))],
                   ),
                   child: TextField(
                     focusNode: _emailFocusNode,
@@ -177,24 +187,24 @@ class _WelcomePageState extends State<WelcomePage> {
                       hintText: 'TUP Email',
                       hintStyle: TextStyle(fontSize: hintFontSize, color: Colors.grey[600]),
                       border: InputBorder.none,
-                      contentPadding: EdgeInsets.symmetric(horizontal: 15, vertical: (fieldHeight - hintFontSize) / 2 - 2),
+                      contentPadding: EdgeInsets.symmetric(horizontal: 15.s, vertical: (fieldHeight - hintFontSize) / 2 - 2.s),
                     ),
                     keyboardType: TextInputType.emailAddress,
                   ),
                 ),
               ),
             ),
-            const SizedBox(height: 20),
+            SizedBox(height: 20.s),
             // Password field
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10), // Adjust this value to reduce width
+              padding: EdgeInsets.symmetric(horizontal: 10.s), // Adjust this value to reduce width
               child: SizedBox(
                 height: fieldHeight,
                 child: Container(
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(10),
-                    boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.3), spreadRadius: 1, blurRadius: 5, offset: const Offset(0, 3))],
+                    borderRadius: BorderRadius.circular(10.s),
+                    boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.3), spreadRadius: 1.s, blurRadius: 5.s, offset: Offset(0, 3.s))],
                   ),
                   child: TextField(
                     focusNode: _passwordFocusNode,
@@ -204,7 +214,7 @@ class _WelcomePageState extends State<WelcomePage> {
                       hintText: 'Password',
                       hintStyle: TextStyle(fontSize: hintFontSize, color: Colors.grey[600]),
                       border: InputBorder.none,
-                      contentPadding: EdgeInsets.symmetric(horizontal: 15, vertical: (fieldHeight - hintFontSize) / 2 - 2),
+                      contentPadding: EdgeInsets.symmetric(horizontal: 15.s, vertical: (fieldHeight - hintFontSize) / 2 - 2.s),
                       suffixIcon: IconButton(
                         icon: Icon(_isPasswordObscured ? Icons.visibility_off : Icons.visibility, color: Colors.grey[600]),
                         onPressed: () => setState(() => _isPasswordObscured = !_isPasswordObscured),
@@ -214,20 +224,20 @@ class _WelcomePageState extends State<WelcomePage> {
                 ),
               ),
             ),
-            const SizedBox(height: 30),
+            SizedBox(height: 30.s),
             // [MVC] Error message comes FROM the controller, not widget state
             if (auth.errorMessage != null)
               Padding(
-                padding: const EdgeInsets.only(bottom: 10),
+                padding: EdgeInsets.only(bottom: 10.s),
                 child: Text(
                   auth.errorMessage!,
-                  style: const TextStyle(color: Colors.red, fontSize: 14),
+                  style: TextStyle(color: Colors.red, fontSize: 14.s),
                   textAlign: TextAlign.center,
                 ),
               ),
             // [MVC] isLoading comes FROM the controller
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10), // Adjust this value to reduce width
+              padding: EdgeInsets.symmetric(horizontal: 10.s), // Adjust this value to reduce width
               child: SizedBox(
                 height: fieldHeight,
                 child: ElevatedButton(
@@ -235,26 +245,26 @@ class _WelcomePageState extends State<WelcomePage> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF8C0404),
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 2),
-                    textStyle: const TextStyle(fontSize: 17, fontFamily: 'Nunito'),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    padding: EdgeInsets.symmetric(vertical: 2.s),
+                    textStyle: TextStyle(fontSize: 17.s, fontFamily: 'Nunito'),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.s)),
                   ),
                   child: auth.isLoading
-                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 3, color: Colors.white))
+                      ? SizedBox(width: 20.s, height: 20.s, child: const CircularProgressIndicator(strokeWidth: 3, color: Colors.white))
                       : const Text('LOGIN'),
                 ),
               ),
             ),
-            const SizedBox(height: 20),
+            SizedBox(height: 20.s),
             GestureDetector(
               onTap: () => Navigator.pushNamed(context, AppRoutes.register),
               child: RichText(
                 textAlign: TextAlign.center,
-                text: const TextSpan(
-                  style: TextStyle(fontFamily: 'Nunito', color: Colors.black),
+                text: TextSpan(
+                  style: const TextStyle(fontFamily: 'Nunito', color: Colors.black),
                   children: <TextSpan>[
-                    TextSpan(text: "Don't have an account? "),
-                    TextSpan(text: 'Register.', style: TextStyle(color: Color(0xFF8C0404))),
+                    const TextSpan(text: "Don't have an account? "),
+                    TextSpan(text: 'Register.', style: TextStyle(color: const Color(0xFF8C0404), fontSize: 14.s)),
                   ],
                 ),
               ),
@@ -267,6 +277,7 @@ class _WelcomePageState extends State<WelcomePage> {
 
   @override
   Widget build(BuildContext context) {
+    SizeConfig().init(context);
     final bool isKeyboardVisible = _emailFocusNode.hasFocus || _passwordFocusNode.hasFocus;
 
     return Scaffold(
@@ -282,23 +293,23 @@ class _WelcomePageState extends State<WelcomePage> {
               AnimatedContainer(
                 duration: const Duration(milliseconds: 300),
                 curve: Curves.easeInOut,
-                height: isKeyboardVisible ? 60 : 160,
+                height: isKeyboardVisible ? 60.s : 160.s,
               ),
-              SvgPicture.asset('assets/images/i-trac-logo.svg', width: 60, height: 60, fit: BoxFit.contain),
+              SvgPicture.asset('assets/images/i-trac-logo.svg', width: 60.s, height: 60.s, fit: BoxFit.contain),
               AnimatedContainer(
                 duration: const Duration(milliseconds: 300),
                 curve: Curves.easeInOut,
-                height: isKeyboardVisible ? 20 : 120,
+                height: isKeyboardVisible ? 20.s : 120.s,
               ),
               Expanded(
                 child: Container(
                   width: double.infinity,
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.only(topLeft: Radius.circular(50), topRight: Radius.circular(50)),
+                    borderRadius: BorderRadius.only(topLeft: Radius.circular(50.s), topRight: Radius.circular(50.s)),
                   ),
                   child: Padding(
-                    padding: const EdgeInsets.all(30),
+                    padding: EdgeInsets.all(30.s),
                     child: SingleChildScrollView(
                       child: _isLoginFormVisible ? _buildLoginForm() : _buildInitialView(),
                     ),

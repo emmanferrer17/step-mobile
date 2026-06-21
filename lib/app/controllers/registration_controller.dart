@@ -79,9 +79,11 @@ class RegistrationController extends ChangeNotifier {
   }
 
   Future<void> _validateTupId(String tupId) async {
-    if (tupId.length != 6) {
+    // New Format: XXXX0-00-0000 (13 characters)
+    final tupIdRegex = RegExp(r'^[A-Z]{4}\d-\d{2}-\d{4}$');
+    if (!tupIdRegex.hasMatch(tupId)) {
       isTupIdValid = false;
-      tupIdError = tupId.isEmpty ? null : 'TUP ID must be 6 digits';
+      tupIdError = tupId.isEmpty ? null : 'Invalid TUP-ID format (e.g., INST1-23-0252)';
       notifyListeners();
       return;
     }
@@ -236,6 +238,85 @@ class RegistrationController extends ChangeNotifier {
         timer.cancel();
       }
     });
+  }
+
+  // ---------------------------------------------------------------
+  // DEPARTMENT GROUPING
+  // ---------------------------------------------------------------
+  Map<String, List<DepartmentModel>> get groupedDepartments {
+    final Map<String, List<DepartmentModel>> groups = {
+      "Director's Office & Direct Services": [],
+      "Assistant Director For Administration And Finance Office": [],
+      "Assistant Director for Research and Extension Office": [],
+      "Assistant Director for Academic Affairs Office": [],
+    };
+
+    const directorsOfficeId = 35;
+    const adminFinanceId = 40;
+    const researchExtensionId = 38;
+    const academicAffairsId = 36;
+
+    // Helper to find a specific department by ID
+    DepartmentModel? findDept(int id) {
+      try {
+        return departments.firstWhere((d) => d.id == id);
+      } catch (_) {
+        return null;
+      }
+    }
+
+    // 1. Director's Office & Direct Services
+    final directorParent = findDept(directorsOfficeId);
+    if (directorParent != null) {
+      groups["Director's Office & Direct Services"]!.add(directorParent);
+      final children = departments.where((d) {
+        final pId = d.parentId;
+        return pId == directorsOfficeId && ![adminFinanceId, researchExtensionId, academicAffairsId].contains(d.id);
+      }).toList();
+      children.sort((a, b) => a.name.compareTo(b.name));
+      groups["Director's Office & Direct Services"]!.addAll(children);
+    }
+
+    // 2. Assistant Director For Administration And Finance Office
+    final adminFinanceParent = findDept(adminFinanceId);
+    if (adminFinanceParent != null) {
+      groups["Assistant Director For Administration And Finance Office"]!.add(adminFinanceParent);
+      final children = departments.where((d) {
+        final pId = d.parentId;
+        return pId == adminFinanceId;
+      }).toList();
+      children.sort((a, b) => a.name.compareTo(b.name));
+      groups["Assistant Director For Administration And Finance Office"]!.addAll(children);
+    }
+
+    // 3. Assistant Director for Research and Extension Office
+    final researchExtensionParent = findDept(researchExtensionId);
+    if (researchExtensionParent != null) {
+      groups["Assistant Director for Research and Extension Office"]!.add(researchExtensionParent);
+      final children = departments.where((d) {
+        final pId = d.parentId;
+        return pId == researchExtensionId;
+      }).toList();
+      children.sort((a, b) => a.name.compareTo(b.name));
+      groups["Assistant Director for Research and Extension Office"]!.addAll(children);
+    }
+
+    // 4. Assistant Director for Academic Affairs Office
+    final academicAffairsParent = findDept(academicAffairsId);
+    if (academicAffairsParent != null) {
+      groups["Assistant Director for Academic Affairs Office"]!.add(academicAffairsParent);
+      final children = departments.where((d) {
+        final pId = d.parentId;
+        return pId == academicAffairsId;
+      }).toList();
+      children.sort((a, b) => a.name.compareTo(b.name));
+      groups["Assistant Director for Academic Affairs Office"]!.addAll(children);
+    }
+
+    // Remove empty groups if any
+    groups.removeWhere((key, value) => value.isEmpty);
+
+    return groups;
   }
 
   // ---------------------------------------------------------------

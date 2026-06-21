@@ -1,26 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../controllers/auth_controller.dart';
 import '../controllers/registration_controller.dart';
 import '../controllers/home_controller.dart';
 import '../../features/auth/registration_page.dart';
-import '../../features/home/home_page.dart';
-import '../../features/profile/profile_page.dart';
-import '../../features/qr_scanner/qr_scanner_page.dart'; // [MVC] Added QR Scanner feature
+import '../../features/qr_scanner/qr_scanner_page.dart'; 
 import '../../features/archive/archive_page.dart';
-
-// [MVC - ROUTING]
-// AppRoutes is the single source of truth for all navigation in the app.
-// Instead of writing MaterialPageRoute(...) scattered throughout the code,
-// every screen transition goes through here.
-//
-// How to navigate from anywhere in the app:
-//   Navigator.pushNamed(context, AppRoutes.home);
-//   Navigator.pushReplacementNamed(context, AppRoutes.home);
-//   Navigator.pushNamedAndRemoveUntil(context, AppRoutes.welcome, (_) => false);
+import '../../features/shared/widgets/main_scaffold.dart';
 
 class AppRoutes {
-  // --- Route Name Constants ---
-  // Use these constants instead of raw strings to avoid typos
   static const String welcome  = '/';
   static const String home     = '/home';
   static const String register = '/register';
@@ -28,24 +16,27 @@ class AppRoutes {
   static const String qrScanner = '/qr-scanner'; 
   static const String archive  = '/archive';
 
-  // --- Route Generator ---
-  // Registered in MaterialApp via: onGenerateRoute: AppRoutes.generateRoute
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
+      case welcome:
+        // Note: WelcomePage is now defined in main.dart or imported if moved
+        // For now we assume it's the home property of MaterialApp
+        return _buildRoute(settings, Container()); 
 
       case home:
-        // HomeController is scoped to the home route
         return _buildRoute(
           settings,
-          ChangeNotifierProvider(
-            create: (_) => HomeController(),
-            child: const HomePage(),
+          ChangeNotifierProxyProvider<AuthController, HomeController>(
+            create: (context) => HomeController(Provider.of<AuthController>(context, listen: false)),
+            update: (context, auth, previous) => HomeController(auth),
+            child: const MainScaffold(initialIndex: 0),
           ),
         );
 
+      case profile:
+        return _buildRoute(settings, const MainScaffold(initialIndex: 1));
+
       case register:
-        // RegistrationController is scoped to this route only.
-        // Created fresh every time the user visits the Register screen.
         return _buildRoute(
           settings,
           ChangeNotifierProvider(
@@ -54,18 +45,13 @@ class AppRoutes {
           ),
         );
 
-      case profile:
-        return _buildRoute(settings, const ProfilePage());
-
       case qrScanner:
-        // [ROUTE] QRScannerPage is a basic camera view in Phase 2
         return _buildRoute(settings, const QRScannerPage());
 
       case archive:
         return _buildRoute(settings, const ArchivePage());
 
       default:
-        // Fallback screen for any unknown route
         return _buildRoute(
           settings,
           Scaffold(
@@ -75,7 +61,6 @@ class AppRoutes {
     }
   }
 
-  // Helper: wraps a widget in a MaterialPageRoute with named settings
   static MaterialPageRoute _buildRoute(RouteSettings settings, Widget page) {
     return MaterialPageRoute(settings: settings, builder: (_) => page);
   }

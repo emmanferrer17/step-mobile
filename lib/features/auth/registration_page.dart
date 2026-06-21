@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';                          // [MVC] Provider
+import '../../app/config/size_config.dart';
+import '../../app/config/ui_constants.dart';
 import '../../app/controllers/registration_controller.dart';     // [MVC] Controller
-import '../../data/models/department_model.dart';                // [MVC] Typed model
+import '../shared/widgets/custom_alert_dialog.dart';
 
 // [MVC - VIEW]
 // RegistrationPage is now a THIN view. It:
@@ -136,10 +139,13 @@ class _RegistrationPageState extends State<RegistrationPage> {
       showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (context) => AlertDialog(
-          title: const Text('Registration Successful!'),
-          content: const Text('You can now log in with your new account.'),
-          actions: [TextButton(onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst), child: const Text('OK'))],
+        builder: (context) => CustomAlertDialog(
+          message: 'Registration Successful!',
+          subtitle: 'You can now log in with your new account.',
+          icon: Icons.check_circle_outline,
+          color: const Color(0xFF8C0404),
+          buttonText: 'OK',
+          onButtonPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
         ),
       );
     } else {
@@ -154,15 +160,16 @@ class _RegistrationPageState extends State<RegistrationPage> {
   // ---------------------------------------------------------------
   @override
   Widget build(BuildContext context) {
+    SizeConfig().init(context);
     return Consumer<RegistrationController>(
       builder: (context, reg, child) {
         return Scaffold(
           appBar: AppBar(
-            toolbarHeight: 80.0,
+            toolbarHeight: 80.0.s,
             backgroundColor: const Color(0xFF8C0404),
-            title: const Text('Registration', style: TextStyle(fontFamily: 'Nunito', color: Colors.white)),
+            title: Text('Registration', style: TextStyle(fontFamily: 'Nunito', color: Colors.white, fontSize: 20.s)),
             leading: IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.white),
+              icon: Icon(Icons.arrow_back, color: Colors.white, size: 24.s),
               onPressed: () {
                 if (reg.currentStep > 0) {
                   reg.goBack();
@@ -174,7 +181,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
           ),
           body: SingleChildScrollView(
             child: Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: EdgeInsets.all(16.0.s),
               child: _buildCurrentStep(reg),
             ),
           ),
@@ -218,9 +225,9 @@ class _RegistrationPageState extends State<RegistrationPage> {
       default: icon = Icons.shield_outlined;
     }
     return Row(children: [
-      CircleAvatar(radius: 15, backgroundColor: isActive ? activeColor : inactiveColor, child: Icon(icon, color: Colors.white, size: 16)),
-      const SizedBox(width: 8),
-      Text(label, style: TextStyle(fontFamily: 'Nunito', fontSize: 16, color: isActive ? Colors.black : inactiveColor, fontWeight: isActive ? FontWeight.bold : FontWeight.normal)),
+      CircleAvatar(radius: 15.s, backgroundColor: isActive ? activeColor : inactiveColor, child: Icon(icon, color: Colors.white, size: 16.s)),
+      SizedBox(width: 8.s),
+      Text(label, style: TextStyle(fontFamily: 'Nunito', fontSize: 16.s, color: isActive ? Colors.black : inactiveColor, fontWeight: isActive ? FontWeight.bold : FontWeight.normal)),
     ]);
   }
 
@@ -251,9 +258,13 @@ class _RegistrationPageState extends State<RegistrationPage> {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(child: _buildTextField('Suffix', controller: _suffixController, isRequired: false)),
-              const SizedBox(width: 20),
               Expanded(
+                flex: 3, // Suffix takes less space
+                child: _buildTextField('Suffix', controller: _suffixController, isRequired: false),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                flex: 5, // TUPT-ID takes more space
                 child: TextFormField(
                   controller: _tuptIdController,
                   decoration: InputDecoration(
@@ -264,10 +275,15 @@ class _RegistrationPageState extends State<RegistrationPage> {
                     // [MVC] Validation state read from controller
                     errorText: reg.tupIdError,
                     suffixIcon: _buildValidationIcon(reg.isTupIdChecking, reg.isTupIdValid, reg.tupIdError),
+                    counterText: '',
                   ),
-                  keyboardType: TextInputType.number,
-                  maxLength: 6,
-                  validator: (v) => (v == null || v.isEmpty) ? 'Required' : (v.length != 6) ? 'Must be 6 digits' : null,
+                  keyboardType: TextInputType.text,
+                  maxLength: 13,
+                  inputFormatters: [
+                    UpperCaseTextFormatter(),
+                    TupIdFormatter(),
+                  ],
+                  validator: (v) => (v == null || v.isEmpty) ? 'Required' : (v.length != 13) ? 'Invalid format' : null,
                 ),
               ),
             ],
@@ -295,9 +311,15 @@ class _RegistrationPageState extends State<RegistrationPage> {
           _buildPasswordTextField('Confirm Password', controller: _confirmPasswordController, isObscured: _isConfirmPasswordObscured, onToggle: () => setState(() => _isConfirmPasswordObscured = !_isConfirmPasswordObscured)),
           const SizedBox(height: 20),
           Row(children: [
-            Expanded(child: _buildUserTypeDropdown(reg)),
-            const SizedBox(width: 20),
-            Expanded(child: _buildDepartmentDropdown(reg)),
+            Expanded(
+              flex: 3,
+              child: _buildUserTypeDropdown(reg),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              flex: 5,
+              child: _buildDepartmentDropdown(reg),
+            ),
           ]),
           const SizedBox(height: 40),
           SizedBox(
@@ -492,7 +514,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
     return DropdownButtonFormField<String>(
       value: reg.userType,
       isExpanded: true,
-      hint: const Text('Choose User Type', style: TextStyle(fontFamily: 'Nunito', color: Colors.grey)),
+      hint: const Text('User Type', style: TextStyle(fontFamily: 'Nunito', color: Colors.grey)),
       decoration: InputDecoration(filled: true, fillColor: Colors.grey[200], border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none), contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12)),
       items: ['Faculty', 'Staff'].map((v) => DropdownMenuItem<String>(value: v, child: Text(v))).toList(),
       onChanged: reg.setUserType,
@@ -506,14 +528,68 @@ class _RegistrationPageState extends State<RegistrationPage> {
     if (reg.departmentsError != null) return Text('Error: ${reg.departmentsError}');
     if (reg.departments.isEmpty) return const Text('No departments found.');
 
+    final groupedDepts = reg.groupedDepartments;
+    final List<DropdownMenuItem<String>> items = [];
+
+    groupedDepts.forEach((groupName, depts) {
+      // Group Header (disabled)
+      items.add(DropdownMenuItem<String>(
+        enabled: false,
+        value: 'header_$groupName',
+        child: Text(
+          groupName,
+          style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black, fontSize: 16),
+        ),
+      ));
+
+      // Group Items
+      items.addAll(depts.map((d) {
+        return DropdownMenuItem<String>(
+          value: d.id.toString(),
+          child: Container(
+            // Using a container to force compact layout within the 48px constraint
+            alignment: Alignment.centerLeft,
+            child: Padding(
+              padding: const EdgeInsets.only(left: 8.0),
+              child: Text(d.name, style: const TextStyle(fontSize: 15)),
+            ),
+          ),
+        );
+      }));
+    });
+
     return DropdownButtonFormField<String>(
       value: reg.selectedDepartmentId,
       isExpanded: true,
-      hint: const Text('Choose Department', style: TextStyle(fontFamily: 'Nunito', color: Colors.grey)),
+      itemHeight: 48.0, // Minimum allowed height to avoid assertion error
+      padding: EdgeInsets.zero, // Remove any default field padding
+      hint: const Text('Office', style: TextStyle(fontFamily: 'Nunito', color: Colors.grey, fontSize: 14)),
       decoration: InputDecoration(filled: true, fillColor: Colors.grey[200], border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none), contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12)),
-      items: reg.departments.map((DepartmentModel d) => DropdownMenuItem<String>(value: d.id.toString(), child: Text(d.name))).toList(),
+      // selectedItemBuilder ensures the selected text is truncated with "..."
+      selectedItemBuilder: (BuildContext context) {
+        return items.map((DropdownMenuItem<String> item) {
+          // Extract text from either the header (Text) or the item (Padding > Text)
+          String text = '';
+          if (item.child is Text) {
+            text = (item.child as Text).data ?? '';
+          } else if (item.child is Padding) {
+            final paddingChild = (item.child as Padding).child;
+            if (paddingChild is Text) {
+              text = paddingChild.data ?? '';
+            }
+          }
+          
+          return Text(
+            text,
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+            style: const TextStyle(fontSize: 14),
+          );
+        }).toList();
+      },
+      items: items,
       onChanged: reg.setDepartmentId,
-      validator: (v) => v == null ? 'Please select a department' : null,
+      validator: (v) => v == null ? 'Please select an office' : null,
     );
   }
 
@@ -522,5 +598,63 @@ class _RegistrationPageState extends State<RegistrationPage> {
     if (isValid && error == null) return const Icon(Icons.check_circle, color: Colors.green);
     if (error != null) return const Icon(Icons.error, color: Colors.red);
     return null;
+  }
+}
+
+// -----------------------------------------------------------------------------
+// HELPER FORMATTERS
+// -----------------------------------------------------------------------------
+
+class UpperCaseTextFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
+    return TextEditingValue(
+      text: newValue.text.toUpperCase(),
+      selection: newValue.selection,
+    );
+  }
+}
+
+class TupIdFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
+    final text = newValue.text;
+
+    // Format: XXXX0-00-0000
+    if (newValue.selection.baseOffset < oldValue.selection.baseOffset) {
+      return newValue;
+    }
+
+    String formatted = '';
+    for (int i = 0; i < text.length; i++) {
+      final char = text[i];
+      // Skip existing hyphens
+      if (char == '-') continue;
+
+      // Add hyphens at correct positions
+      if (formatted.length == 5 || formatted.length == 8) {
+        formatted += '-';
+      }
+
+      // Append character if it matches the format part
+      if (formatted.length < 4) {
+        // Letters
+        if (RegExp(r'[A-Z]').hasMatch(char)) formatted += char;
+      } else if (formatted.length == 4) {
+        // Digit after 4 letters
+        if (RegExp(r'\d').hasMatch(char)) formatted += char;
+      } else if (formatted.length > 5 && formatted.length < 8) {
+        // 2 digits
+        if (RegExp(r'\d').hasMatch(char)) formatted += char;
+      } else if (formatted.length > 8) {
+        // 4 digits
+        if (RegExp(r'\d').hasMatch(char)) formatted += char;
+      }
+    }
+
+    return TextEditingValue(
+      text: formatted,
+      selection: TextSelection.collapsed(offset: formatted.length),
+    );
   }
 }
