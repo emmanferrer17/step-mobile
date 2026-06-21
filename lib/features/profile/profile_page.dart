@@ -1,18 +1,20 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:image_cropper/image_cropper.dart';
-import '../../app/config/routes.dart';
 import '../../app/config/constants.dart';
+import '../../app/config/ui_constants.dart';
 import 'package:mobile/app/controllers/auth_controller.dart';
 import 'package:mobile/app/controllers/profile_controller.dart';
 import '../../data/models/user_model.dart';
 import '../../data/services/api_service.dart';
 import 'widgets/general_info_dialog.dart';
 import 'widgets/faq_dialog.dart';
-import '../shared/widgets/camera_permission_modal.dart';
+import '../shared/widgets/gallery_access_modal.dart';
+import '../shared/widgets/confirmation_dialog.dart';
+import '../shared/widgets/custom_alert_dialog.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -87,40 +89,42 @@ class _ProfilePageState extends State<ProfilePage> {
     final double statusBarHeight = MediaQuery.of(context).padding.top;
     final user = context.watch<AuthController>().loggedInUser;
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF5EFE6), // Light beige background
-      body: Column(
+    return Container(
+      color: const Color(0xFFF5EFE6), // Light beige background
+      child: Column(
         children: [
           // ─── Red Header Area ────────────────────────────────────────────
-          // Contains the status bar space, back arrow, and "My Profile" title.
           Container(
             width: double.infinity,
             color: const Color(0xFF8C0404),
             padding: EdgeInsets.only(
               top: statusBarHeight, // respect the system status bar
-              left: 10,
-              right: 10,
-              bottom: 20,
+              left: 10.s,
+              right: 10.s,
+              bottom: 20.s,
             ),
             child: Row(
               children: [
                 // Back button – tapping returns to the Home Page
                 IconButton(
-                  icon: const Icon(Icons.arrow_back, color: Colors.white),
+                  icon: Icon(Icons.arrow_back, color: Colors.white, size: 24.s),
                   onPressed: () {
-                    Navigator.pushReplacementNamed(context, AppRoutes.home);
+                    // Logic to navigate back to Home index in MainScaffold
+                    // For now, since it's an IndexedStack, usually we don't have a "back" 
+                    // unless we specifically want to switch tabs.
+                    // But if this is used as a standalone, we keep it.
                   },
                 ),
-                // Centered page title with a right padding to visually balance the back button
-                const Expanded(
+                // Centered page title
+                Expanded(
                   child: Padding(
-                    padding: EdgeInsets.only(right: 48.0),
+                    padding: EdgeInsets.only(right: 48.0.s),
                     child: Center(
                       child: Text(
                         'My Profile',
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 20,
+                          fontSize: 20.s,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -131,41 +135,26 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
           ),
 
-          const SizedBox(height: 40),
+          SizedBox(height: 40.s),
 
           // ─── Scrollable Body ─────────────────────────────────────────────
-          // Expanded so it fills all remaining space below the header.
           Expanded(
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  // ── Profile Card (overlapping Avatar) ────────────────
-                  // ──
-                  // Uses a Stack so the CircleAvatar can "float" above the white card
                   _buildProfileCard(context, user),
-
-                  const SizedBox(height: 35),
-
-                  // ── Statistics Section ──────────────────────────────────
+                  SizedBox(height: 35.s),
                   _buildStatisticsSection(),
-
-                  // Space for the BottomAppBar so last content isn't hidden
-                  const SizedBox(height: 30),
+                  SizedBox(height: 30.s),
                 ],
               ),
             ),
           ),
         ],
       ),
-      floatingActionButton: _buildQRButton(context),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      bottomNavigationBar: _buildBottomNav(context),
     );
   }
 
-  /// Builds the white profile card that overlaps the red header via a top Stack.
-  /// The CircleAvatar is Positioned above the card so it appears to float on the
-  /// boundary between the red header and the white card.
   Widget _buildProfileCard(BuildContext context, UserModel? user) {
     final name = user?.fullName ?? 'User Name';
     final role = user?.roleName ?? user?.departmentName ?? 'Unassigned Role/Department';
@@ -175,60 +164,53 @@ class _ProfilePageState extends State<ProfilePage> {
       alignment: Alignment.topCenter,
       clipBehavior: Clip.none,
       children: [
-        // ── White Card Body ─────────────────────────────────────────────
         Container(
-          // top margin = half the avatar height (radius 55 + border) so card sits below avatar
-          margin: const EdgeInsets.only(top: 60, left: 15, right: 15),
-          padding: const EdgeInsets.only(top: 70, left: 20, right: 20, bottom: 20),
+          margin: EdgeInsets.only(top: 60.s, left: 15.s, right: 15.s),
+          padding: EdgeInsets.only(top: 70.s, left: 20.s, right: 20.s, bottom: 20.s),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(15),
+            borderRadius: BorderRadius.circular(15.s),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withOpacity(0.07),
-                blurRadius: 12,
-                offset: const Offset(0, 5),
+                blurRadius: 12.s,
+                offset: Offset(0, 5.s),
               ),
             ],
           ),
           child: Column(
             children: [
-              // User's full name
               Text(
                 name,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 20,
+                style: TextStyle(
+                  fontSize: 20.s,
                   fontWeight: FontWeight.bold,
                   color: Colors.black87,
                 ),
               ),
-              const SizedBox(height: 5),
-
-              // Role/Dept (Red text)
+              SizedBox(height: 5.s),
               Text(
                 role,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 12,
+                style: TextStyle(
+                  fontSize: 12.s,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF8C0404),
+                  color: const Color(0xFF8C0404),
                 ),
               ),
-              const SizedBox(height: 25),
-
-              // ── Menu Buttons – General Info, Edit Profile & Log out ─────────────
+              SizedBox(height: 25.s),
               _buildMenuButton(
                 label: 'General Information',
                 onPressed: () => _showGeneralInfoModal(context, user),
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: 12.s),
               _buildMenuButton(
-                label: 'FAQS',
+                label: 'I-TRAC Manual Booklet',
                 icon: Icons.help_outline,
                 onPressed: () => _showFaqModal(context),
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: 12.s),
               _buildMenuButton(
                 label: 'Log out',
                 icon: Icons.logout,
@@ -238,9 +220,6 @@ class _ProfilePageState extends State<ProfilePage> {
             ],
           ),
         ),
-
-        // ── Floating CircleAvatar ──────────────────────────────────────
-        // Positioned at top spanning full width so hit-testing registers touch events perfectly.
         Positioned(
           top: 0,
           left: 0,
@@ -251,18 +230,18 @@ class _ProfilePageState extends State<ProfilePage> {
                 Container(
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    border: Border.all(color: Colors.blueAccent, width: 4),
+                    border: Border.all(color: Colors.blueAccent, width: 4.s),
                     color: Colors.white,
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withOpacity(0.1),
-                        blurRadius: 8,
-                        offset: const Offset(0, 4),
+                        blurRadius: 8.s,
+                        offset: Offset(0, 4.s),
                       ),
                     ],
                   ),
                   child: CircleAvatar(
-                    radius: 55,
+                    radius: 55.s,
                     backgroundColor: const Color(0xFF2C2F33),
                     backgroundImage: NetworkImage(
                       profilePhoto != null 
@@ -271,24 +250,22 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                   ),
                 ),
-                // Edit Icon Overlay wrapped with GestureDetector for 100% robust touch response
                 Positioned(
-                  bottom: 5,
-                  right: 5,
+                  bottom: 5.s,
+                  right: 5.s,
                   child: GestureDetector(
                     onTap: () {
-                      debugPrint("Pencil avatar edit button tapped!");
                       _showGalleryAccessModal(context);
                     },
                     behavior: HitTestBehavior.opaque,
                     child: Container(
-                      padding: const EdgeInsets.all(6), // Slightly larger tap target
+                      padding: EdgeInsets.all(6.s),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         shape: BoxShape.circle,
                         border: Border.all(color: const Color(0xFF8C0404)),
                       ),
-                      child: const Icon(Icons.edit_outlined, size: 18, color: Colors.black87),
+                      child: Icon(Icons.edit_outlined, size: 18.s, color: Colors.black87),
                     ),
                   ),
                 ),
@@ -300,7 +277,6 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  /// Helper: builds a menu button for the profile card.
   Widget _buildMenuButton({
     required String label,
     IconData? icon,
@@ -309,13 +285,13 @@ class _ProfilePageState extends State<ProfilePage> {
   }) {
     return InkWell(
       onTap: onPressed,
-      borderRadius: BorderRadius.circular(10),
+      borderRadius: BorderRadius.circular(10.s),
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+        padding: EdgeInsets.symmetric(horizontal: 20.s, vertical: 14.s),
         decoration: BoxDecoration(
           color: isPrimary ? const Color(0xFF8C0404) : Colors.white,
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(10.s),
           border: isPrimary ? null : Border.all(color: const Color(0xFF8C0404)),
         ),
         child: Row(
@@ -324,15 +300,15 @@ class _ProfilePageState extends State<ProfilePage> {
               Icon(
                 icon,
                 color: isPrimary ? Colors.white : Colors.black87,
-                size: 24,
+                size: 24.s,
               ),
-              const SizedBox(width: 15),
+              SizedBox(width: 15.s),
             ],
             Text(
               label,
               style: TextStyle(
                 color: isPrimary ? Colors.white : Colors.black87,
-                fontSize: 16,
+                fontSize: 16.s,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -342,31 +318,29 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  /// Builds the statistics section below the profile card.
-  /// Shows four horizontal category boxes: All Items, Equipments, Appliances, and Supplies & Material.
   Widget _buildStatisticsSection() {
     if (_errorMessage != null) {
       return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 15.0),
+        padding: EdgeInsets.symmetric(horizontal: 15.0.s),
         child: InkWell(
           onTap: _fetchItems,
           child: Container(
-            padding: const EdgeInsets.all(12),
+            padding: EdgeInsets.all(12.s),
             decoration: BoxDecoration(
               color: const Color(0xFF8C0404).withOpacity(0.05),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(8.s),
               border: Border.all(color: const Color(0xFF8C0404).withOpacity(0.3)),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.refresh, color: Color(0xFF8C0404), size: 18),
-                const SizedBox(width: 8),
-                const Text(
+                Icon(Icons.refresh, color: const Color(0xFF8C0404), size: 18.s),
+                SizedBox(width: 8.s),
+                Text(
                   'Failed to load counts. Tap to retry.',
                   style: TextStyle(
-                    color: Color(0xFF8C0404),
-                    fontSize: 12,
+                    color: const Color(0xFF8C0404),
+                    fontSize: 12.s,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -389,32 +363,26 @@ class _ProfilePageState extends State<ProfilePage> {
         : _items.where((item) => item['category'] == 'Supplies').length.toString();
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 15.0),
+      padding: EdgeInsets.symmetric(horizontal: 15.0.s),
       child: Column(
         children: [
-          // ── Category Breakdown Grid Row ─────────────────────────────
-          // Four equal-width boxes utilizing vector SVGs copied from the web app
           Row(
             children: [
               _buildStatBox(
                 svgPath: 'assets/images/mr-all.svg',
                 count: allCount,
-                label: 'All Items',
               ),
               _buildStatBox(
                 svgPath: 'assets/images/mr-equipment.svg',
                 count: equipmentCount,
-                label: 'Equipments',
               ),
               _buildStatBox(
                 svgPath: 'assets/images/mr-semi-expandable.svg',
                 count: appliancesCount,
-                label: 'Semi-expendables',
               ),
               _buildStatBox(
                 svgPath: 'assets/images/mr-supplies.svg',
                 count: suppliesCount,
-                label: 'Supplies & Material',
               ),
             ],
           ),
@@ -423,85 +391,64 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  /// Helper: builds one square category statistic box using a vector SVG.
   Widget _buildStatBox({
     required String svgPath,
     required String count,
-    required String label,
   }) {
     return Expanded(
       child: Stack(
         alignment: Alignment.topCenter,
         clipBehavior: Clip.none,
         children: [
-          // ── White Card Body (Container) ─────────────────────────────────
           Container(
-            // Top margin for overlap alignment, left/right margins for clean gaps
-            margin: const EdgeInsets.only(top: 30, left: 6, right: 6),
+            margin: EdgeInsets.only(top: 30.s, left: 6.s, right: 6.s),
             width: double.infinity,
-            height: 110, // Uniform slightly taller height
-            padding: const EdgeInsets.only(top: 35, left: 4, right: 4, bottom: 10),
+            constraints: BoxConstraints(minHeight: 80.s),
+            padding: EdgeInsets.only(top: 35.s, left: 4.s, right: 4.s, bottom: 10.s),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(12.s),
               border: Border.all(color: const Color(0xFF8C0404)),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.03),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
+                  blurRadius: 4.s,
+                  offset: Offset(0, 2.s),
                 ),
               ],
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Item count (increased to 22px)
                 Text(
                   count,
-                  style: const TextStyle(
-                    color: Color(0xFF8C0404),
-                    fontSize: 22,
+                  style: TextStyle(
+                    color: const Color(0xFF8C0404),
+                    fontSize: 22.s,
                     fontWeight: FontWeight.bold,
                   ),
-                ),
-                const SizedBox(height: 6),
-                // Category label (increased to 11px, bold)
-                Text(
-                  label,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: Color(0xFF8C0404),
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
           ),
-
-          // ── Overlapping Circular SVG Icon (Top Layer) ────────────────────
           Positioned(
             top: 0,
             child: SvgPicture.asset(
               svgPath,
-              width: 60,
-              height: 60,
+              width: 60.s,
+              height: 60.s,
               errorBuilder: (context, error, stackTrace) {
-                debugPrint('SVG Card Icon Error ($label): $error');
                 return Container(
-                  width: 60,
-                  height: 60,
+                  width: 60.s,
+                  height: 60.s,
                   decoration: const BoxDecoration(
                     color: Color(0xFF8C0404),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.broken_image_outlined,
                     color: Colors.white,
-                    size: 30,
+                    size: 30.s,
                   ),
                 );
               },
@@ -512,345 +459,66 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  /// Builds the QR scanner floating action button (center-docked).
-  Widget _buildQRButton(BuildContext context) {
-    return Container(
-      width: 75,
-      height: 75,
-      margin: const EdgeInsets.only(top: 30),
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: Colors.white,
-        border: Border.all(color: const Color(0xFF8C0404), width: 1.5),
-      ),
-      child: FloatingActionButton(
-        elevation: 0,
-        backgroundColor: Colors.white,
-        shape: const CircleBorder(),
-        onPressed: () {
-          CameraPermissionModal.startScannerFlow(context);
-        },
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            SvgPicture.asset(
-              'assets/images/qr.svg',
-              colorFilter: const ColorFilter.mode(
-                Color(0xFF8C0404),
-                BlendMode.srcIn,
-              ),
-              width: 28,
-              height: 28,
-              errorBuilder: (context, error, stackTrace) {
-                debugPrint('SVG QR FAB Error (Profile View): $error');
-                return const Icon(
-                  Icons.qr_code_scanner,
-                  color: Color(0xFF8C0404),
-                  size: 28,
-                );
-              },
-            ),
-            const SizedBox(height: 4),
-            const Text(
-              'QR',
-              style: TextStyle(
-                color: Color(0xFF8C0404),
-                fontSize: 10,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// Builds the bottom navigation bar with a notch for the FAB.
-  /// On the Profile Page, the 'Profile' tab is shown as active (bold).
-  Widget _buildBottomNav(BuildContext context) {
-    return BottomAppBar(
-      color: Colors.white,
-      shape: const CircularNotchedRectangle(),
-      notchMargin: 6.0,
-      padding: EdgeInsets.zero,
-      child: SizedBox(
-        height: 60,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            // Inventory tab – tapping navigates back to Home
-            Expanded(
-              child: InkWell(
-                onTap: () {
-                  Navigator.pushReplacementNamed(context, AppRoutes.home);
-                },
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    SvgPicture.asset(
-                      'assets/images/inventory.svg',
-                      colorFilter: const ColorFilter.mode(
-                        Color(0xFF8C0404),
-                        BlendMode.srcIn,
-                      ),
-                      width: 24,
-                      height: 24,
-                      errorBuilder: (context, error, stackTrace) {
-                        debugPrint('SVG Inventory Nav Error (Profile View): $error');
-                        return const Icon(
-                          Icons.inventory_2_outlined,
-                          color: Color(0xFF8C0404),
-                          size: 24,
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 4),
-                    const Text(
-                      'Inventory',
-                      style: TextStyle(color: Color(0xFF8C0404), fontSize: 12),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(width: 80), // Space for the FAB notch
-            // Profile tab – currently active page
-            Expanded(
-              child: InkWell(
-                onTap: () {}, // Already on Profile, no-op
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF8C0404).withOpacity(0.15),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: SvgPicture.asset(
-                        'assets/images/profile.svg',
-                        colorFilter: const ColorFilter.mode(
-                          Color(0xFF8C0404),
-                          BlendMode.srcIn,
-                        ),
-                        width: 24,
-                        height: 24,
-                        errorBuilder: (context, error, stackTrace) {
-                          debugPrint('SVG Profile Nav Error (Profile View): $error');
-                          return const Icon(
-                            Icons.person,
-                            color: Color(0xFF8C0404),
-                            size: 24,
-                          );
-                        },
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    const Text(
-                      'Profile',
-                      style: TextStyle(
-                        color: Color(0xFF8C0404),
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// Displays a floating pop-up dialog containing the user's detailed information.
   void _showGeneralInfoModal(BuildContext context, UserModel? user) {
     showDialog(
       context: context,
       barrierDismissible: true,
       builder: (context) => Dialog(
         backgroundColor: Colors.transparent,
-        insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+        insetPadding: EdgeInsets.symmetric(horizontal: 20.s, vertical: 24.s),
         child: GeneralInfoDialog(user: user),
       ),
     );
   }
 
-  /// Displays a floating pop-up dialog containing the system FAQs.
   void _showFaqModal(BuildContext context) {
     showDialog(
       context: context,
       barrierDismissible: true,
-      builder: (context) => const Dialog(
+      builder: (context) => Dialog(
         backgroundColor: Colors.transparent,
-        insetPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-        child: FaqDialog(),
+        insetPadding: EdgeInsets.symmetric(horizontal: 20.s, vertical: 24.s),
+        child: const FaqDialog(),
       ),
     );
   }
 
-  /// Displays a logout confirmation modal and logs the user out if confirmed.
   void _showLogoutConfirmation(BuildContext context) {
     showDialog(
       context: context,
       builder: (BuildContext dialogContext) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-          title: const Text(
-            'Log out',
-            style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF8C0404)),
-          ),
-          content: const Text('Are you sure you want to log out?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('Cancel', style: TextStyle(color: Colors.black54)),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF8C0404),
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-              ),
-              onPressed: () async {
-                Navigator.pop(dialogContext); // close modal
-                final authController = context.read<AuthController>();
-                await authController.logout();
-                if (context.mounted) {
-                   Navigator.pushNamedAndRemoveUntil(context, AppRoutes.welcome, (route) => false);
-                }
-              },
-              child: const Text('Log out'),
-            ),
-          ],
+        return ConfirmationDialog(
+          message: 'Log out',
+          subtitle: 'Are you sure you want to log out?',
+          icon: Icons.logout,
+          color: const Color(0xFF8C0404),
+          confirmText: 'Log out',
+          onConfirm: () async {
+            final authController = context.read<AuthController>();
+            await authController.logout();
+            if (context.mounted) {
+              Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
+            }
+          },
         );
       },
     );
   }
 
-  // ─── Avatar Upload Logic ─────────────────────────────────────────
-
-  /// Step 1: Shows the custom "Allow Access" modal exactly mimicking the screenshot.
   void _showGalleryAccessModal(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext dialogContext) {
-        return Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-          child: Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(15),
-              color: Colors.white,
-              // Faint red gradient at the top to match screenshot
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Colors.red.withOpacity(0.1),
-                  Colors.white,
-                  Colors.white,
-                ],
-                stops: const [0.0, 0.3, 1.0],
-              ),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Red question mark icon with circular border
-                Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white,
-                    border: Border.all(color: Colors.red.shade100, width: 2),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.red.withOpacity(0.1),
-                        blurRadius: 10,
-                        spreadRadius: 2,
-                      ),
-                    ],
-                  ),
-                  child: const Text(
-                    '?',
-                    style: TextStyle(
-                      fontSize: 48,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF8C0404),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                const Text(
-                  'Allow Access',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF8C0404),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                const Text(
-                  'Would you like to allow this app have access to your gallery ?',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.black54,
-                    height: 1.4,
-                  ),
-                ),
-                const SizedBox(height: 30),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(dialogContext),
-                      child: const Text(
-                        'Cancel',
-                        style: TextStyle(color: Colors.black54, fontSize: 16),
-                      ),
-                    ),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF8C0404),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-                      ),
-                      onPressed: () {
-                        Navigator.pop(dialogContext); // Close modal
-                        _pickAndCropImage(context);   // Launch gallery
-                      },
-                      child: const Text(
-                        'Allow',
-                        style: TextStyle(color: Colors.white, fontSize: 16),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        );
-      },
+    GalleryAccessModal.startGalleryFlow(
+      context,
+      onAllow: () => _pickAndCropImage(context),
     );
   }
 
-  /// Step 2: Picks the image and opens the circular cropper.
   Future<void> _pickAndCropImage(BuildContext context) async {
     final ImagePicker picker = ImagePicker();
-    // Pick an image
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-    if (image == null) return; // User canceled picking
+    if (image == null) return;
 
     if (!context.mounted) return;
 
-    // Crop the image with a Circular UI
     final CroppedFile? croppedFile = await ImageCropper().cropImage(
       sourcePath: image.path,
       uiSettings: [
@@ -860,7 +528,7 @@ class _ProfilePageState extends State<ProfilePage> {
           toolbarWidgetColor: Colors.black87,
           initAspectRatio: CropAspectRatioPreset.square,
           lockAspectRatio: true,
-          cropStyle: CropStyle.circle, // Forces a circle overlay!
+          cropStyle: CropStyle.circle,
           hideBottomControls: false,
         ),
         IOSUiSettings(
@@ -872,20 +540,22 @@ class _ProfilePageState extends State<ProfilePage> {
     );
 
     if (croppedFile != null && context.mounted) {
-      // Proceed to upload!
       _uploadAvatar(context, File(croppedFile.path));
     }
   }
 
-  /// Step 3: Uploads the cropped image and updates the UI state.
   Future<void> _uploadAvatar(BuildContext context, File file) async {
-    // Show a loading overlay dialog
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext ctx) {
-        return const Center(
-          child: CircularProgressIndicator(color: Color(0xFF8C0404)),
+        return const CustomAlertDialog(
+          message: 'Uploading photo...',
+          icon: Icons.cloud_upload_outlined,
+          color: Color(0xFF8C0404),
+          child: Center(
+            child: CircularProgressIndicator(color: Color(0xFF8C0404)),
+          ),
         );
       },
     );
@@ -894,12 +564,9 @@ class _ProfilePageState extends State<ProfilePage> {
     final error = await profileController.updateAvatar(file);
 
     if (!context.mounted) return;
-    
-    // Dismiss loading overlay
     Navigator.pop(context);
 
     if (error == null) {
-      // Success
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Profile photo updated successfully!'),
@@ -908,7 +575,6 @@ class _ProfilePageState extends State<ProfilePage> {
         ),
       );
     } else {
-      // Failed
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(error),

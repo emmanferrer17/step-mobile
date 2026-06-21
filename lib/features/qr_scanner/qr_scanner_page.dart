@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:mobile/app/controllers/auth_controller.dart';
 import 'package:mobile/data/services/api_service.dart';
 import '../shared/widgets/custom_alert_dialog.dart';
+import '../shared/widgets/standard_permission_layout.dart';
 
 /// [MVC - VIEW]
 /// QRScannerPage provides a premium camera interface with an overlay,
@@ -86,24 +87,12 @@ class _QRScannerPageState extends State<QRScannerPage> with SingleTickerProvider
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => const Center(
-        child: Card(
-          color: Colors.white,
-          elevation: 4,
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 30, vertical: 20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                CircularProgressIndicator(color: Color(0xFF8C0404)),
-                SizedBox(height: 15),
-                Text(
-                  'Claiming items...',
-                  style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-          ),
+      builder: (context) => const CustomAlertDialog(
+        message: 'Processing form...',
+        icon: Icons.sync,
+        color: Color(0xFF8C0404),
+        child: Center(
+          child: CircularProgressIndicator(color: Color(0xFF8C0404)),
         ),
       ),
     );
@@ -114,7 +103,7 @@ class _QRScannerPageState extends State<QRScannerPage> with SingleTickerProvider
       
       if (token == null) {
         Navigator.pop(context); // Dismiss loading dialog
-        _showErrorSheet('Authentication token not found. Please log in again.');
+        _showErrorDialog('Authentication token not found. Please log in again.');
         return;
       }
 
@@ -127,12 +116,12 @@ class _QRScannerPageState extends State<QRScannerPage> with SingleTickerProvider
         final List<dynamic> items = result['data']?['items'] ?? [];
         _showSuccessDialog(qrCode, items);
       } else {
-        _showErrorSheet(result['message'] ?? 'An unknown error occurred.');
+        _showErrorDialog(result['message'] ?? 'An unknown error occurred.');
       }
     } catch (e) {
       if (!mounted) return;
       Navigator.pop(context); // Dismiss loading dialog
-      _showErrorSheet('An error occurred: ${e.toString()}');
+      _showErrorDialog('An error occurred: ${e.toString()}');
     }
   }
 
@@ -188,6 +177,7 @@ class _QRScannerPageState extends State<QRScannerPage> with SingleTickerProvider
                           final unit = item['unit'] ?? 'pcs';
                           final specs = item['specification'] ?? '';
                           final stock = item['stock'] ?? 'N/A';
+                          debugPrint('Item stock: $stock');
 
                           return Padding(
                             padding: const EdgeInsets.symmetric(vertical: 8),
@@ -243,77 +233,21 @@ class _QRScannerPageState extends State<QRScannerPage> with SingleTickerProvider
     );
   }
 
-  // [UI] Displays an error bottom sheet with a warning
-  void _showErrorSheet(String errorMessage) {
-    showModalBottomSheet(
+  // [UI] Displays an error dialog with a warning
+  void _showErrorDialog(String errorMessage) {
+    showDialog(
       context: context,
-      backgroundColor: Colors.transparent,
-      isDismissible: false,
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(25),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.only(topLeft: Radius.circular(30), topRight: Radius.circular(30)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 50,
-              height: 5,
-              decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(10)),
-            ),
-            const SizedBox(height: 25),
-            const Icon(Icons.error_outline, color: Colors.red, size: 50),
-            const SizedBox(height: 15),
-            const Text(
-              'Scanning Failed',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.red),
-            ),
-            const SizedBox(height: 10),
-            Text(
-              errorMessage,
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 14, color: Colors.black87),
-            ),
-            const SizedBox(height: 30),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                      setState(() => _isScanCompleted = false);
-                    },
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: const Color(0xFF8C0404),
-                      side: const BorderSide(color: Color(0xFF8C0404)),
-                      padding: const EdgeInsets.symmetric(vertical: 15),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    ),
-                    child: const Text('SCAN AGAIN', style: TextStyle(fontWeight: FontWeight.bold)),
-                  ),
-                ),
-                const SizedBox(width: 15),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                      Navigator.pop(context); // Go back to Home
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF8C0404),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 15),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    ),
-                    child: const Text('CLOSE', style: TextStyle(fontWeight: FontWeight.bold)),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
+      barrierDismissible: false,
+      builder: (dialogCtx) => CustomAlertDialog(
+        message: 'Scanning Failed',
+        subtitle: errorMessage,
+        icon: Icons.error_outline,
+        color: Colors.red,
+        buttonText: 'Try again',
+        onButtonPressed: () {
+          Navigator.pop(dialogCtx);
+          setState(() => _isScanCompleted = false);
+        },
       ),
     );
   }
@@ -451,131 +385,11 @@ class _QRScannerPageState extends State<QRScannerPage> with SingleTickerProvider
 
   // [UI] Premium Custom Camera Permission Access Prompt (replaces native primer/black denied screen)
   Widget _buildCustomPermissionPromptView() {
-    return Container(
-      width: double.infinity,
-      height: double.infinity,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            Color(0xFFFFEAEA), // Soft light pink/red glow
-            Colors.white,
-          ],
-          stops: [0.0, 0.35],
-        ),
-      ),
-      child: SafeArea(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            // Status Icon Container
-            Container(
-              width: 120,
-              height: 120,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 20,
-                    spreadRadius: 2,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: const Center(
-                child: Text(
-                  '?',
-                  style: TextStyle(
-                    color: Color(0xFF8C0404),
-                    fontSize: 56,
-                    fontWeight: FontWeight.w300,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // Title
-            const Text(
-              'Allow Access',
-              style: TextStyle(
-                color: Color(0xFF8C0404),
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 12),
-
-            // Description
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 40),
-              child: Text(
-                'Would you like to allow this app have access to your camera ?',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Colors.grey.shade600,
-                  fontSize: 16,
-                  height: 1.4,
-                ),
-              ),
-            ),
-            const SizedBox(height: 48),
-
-            // Buttons row
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // Cancel Action
-                GestureDetector(
-                  onTap: () => Navigator.pop(context),
-                  behavior: HitTestBehavior.opaque,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                    child: Text(
-                      'Cancel',
-                      style: TextStyle(
-                        color: Colors.grey.shade500,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 36),
-
-                // Allow Action
-                SizedBox(
-                  width: 150,
-                  child: ElevatedButton(
-                    onPressed: _requestPermission,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF8C0404),
-                      foregroundColor: Colors.white,
-                      elevation: 0,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                    child: const Text(
-                      'Allow',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
+    return StandardPermissionLayout(
+      isBottomSheet: false,
+      subtitle: 'Would you like to allow this app have access to your camera ?',
+      onCancel: () => Navigator.pop(context),
+      onAllow: _requestPermission,
     );
   }
 

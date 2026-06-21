@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import '../../../app/config/size_config.dart';
+import '../../../app/config/ui_constants.dart';
 
 class CustomAlertDialog extends StatelessWidget {
   final String message;
   final String? subtitle;
-  final IconData icon;
+  final IconData? icon;
   final Color color;
   final VoidCallback? onClose;
   final Widget? child;
@@ -14,7 +16,7 @@ class CustomAlertDialog extends StatelessWidget {
     super.key,
     required this.message,
     this.subtitle,
-    required this.icon,
+    this.icon,
     required this.color,
     this.onClose,
     this.child,
@@ -24,16 +26,18 @@ class CustomAlertDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    SizeConfig().init(context);
+
     return Dialog(
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15),
+        borderRadius: BorderRadius.circular(15.s),
       ),
       backgroundColor: Colors.transparent,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 30),
+        padding: EdgeInsets.symmetric(horizontal: 24.s, vertical: 30.s),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(15),
+          borderRadius: BorderRadius.circular(15.s),
         ),
         child: Stack(
           alignment: Alignment.center,
@@ -41,10 +45,10 @@ class CustomAlertDialog extends StatelessWidget {
           children: [
             // Close Button in the top right
             Positioned(
-              top: -20,
-              right: -14,
+              top: -20.s,
+              right: -14.s,
               child: IconButton(
-                icon: const Icon(Icons.close, color: Colors.black54, size: 22),
+                icon: Icon(Icons.close, color: Colors.black54, size: 22.s),
                 onPressed: () {
                   Navigator.pop(context);
                   if (onClose != null) {
@@ -56,60 +60,62 @@ class CustomAlertDialog extends StatelessWidget {
             Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const SizedBox(height: 10),
-                // Circular container for the Icon
-                Container(
-                  width: 90,
-                  height: 90,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white,
-                    boxShadow: [
-                      BoxShadow(
-                        color: color.withOpacity(0.12),
-                        blurRadius: 15,
-                        spreadRadius: 3,
-                        offset: const Offset(0, 5),
+                if (icon != null) ...[
+                  SizedBox(height: 10.s),
+                  // Circular container for the Icon
+                  Container(
+                    width: 90.s,
+                    height: 90.s,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white,
+                      boxShadow: [
+                        BoxShadow(
+                          color: color.withOpacity(0.12),
+                          blurRadius: 15.s,
+                          spreadRadius: 3.s,
+                          offset: Offset(0, 5.s),
+                        ),
+                      ],
+                    ),
+                    child: Center(
+                      child: Icon(
+                        icon,
+                        color: color,
+                        size: 48.s,
                       ),
-                    ],
-                  ),
-                  child: Center(
-                    child: Icon(
-                      icon,
-                      color: color,
-                      size: 48,
                     ),
                   ),
-                ),
-                const SizedBox(height: 24),
+                ],
+                SizedBox(height: 24.s),
                 // Title Message text
                 Text(
                   message,
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    fontSize: 18,
+                    fontSize: 18.s,
                     fontWeight: FontWeight.bold,
                     color: color,
                   ),
                 ),
                 if (subtitle != null) ...[
-                  const SizedBox(height: 8),
+                  SizedBox(height: 8.s),
                   Text(
                     subtitle!,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 13,
+                    style: TextStyle(
+                      fontSize: 13.s,
                       color: Colors.black54,
                       height: 1.4,
                     ),
                   ),
                 ],
                 if (child != null) ...[
-                  const SizedBox(height: 20),
+                  SizedBox(height: 20.s),
                   child!,
                 ],
                 if (buttonText != null) ...[
-                  const SizedBox(height: 24),
+                  SizedBox(height: 24.s),
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
@@ -117,9 +123,9 @@ class CustomAlertDialog extends StatelessWidget {
                         backgroundColor: color,
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
+                          borderRadius: BorderRadius.circular(10.s),
                         ),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        padding: EdgeInsets.symmetric(vertical: 14.s),
                         elevation: 0,
                       ),
                       onPressed: () {
@@ -134,13 +140,13 @@ class CustomAlertDialog extends StatelessWidget {
                         children: [
                           Text(
                             buttonText!,
-                            style: const TextStyle(
-                              fontSize: 15,
+                            style: TextStyle(
+                              fontSize: 15.s,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          const SizedBox(width: 8),
-                          const Icon(Icons.arrow_forward, size: 18),
+                          SizedBox(width: 8.s),
+                          Icon(Icons.arrow_forward, size: 18.s),
                         ],
                       ),
                     ),

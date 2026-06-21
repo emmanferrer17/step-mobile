@@ -1,29 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import '../../app/config/routes.dart';
 import '../../app/config/constants.dart';
+import '../../app/config/ui_constants.dart';
 import '../../app/controllers/auth_controller.dart';
+import '../../app/controllers/home_controller.dart';
 import '../../data/services/api_service.dart';
-import 'widgets/filter_bottom_sheet.dart';
 import 'widgets/item_details_modal.dart';
-import '../shared/widgets/camera_permission_modal.dart';
+import 'widgets/filter_bottom_sheet.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  final ScrollController? scrollController;
+  const HomePage({super.key, this.scrollController});
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  HomePageState createState() => HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
-  final int notificationCount = 2;
-
+class HomePageState extends State<HomePage> {
   final List<Map<String, dynamic>> categories = [
-    {'name': 'All', 'iconPath': 'assets/images/all.svg', 'isSelected': true},
+    {'name': 'All Items', 'iconPath': 'assets/images/all.svg', 'isSelected': true},
     {'name': 'Equipment', 'iconPath': 'assets/images/equipment.svg', 'isSelected': false},
     {'name': 'Semi-Expendable', 'iconPath': 'assets/images/semi-expendable.svg', 'isSelected': false},
-    {'name': 'Supplies', 'iconPath': 'assets/images/supplies.svg', 'isSelected': false},
+    {'name': 'Supplies and Materials', 'iconPath': 'assets/images/supplies.svg', 'isSelected': false},
   ];
 
   // State variables for dynamic items and loading
@@ -31,15 +30,15 @@ class _HomePageState extends State<HomePage> {
   bool _isLoading = true;
   String? _errorMessage;
   String _searchQuery = '';
-  String _selectedCategory = 'All';
+  String _selectedCategory = 'All Items';
 
   @override
   void initState() {
     super.initState();
-    _fetchItems();
+    fetchItems();
   }
 
-  Future<void> _fetchItems() async {
+  Future<void> fetchItems() async {
     if (!mounted) return;
     setState(() {
       _isLoading = true;
@@ -82,7 +81,7 @@ class _HomePageState extends State<HomePage> {
 
   List<dynamic> get _filteredItems {
     List<dynamic> list = _assignedItems;
-    if (_selectedCategory != 'All') {
+    if (_selectedCategory != 'All Items') {
       list = list.where((item) => item['category'] == _selectedCategory).toList();
     }
     if (_searchQuery.isNotEmpty) {
@@ -103,10 +102,9 @@ class _HomePageState extends State<HomePage> {
     final displayName = user?.fullName ?? 'User';
     final profilePhoto = user?.profilePhoto;
 
-    return Scaffold(
-      resizeToAvoidBottomInset: false,
-      backgroundColor: const Color(0xFFF5EFE6), // Light beige background
-      body: Column(
+    return Container(
+      color: const Color(0xFFF5EFE6), // Light beige background
+      child: Column(
         children: [
           // Overlapping Header Section
           Stack(
@@ -116,10 +114,10 @@ class _HomePageState extends State<HomePage> {
               Container(
                 width: double.infinity,
                 padding: EdgeInsets.only(
-                  top: statusBarHeight + 20,
-                  left: 20,
-                  right: 20,
-                  bottom: 40,
+                  top: statusBarHeight + 20.s,
+                  left: 20.s,
+                  right: 20.s,
+                  bottom: 40.s,
                 ),
                 decoration: const BoxDecoration(
                   color: Color(0xFF8C0404),
@@ -128,83 +126,107 @@ class _HomePageState extends State<HomePage> {
               ),
               // Search Bar & Filter
               Positioned(
-                bottom: -25,
-                left: 20,
-                right: 20,
+                bottom: -25.s,
+                left: 20.s,
+                right: 20.s,
                 child: _buildSearchBarArea(),
               ),
             ],
           ),
-          const SizedBox(height: 40),
+          SizedBox(height: 40.s),
 
           // Categories
           _buildCategories(),
-          const SizedBox(height: 10),
+          SizedBox(height: 10.s),
 
           // Item List Box
           Expanded(
             child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 20),
+              margin: EdgeInsets.symmetric(horizontal: 20.s),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(10.s),
               ),
               clipBehavior: Clip.antiAlias,
-              child: _buildItemList(),
+              child: Column(
+                children: [
+                  _buildStickyCategoryHeader(),
+                  Expanded(child: _buildItemList()),
+                ],
+              ),
             ),
           ),
         ],
       ),
-      floatingActionButton: _buildQRButton(),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      bottomNavigationBar: _buildBottomNav(),
     );
   }
 
-  /// Builds the top red header section containing:
-  /// - User profile picture (CircleAvatar)
-  /// - Greeting text ("Hello", User Name)
-  /// - Notification bell icon with an unread count badge
+  Widget _buildStickyCategoryHeader() {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(horizontal: 15.s, vertical: 12.s),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        border: Border(bottom: BorderSide(color: Color(0xFFEEEEEE))),
+      ),
+      child: Text(
+        '$_selectedCategory',
+        style: TextStyle(
+          color: const Color(0xFF8C0404),
+          fontSize: 14.s,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+
   Widget _buildHeaderContent(String userName, String? profilePhoto) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Row(
-          children: [
-            Container(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.blueAccent, width: 2),
-              ),
-              child: CircleAvatar(
-                radius: 26,
-                backgroundColor: Colors.white,
-                backgroundImage: profilePhoto != null 
-                    ? NetworkImage('${ApiConstants.storageUrl}$profilePhoto')
-                    : null,
-                child: profilePhoto == null 
-                    ? const Icon(Icons.person, size: 35, color: Colors.grey)
-                    : null,
-              ),
-            ),
-            const SizedBox(width: 15),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  userName,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
+        Expanded(
+          child: Row(
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.blueAccent, width: 2.s),
                 ),
-              ],
-            ),
-          ],
+                child: CircleAvatar(
+                  radius: 26.s,
+                  backgroundColor: Colors.white,
+                  backgroundImage: profilePhoto != null 
+                      ? NetworkImage('${ApiConstants.storageUrl}$profilePhoto')
+                      : null,
+                  child: profilePhoto == null 
+                      ? Icon(Icons.person, size: 35.s, color: Colors.grey)
+                      : null,
+                ),
+              ),
+              SizedBox(width: 15.s),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      userName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16.s,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
+        SizedBox(width: 10.s),
         IconButton(
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints(),
@@ -214,43 +236,31 @@ class _HomePageState extends State<HomePage> {
               Colors.white,
               BlendMode.srcIn,
             ),
-            width: 20,
-            height: 20,
-            errorBuilder: (context, error, stackTrace) {
-              debugPrint('SVG Archive Header Error: $error');
-              return const Icon(
-                Icons.archive,
-                color: Colors.white,
-                size: 30,
-              );
-            },
+            width: 20.s,
+            height: 20.s,
           ),
           onPressed: () {
-            Navigator.pushNamed(context, AppRoutes.archive);
+            Navigator.pushNamed(context, '/archive');
           },
         ),
       ],
     );
   }
 
-  /// Builds the search bar area that overlaps the red header and the beige body.
-  /// Contains:
-  /// - A text field for searching items
-  /// - A filter button icon on the right side
   Widget _buildSearchBarArea() {
     return Row(
       children: [
         Expanded(
           child: Container(
-            height: 50,
+            height: 50.s,
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(10.s),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.05),
-                  blurRadius: 5,
-                  offset: const Offset(0, 3),
+                  blurRadius: 5.s,
+                  offset: Offset(0, 3.s),
                 )
               ],
             ),
@@ -260,28 +270,28 @@ class _HomePageState extends State<HomePage> {
                   _searchQuery = value.trim();
                 });
               },
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 hintText: 'Search...',
-                hintStyle: TextStyle(color: Colors.grey, fontSize: 15),
+                hintStyle: TextStyle(color: Colors.grey, fontSize: 15.s),
                 border: InputBorder.none,
-                contentPadding: EdgeInsets.symmetric(horizontal: 15, vertical: 15),
-                suffixIcon: Icon(Icons.search, color: Colors.grey),
+                contentPadding: EdgeInsets.symmetric(horizontal: 15.s, vertical: 15.s),
+                suffixIcon: const Icon(Icons.search, color: Colors.grey),
               ),
             ),
           ),
         ),
-        const SizedBox(width: 10),
+        SizedBox(width: 10.s),
         Container(
-          height: 50,
-          width: 50,
+          height: 50.s,
+          width: 50.s,
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(10.s),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withOpacity(0.05),
-                blurRadius: 5,
-                offset: const Offset(0, 3),
+                blurRadius: 5.s,
+                offset: Offset(0, 3.s),
               )
             ],
           ),
@@ -301,69 +311,48 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  /// Builds a horizontally distributed list of categories.
-  /// It highlights the currently selected category (e.g., 'All') with a solid
-  /// red background and white SVG icon, while unselected ones have a red border and red SVG icon.
   Widget _buildCategories() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10),
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: EdgeInsets.symmetric(horizontal: 15.s),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: categories.map((category) {
           final isSelected = category['isSelected'] as bool;
-          return GestureDetector(
-            onTap: () {
-              setState(() {
-                for (var cat in categories) {
-                  cat['isSelected'] = (cat == category);
-                }
-                _selectedCategory = category['name'] as String;
-              });
-            },
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 65,
-                  height: 65,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: isSelected ? const Color(0xFF8C0404) : Colors.white,
-                    border: Border.all(
-                      color: const Color(0xFF8C0404),
-                      width: 1.5,
-                    ),
-                  ),
-                  child: SvgPicture.asset(
-                    category['iconPath'] as String,
-                    colorFilter: ColorFilter.mode(
-                      isSelected ? Colors.white : const Color(0xFF8C0404),
-                      BlendMode.srcIn,
-                    ),
-                    width: 28,
-                    height: 28,
-                    errorBuilder: (context, error, stackTrace) {
-                      debugPrint('SVG Category Error (${category['name']}): $error');
-                      return Icon(
-                        Icons.broken_image,
-                        color: isSelected ? Colors.white : const Color(0xFF8C0404),
-                        size: 28,
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  category['name'] as String,
-                  style: TextStyle(
+          return Padding(
+            padding: EdgeInsets.symmetric(horizontal: 10.s),
+            child: GestureDetector(
+              onTap: () {
+                setState(() {
+                  for (var cat in categories) {
+                    cat['isSelected'] = (cat == category);
+                  }
+                  _selectedCategory = category['name'] as String;
+                });
+              },
+              child: Container(
+                width: 65.s,
+                height: 65.s,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: isSelected ? const Color(0xFF8C0404) : Colors.white,
+                  border: Border.all(
                     color: const Color(0xFF8C0404),
-                    fontSize: 12,
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                    width: 1.5.s,
                   ),
                 ),
-              ],
+                child: SvgPicture.asset(
+                  category['iconPath'] as String,
+                  colorFilter: ColorFilter.mode(
+                    isSelected ? Colors.white : const Color(0xFF8C0404),
+                    BlendMode.srcIn,
+                  ),
+                  width: 28.s,
+                  height: 28.s,
+                ),
+              ),
             ),
           );
         }).toList(),
@@ -371,7 +360,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  /// Builds the vertical list of inventory items.
   Widget _buildItemList() {
     if (_isLoading) {
       return const Center(
@@ -395,7 +383,7 @@ class _HomePageState extends State<HomePage> {
               ),
               const SizedBox(height: 15),
               ElevatedButton(
-                onPressed: _fetchItems,
+                onPressed: fetchItems,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF8C0404),
                   foregroundColor: Colors.white,
@@ -433,51 +421,52 @@ class _HomePageState extends State<HomePage> {
     }
 
     return RefreshIndicator(
-      onRefresh: _fetchItems,
+      onRefresh: fetchItems,
       color: const Color(0xFF8C0404),
       child: ListView.separated(
+        controller: widget.scrollController,
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.only(top: 10, bottom: 40),
+        padding: EdgeInsets.only(top: 10.s, bottom: 40.s),
         itemCount: filtered.length,
-        separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFEEEEEE)),
+        separatorBuilder: (context, index) => Divider(height: 1, color: const Color(0xFFEEEEEE)),
         itemBuilder: (context, index) {
           final item = filtered[index];
           final name = item['item_name'] ?? 'Unknown Item';
           final location = item['location'] ?? 'Unknown Location';
           return ListTile(
-            contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 2),
+            contentPadding: EdgeInsets.symmetric(horizontal: 15.s, vertical: 2.s),
             title: Text(
               name,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                color: Color(0xFF8C0404),
+              style: TextStyle(
+                color: const Color(0xFF8C0404),
                 fontWeight: FontWeight.w600,
-                fontSize: 16,
+                fontSize: 16.s,
               ),
             ),
             subtitle: Row(
               children: [
-                const Icon(Icons.location_on, size: 14, color: Colors.grey),
-                const SizedBox(width: 4),
+                Icon(Icons.location_on, size: 14.s, color: Colors.grey),
+                SizedBox(width: 4.s),
                 Expanded(
                   child: Text(
                     location,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: Colors.grey,
-                      fontSize: 13,
+                      fontSize: 13.s,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
               ],
             ),
-            trailing: const Icon(
+            trailing: Icon(
               Icons.keyboard_double_arrow_right,
               color: Colors.grey,
-              size: 22,
+              size: 22.s,
             ),
             onTap: () {
               _showItemDetailsModal(context, item);
@@ -488,167 +477,24 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  /// Displays the floating pop-up dialog showing details of the clicked item.
-  void _showItemDetailsModal(BuildContext context, Map<String, dynamic> item) {
-    showDialog(
+  void _showItemDetailsModal(BuildContext context, Map<String, dynamic> item) async {
+    final homeController = context.read<HomeController>();
+    
+    final result = await showDialog<bool>(
       context: context,
       barrierDismissible: true,
-      builder: (context) => Dialog(
+      builder: (dialogContext) => Dialog(
         backgroundColor: Colors.transparent,
         insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-        child: ItemDetailsModal(itemDetails: item),
-      ),
-    );
-  }
-
-  /// Builds the custom floating action button for the QR scanner.
-  /// Positioned at the center-docked location of the BottomAppBar.
-  Widget _buildQRButton() {
-    return Container(
-      width: 75,
-      height: 75,
-      margin: const EdgeInsets.only(top: 30),
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: Colors.white,
-        border: Border.all(color: const Color(0xFF8C0404), width: 1.5),
-      ),
-      child: FloatingActionButton(
-        elevation: 0,
-        backgroundColor: Colors.white,
-        shape: const CircleBorder(),
-        onPressed: () async {
-          // [NAVIGATION] Open the QR Scanner page after permission verification
-          await CameraPermissionModal.startScannerFlow(context);
-          _fetchItems(); // Refresh items when returning from the scanner
-        },
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            SvgPicture.asset(
-              'assets/images/qr.svg',
-              colorFilter: const ColorFilter.mode(
-                Color(0xFF8C0404),
-                BlendMode.srcIn,
-              ),
-              width: 28,
-              height: 28,
-              errorBuilder: (context, error, stackTrace) {
-                debugPrint('SVG QR FAB Error: $error');
-                return const Icon(
-                  Icons.qr_code_scanner,
-                  color: Color(0xFF8C0404),
-                  size: 28,
-                );
-              },
-            ),
-            const SizedBox(height: 4),
-            const Text(
-              'QR',
-              style: TextStyle(
-                color: Color(0xFF8C0404),
-                fontSize: 10,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
+        child: ChangeNotifierProvider.value(
+          value: homeController,
+          child: ItemDetailsModal(itemDetails: item),
         ),
       ),
     );
-  }
 
-  /// Builds the custom bottom navigation bar with a notch for the FAB.
-  /// Contains navigation items like 'Inventory' and 'Profile'.
-  Widget _buildBottomNav() {
-    return BottomAppBar(
-      color: Colors.white,
-      shape: const CircularNotchedRectangle(),
-      notchMargin: 6.0,
-      padding: EdgeInsets.zero,
-      child: SizedBox(
-        height: 60,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            Expanded(
-              child: InkWell(
-                onTap: () {},
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF8C0404).withOpacity(0.15),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: SvgPicture.asset(
-                        'assets/images/inventory.svg',
-                        colorFilter: const ColorFilter.mode(
-                          Color(0xFF8C0404),
-                          BlendMode.srcIn,
-                        ),
-                        width: 24,
-                        height: 24,
-                        errorBuilder: (context, error, stackTrace) {
-                          debugPrint('SVG Inventory Nav Error: $error');
-                          return const Icon(
-                            Icons.inventory_2,
-                            color: Color(0xFF8C0404),
-                            size: 24,
-                          );
-                        },
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    const Text(
-                      'Inventory',
-                      style: TextStyle(color: Color(0xFF8C0404), fontSize: 12, fontWeight: FontWeight.bold),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(width: 80),
-            Expanded(
-              child: InkWell(
-                onTap: () {
-                  Navigator.pushNamed(context, AppRoutes.profile);
-                },
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    SvgPicture.asset(
-                      'assets/images/profile.svg',
-                      colorFilter: const ColorFilter.mode(
-                        Color(0xFF8C0404),
-                        BlendMode.srcIn,
-                      ),
-                      width: 24,
-                      height: 24,
-                      errorBuilder: (context, error, stackTrace) {
-                        debugPrint('SVG Profile Nav Error: $error');
-                        return const Icon(
-                          Icons.person_outline,
-                          color: Color(0xFF8C0404),
-                          size: 24,
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 4),
-                    const Text(
-                      'Profile',
-                      style: TextStyle(color: Color(0xFF8C0404), fontSize: 12),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+    if (result == true) {
+      fetchItems();
+    }
   }
 }

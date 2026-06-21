@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../app/config/size_config.dart';
+import '../../app/config/ui_constants.dart';
 import '../../app/controllers/auth_controller.dart';
 import '../../data/services/api_service.dart';
 import '../home/widgets/item_details_modal.dart';
@@ -109,21 +111,23 @@ class _ArchivePageState extends State<ArchivePage> {
 
   @override
   Widget build(BuildContext context) {
+    SizeConfig().init(context);
     return Scaffold(
       backgroundColor: const Color(0xFFF5EFE6), // Matching home screen light beige background
       appBar: AppBar(
         backgroundColor: const Color(0xFF8C0404), // Dark red university brand color
         elevation: 0,
         centerTitle: true,
+        toolbarHeight: 60.s,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white, size: 26),
+          icon: Icon(Icons.arrow_back, color: Colors.white, size: 26.s),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Archive',
           style: TextStyle(
             color: Colors.white,
-            fontSize: 20,
+            fontSize: 20.s,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -178,14 +182,26 @@ class _ArchivePageState extends State<ArchivePage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.archive_outlined, color: Colors.grey.shade400, size: 64),
-            const SizedBox(height: 16),
+            Icon(Icons.inventory_2_outlined, color: Colors.grey.shade400, size: 64.s),
+            SizedBox(height: 16.s),
             Text(
-              'No items in archive yet',
+              'Your archive is empty',
               style: TextStyle(
-                fontSize: 16,
+                fontSize: 18.s,
                 color: Colors.grey.shade600,
                 fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 8.s),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 40.s),
+              child: Text(
+                'Items you scan or receive will appear here as part of your inventory history.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14.s,
+                  color: Colors.grey.shade500,
+                ),
               ),
             ),
           ],
@@ -212,23 +228,22 @@ class _ArchivePageState extends State<ArchivePage> {
     );
   }
 
-  /// Helper: builds a date-grouped card enclosing receipt logs and action items.
   Widget _buildDateGroupCard(
     BuildContext context, {
     required String dateLabel,
     required List<dynamic> items,
   }) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20),
+      margin: EdgeInsets.symmetric(horizontal: 20.s),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade300, width: 1.0),
+        borderRadius: BorderRadius.circular(12.s),
+        border: Border.all(color: Colors.grey.shade300, width: 1.0.s),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.02),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
+            blurRadius: 4.s,
+            offset: Offset(0, 2.s),
           ),
         ],
       ),
@@ -237,12 +252,12 @@ class _ArchivePageState extends State<ArchivePage> {
         children: [
           // Card Header Bar displaying Date Received
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: EdgeInsets.symmetric(horizontal: 16.s, vertical: 12.s),
             child: Text(
               dateLabel,
               style: TextStyle(
                 color: Colors.grey.shade500,
-                fontSize: 13,
+                fontSize: 13.s,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -262,7 +277,7 @@ class _ArchivePageState extends State<ArchivePage> {
               final unit = item['unit'] ?? 'pcs';
 
               return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                padding: EdgeInsets.symmetric(horizontal: 16.s, vertical: 14.s),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -273,51 +288,51 @@ class _ArchivePageState extends State<ArchivePage> {
                         children: [
                           Text(
                             name,
-                            style: const TextStyle(
-                              color: Color(0xFF8C0404),
-                              fontSize: 16,
+                            style: TextStyle(
+                              color: const Color(0xFF8C0404),
+                              fontSize: 16.s,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          const SizedBox(height: 4),
+                          SizedBox(height: 4.s),
                           Text(
                             'Quantity: $qty $unit',
                             style: TextStyle(
                               color: Colors.grey.shade500,
-                              fontSize: 12,
+                              fontSize: 12.s,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    SizedBox(width: 12.s),
 
                     // view details -> action button
                     GestureDetector(
                       onTap: () => _showItemDetailsModal(context, item),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                        padding: EdgeInsets.symmetric(horizontal: 10.s, vertical: 8.s),
                         decoration: BoxDecoration(
                           color: const Color(0xFF8C0404),
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(8.s),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
-                          children: const [
+                          children: [
                             Text(
-                              'view details',
+                              'details',
                               style: TextStyle(
                                 color: Colors.white,
-                                fontSize: 13,
+                                fontSize: 13.s,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            SizedBox(width: 6),
+                            SizedBox(width: 4.s),
                             Icon(
                               Icons.arrow_forward,
                               color: Colors.white,
-                              size: 14,
+                              size: 14.s,
                             ),
                           ],
                         ),

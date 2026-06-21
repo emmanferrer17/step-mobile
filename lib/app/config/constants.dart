@@ -1,6 +1,9 @@
 class ApiConstants {
-  // IMPORTANT: Palitan lagi ang IP address kapag nagbago ang network.
-  static const String ipAddress = '192.168.1.106';
+  // [CONNECTION MODE]
+  // 1. USB Debugging: Use 'localhost' and run 'adb reverse tcp:8080 tcp:8080'
+  // 2. Wi-Fi Debugging: Use your PC's IP (e.g., '192.168.x.x')
+  static const String ipAddress = '192.168.254.135';
+
   static const String baseUrl = 'http://$ipAddress:8080/api';
   static const String storageUrl = 'http://$ipAddress:8080/';
 
@@ -15,9 +18,17 @@ class ApiConstants {
   static const String updateProfileUrl = '$baseUrl/user/profile/update';
   static const String updatePasswordUrl = '$baseUrl/user/password/update';
   static const String updateAvatarUrl = '$baseUrl/user/avatar/update';
+  static const String updateItemImageUrl = '$baseUrl/user/mr/items/update-image';
+  static const String deleteItemImageUrl = '$baseUrl/user/mr/items/delete-image';
+  static const String updateItemLocationUrl = '$baseUrl/user/mr/items/update-location';
   static const String assignMrUrl = '$baseUrl/user/mr/assign';
   static const String mrItemsUrl = '$baseUrl/user/mr/items';
   
   // Department Endpoints
   static const String departmentsUrl = '$baseUrl/departments';
 }
+
+// static const String ipAddress = 'itrac.tupt.edu.ph';
+//
+// static const String baseUrl = 'https://itrac.tupt.edu.ph/api';
+// static const String storageUrl = 'https://itrac.tupt.edu.ph/';
