@@ -31,7 +31,7 @@ class FaqDialog extends StatelessWidget {
                     child: Text(
                       'FAQs',
                       style: TextStyle(
-                        color: Color(0xFF8C0404),
+                        color: Color(0xFFBA1A1A),
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
@@ -90,7 +90,7 @@ class FaqDialog extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFF8C0404).withOpacity(0.2)),
+        border: Border.all(color: const Color(0xFFBA1A1A).withOpacity(0.2)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.02),
@@ -103,13 +103,13 @@ class FaqDialog extends StatelessWidget {
         title: Text(
           question,
           style: const TextStyle(
-            color: Color(0xFF8C0404),
+            color: Color(0xFFBA1A1A),
             fontSize: 14,
             fontWeight: FontWeight.bold,
           ),
         ),
-        iconColor: const Color(0xFF8C0404),
-        collapsedIconColor: const Color(0xFF8C0404).withOpacity(0.8),
+        iconColor: const Color(0xFFBA1A1A),
+        collapsedIconColor: const Color(0xFFBA1A1A).withOpacity(0.8),
         childrenPadding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
         expandedCrossAxisAlignment: CrossAxisAlignment.start,
         children: [

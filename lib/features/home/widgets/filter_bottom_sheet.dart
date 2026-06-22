@@ -65,7 +65,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
               child: Text(
                 'Filter',
                 style: TextStyle(
-                  color: Color(0xFF8C0404),
+                  color: Color(0xFFBA1A1A),
                   fontSize: 20,
                   fontWeight: FontWeight.w600,
                 ),
@@ -114,7 +114,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                         Navigator.pop(context);
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF8C0404),
+                        backgroundColor: const Color(0xFFBA1A1A),
                         foregroundColor: Colors.white,
                         elevation: 0,
                         shape: RoundedRectangleBorder(
@@ -190,7 +190,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                       items[key] = value ?? false;
                     });
                   },
-                  activeColor: const Color(0xFF8C0404),
+                  activeColor: const Color(0xFFBA1A1A),
                   side: const BorderSide(color: Colors.grey, width: 1.5),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(2),
@@ -216,7 +216,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
             return Theme(
               data: Theme.of(context).copyWith(
                 colorScheme: const ColorScheme.light(
-                  primary: Color(0xFF8C0404), // header background color
+                  primary: Color(0xFFBA1A1A), // header background color
                   onPrimary: Colors.white, // header text color
                   onSurface: Colors.black, // body text color
                 ),

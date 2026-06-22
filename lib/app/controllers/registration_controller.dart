@@ -83,7 +83,7 @@ class RegistrationController extends ChangeNotifier {
     final tupIdRegex = RegExp(r'^[A-Z]{4}\d-\d{2}-\d{4}$');
     if (!tupIdRegex.hasMatch(tupId)) {
       isTupIdValid = false;
-      tupIdError = tupId.isEmpty ? null : 'Invalid TUP-ID format (e.g., INST1-23-0252)';
+      tupIdError = tupId.isEmpty ? null : 'Invalid TUP-ID format \n(e.g., INST1-00-0000)';
       notifyListeners();
       return;
     }

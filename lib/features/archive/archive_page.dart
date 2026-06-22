@@ -115,7 +115,7 @@ class _ArchivePageState extends State<ArchivePage> {
     return Scaffold(
       backgroundColor: const Color(0xFFF5EFE6), // Matching home screen light beige background
       appBar: AppBar(
-        backgroundColor: const Color(0xFF8C0404), // Dark red university brand color
+        backgroundColor: const Color(0xFFBA1A1A), // Dark red university brand color
         elevation: 0,
         centerTitle: true,
         toolbarHeight: 60.s,
@@ -140,7 +140,7 @@ class _ArchivePageState extends State<ArchivePage> {
     if (_isLoading) {
       return const Center(
         child: CircularProgressIndicator(
-          color: Color(0xFF8C0404),
+          color: Color(0xFFBA1A1A),
         ),
       );
     }
@@ -152,7 +152,7 @@ class _ArchivePageState extends State<ArchivePage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.error_outline, color: Color(0xFF8C0404), size: 48),
+              const Icon(Icons.error_outline, color: Color(0xFFBA1A1A), size: 48),
               const SizedBox(height: 16),
               Text(
                 _errorMessage!,
@@ -163,7 +163,7 @@ class _ArchivePageState extends State<ArchivePage> {
               ElevatedButton(
                 onPressed: _fetchArchiveItems,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF8C0404),
+                  backgroundColor: const Color(0xFFBA1A1A),
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
@@ -289,7 +289,7 @@ class _ArchivePageState extends State<ArchivePage> {
                           Text(
                             name,
                             style: TextStyle(
-                              color: const Color(0xFF8C0404),
+                              color: const Color(0xFFBA1A1A),
                               fontSize: 16.s,
                               fontWeight: FontWeight.bold,
                             ),
@@ -314,7 +314,7 @@ class _ArchivePageState extends State<ArchivePage> {
                       child: Container(
                         padding: EdgeInsets.symmetric(horizontal: 10.s, vertical: 8.s),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF8C0404),
+                          color: const Color(0xFFBA1A1A),
                           borderRadius: BorderRadius.circular(8.s),
                         ),
                         child: Row(

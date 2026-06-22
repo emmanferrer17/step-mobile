@@ -6,6 +6,8 @@ import 'package:mobile/app/controllers/auth_controller.dart';
 import 'package:mobile/data/services/api_service.dart';
 import '../shared/widgets/custom_alert_dialog.dart';
 import '../shared/widgets/standard_permission_layout.dart';
+import '../../app/config/ui_constants.dart';
+import 'widgets/mr_item_scan_details_modal.dart';
 
 /// [MVC - VIEW]
 /// QRScannerPage provides a premium camera interface with an overlay,
@@ -83,6 +85,15 @@ class _QRScannerPageState extends State<QRScannerPage> with SingleTickerProvider
 
   // [LOGIC] Communicates with the API to claim items for this DA QR Code
   Future<void> _processScan(String qrCode) async {
+    final String trimmedQr = qrCode.trim();
+    final bool isLookup = trimmedQr.startsWith('MR-');
+    final bool isBatchAssignment = trimmedQr.startsWith('RIS-') || trimmedQr.startsWith('PAR-');
+
+    if (!isLookup && !isBatchAssignment) {
+      _showErrorDialog('Invalid QR code format. Please scan a valid RIS/PAR form or an item\'s printed sticker QR.');
+      return;
+    }
+
     // Show a loading dialog
     showDialog(
       context: context,
@@ -90,9 +101,9 @@ class _QRScannerPageState extends State<QRScannerPage> with SingleTickerProvider
       builder: (context) => const CustomAlertDialog(
         message: 'Processing form...',
         icon: Icons.sync,
-        color: Color(0xFF8C0404),
+        color: Color(0xFFBA1A1A),
         child: Center(
-          child: CircularProgressIndicator(color: Color(0xFF8C0404)),
+          child: CircularProgressIndicator(color: Color(0xFFBA1A1A)),
         ),
       ),
     );
@@ -107,16 +118,30 @@ class _QRScannerPageState extends State<QRScannerPage> with SingleTickerProvider
         return;
       }
 
-      final result = await ApiService().assignMrItems(qrCode, token);
+      if (isLookup) {
+        final result = await ApiService().lookupMrItem(trimmedQr, token);
 
-      if (!mounted) return;
-      Navigator.pop(context); // Dismiss loading dialog
+        if (!mounted) return;
+        Navigator.pop(context); // Dismiss loading dialog
 
-      if (result['status'] == 'success') {
-        final List<dynamic> items = result['data']?['items'] ?? [];
-        _showSuccessDialog(qrCode, items);
+        if (result['status'] == 'success') {
+          final Map<String, dynamic> itemDetails = result['data']?['data'] ?? {};
+          _showItemDetailsDialog(itemDetails);
+        } else {
+          _showErrorDialog(result['message'] ?? 'An unknown error occurred.');
+        }
       } else {
-        _showErrorDialog(result['message'] ?? 'An unknown error occurred.');
+        final result = await ApiService().assignMrItems(trimmedQr, token);
+
+        if (!mounted) return;
+        Navigator.pop(context); // Dismiss loading dialog
+
+        if (result['status'] == 'success') {
+          final List<dynamic> items = result['data']?['items'] ?? [];
+          _showSuccessDialog(trimmedQr, items);
+        } else {
+          _showErrorDialog(result['message'] ?? 'An unknown error occurred.');
+        }
       }
     } catch (e) {
       if (!mounted) return;
@@ -124,6 +149,24 @@ class _QRScannerPageState extends State<QRScannerPage> with SingleTickerProvider
       _showErrorDialog('An error occurred: ${e.toString()}');
     }
   }
+
+  // [UI] Displays a custom modal dialog showing item details using MrItemScanDetailsModal
+  void _showItemDetailsDialog(Map<String, dynamic> itemDetails) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogCtx) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: EdgeInsets.symmetric(horizontal: 20.s, vertical: 24.s),
+        child: MrItemScanDetailsModal(itemDetails: itemDetails),
+      ),
+    ).then((_) {
+      if (mounted) {
+        setState(() => _isScanCompleted = false);
+      }
+    });
+  }
+
 
   // [UI] Displays a success dialog with the list of claimed items
   void _showSuccessDialog(String qrCode, List<dynamic> items) {
@@ -307,10 +350,10 @@ class _QRScannerPageState extends State<QRScannerPage> with SingleTickerProvider
                 child: Container(
                   height: 2,
                   decoration: BoxDecoration(
-                    color: const Color(0xFF8C0404),
+                    color: const Color(0xFFBA1A1A),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF8C0404).withOpacity(0.5),
+                        color: const Color(0xFFBA1A1A).withOpacity(0.5),
                         blurRadius: 10,
                         spreadRadius: 2,
                       ),
@@ -450,7 +493,7 @@ class ScannerOverlayPainter extends CustomPainter {
     
     // [CORNERS] Accent corners in red
     final cornerPaint = Paint()
-      ..color = const Color(0xFF8C0404)
+      ..color = const Color(0xFFBA1A1A)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 5.0;
     

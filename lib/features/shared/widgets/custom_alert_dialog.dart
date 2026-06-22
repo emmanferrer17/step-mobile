@@ -11,6 +11,7 @@ class CustomAlertDialog extends StatelessWidget {
   final Widget? child;
   final String? buttonText;
   final VoidCallback? onButtonPressed;
+  final bool showArrow;
 
   const CustomAlertDialog({
     super.key,
@@ -22,6 +23,7 @@ class CustomAlertDialog extends StatelessWidget {
     this.child,
     this.buttonText,
     this.onButtonPressed,
+    this.showArrow = true,
   });
 
   @override
@@ -45,7 +47,7 @@ class CustomAlertDialog extends StatelessWidget {
           children: [
             // Close Button in the top right
             Positioned(
-              top: -20.s,
+              top: icon == null ? -25.s : -20.s,
               right: -14.s,
               child: IconButton(
                 icon: Icon(Icons.close, color: Colors.black54, size: 22.s),
@@ -71,7 +73,7 @@ class CustomAlertDialog extends StatelessWidget {
                       color: Colors.white,
                       boxShadow: [
                         BoxShadow(
-                          color: color.withOpacity(0.12),
+                          color: color.withValues(alpha: 0.12),
                           blurRadius: 15.s,
                           spreadRadius: 3.s,
                           offset: Offset(0, 5.s),
@@ -86,8 +88,9 @@ class CustomAlertDialog extends StatelessWidget {
                       ),
                     ),
                   ),
-                ],
-                SizedBox(height: 24.s),
+                ] else
+                  SizedBox(height: 5.s),
+                SizedBox(height: icon != null ? 24.s : 10.s),
                 // Title Message text
                 Text(
                   message,
@@ -145,8 +148,10 @@ class CustomAlertDialog extends StatelessWidget {
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          SizedBox(width: 8.s),
-                          Icon(Icons.arrow_forward, size: 18.s),
+                          if (showArrow) ...[
+                            SizedBox(width: 8.s),
+                            Icon(Icons.arrow_forward, size: 18.s),
+                          ],
                         ],
                       ),
                     ),

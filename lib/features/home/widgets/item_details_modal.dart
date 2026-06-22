@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'dart:convert';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
@@ -27,7 +26,7 @@ class ItemDetailsModal extends StatefulWidget {
 
 class _ItemDetailsModalState extends State<ItemDetailsModal> {
   bool _isDescriptionExpanded = false;
-  late TapGestureRecognizer _tapGestureRecognizer;
+  bool _hasChanges = false;
   
   // Location editing UI state variables
   late TextEditingController _buildingController;
@@ -38,6 +37,7 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
   final List<File> _tempSelectedImages = [];
   bool _isUploading = false;
   List<String> _currentImagePaths = [];
+  List<String> _originalImagePaths = [];
   bool _isAddingMore = false;
   int _currentCarouselIndex = 0;
   final PageController _pageController = PageController();
@@ -45,12 +45,6 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
   @override
   void initState() {
     super.initState();
-    _tapGestureRecognizer = TapGestureRecognizer()
-      ..onTap = () {
-        setState(() {
-          _isDescriptionExpanded = !_isDescriptionExpanded;
-        });
-      };
 
     // Initialize location state
     _currentLocation = widget.itemDetails['location'];
@@ -78,7 +72,54 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
     _roomController = TextEditingController(text: room);
 
     // Initialize image state
-    _initializeImages(widget.itemDetails['item_images']);
+    _initializeImages(widget.itemDetails['item_images'] ?? widget.itemDetails['item_image']);
+
+    // Fetch fresh data from the server
+    _refreshItemData();
+  }
+
+  Future<void> _refreshItemData() async {
+    final itemId = widget.itemDetails['mr_id'] ?? widget.itemDetails['id'];
+    if (itemId == null) return;
+
+    final homeController = Provider.of<HomeController>(context, listen: false);
+    final result = await homeController.getMrItems();
+
+    if (mounted && result['error'] == null) {
+      final List<dynamic> items = result['items'];
+      final freshItem = items.firstWhere(
+        (it) => (it['mr_id'] ?? it['id']).toString() == itemId.toString(),
+        orElse: () => null,
+      );
+
+      if (freshItem != null) {
+        setState(() {
+          _initializeImages(freshItem['item_images'] ?? freshItem['item_image']);
+          
+          // Also update location just in case
+          _currentLocation = freshItem['location'];
+          if (_currentLocation == 'Unknown Location') {
+            _currentLocation = null;
+          }
+          
+          String b = '';
+          String r = '';
+          if (_currentLocation != null && _currentLocation!.isNotEmpty) {
+            final parts = _currentLocation!.contains(' - ') 
+                ? _currentLocation!.split(' - ')
+                : _currentLocation!.split(',');
+            if (parts.length > 1) {
+              b = parts[0].trim();
+              r = parts[1].trim();
+            } else {
+              b = _currentLocation!.trim();
+            }
+          }
+          _buildingController.text = b;
+          _roomController.text = r;
+        });
+      }
+    }
   }
 
   void _initializeImages(dynamic rawImages) {
@@ -115,7 +156,6 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
 
   @override
   void dispose() {
-    _tapGestureRecognizer.dispose();
     _buildingController.dispose();
     _roomController.dispose();
     _pageController.dispose();
@@ -142,11 +182,6 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
     final dateScanned = widget.itemDetails['date_scanned'];
     final description = widget.itemDetails['specification'] ?? 'No specifications provided.';
 
-    final bool isDescLong = description.length > 80;
-    final String displayDescription = _isDescriptionExpanded 
-        ? description 
-        : (isDescLong ? "${description.substring(0, 80)}... " : description);
-
     // Tray is visible in "Draft/Edit Mode"
     final bool isDraftMode = _isAddingMore || _tempSelectedImages.isNotEmpty;
 
@@ -170,7 +205,7 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
               children: [
                 IconButton(
                   icon: Icon(Icons.arrow_back, color: Colors.black87, size: 24.s),
-                  onPressed: () => Navigator.pop(context, false),
+                  onPressed: () => Navigator.pop(context, _hasChanges),
                 ),
                 Expanded(
                   child: Center(
@@ -181,7 +216,7 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
                         textAlign: TextAlign.center,
                         maxLines: 2,
                         style: TextStyle(
-                          color: const Color(0xFF8C0404),
+                          color: const Color(0xFFBA1A1A),
                           fontSize: 18.s,
                           fontWeight: FontWeight.bold,
                         ),
@@ -214,7 +249,7 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(15.s),
                           border: Border.all(
-                            color: const Color(0xFF8C0404),
+                            color: const Color(0xFFBA1A1A),
                             width: 1.5.s,
                           ),
                         ),
@@ -254,8 +289,7 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
                   Divider(height: 1, color: const Color(0xFFEEEEEE)),
                   _buildDescriptionDetailRow(
                     'Description',
-                    displayDescription,
-                    isDescLong ? (_isDescriptionExpanded ? ' See less' : ' See more') : '',
+                    description,
                   ),
                   Divider(height: 1, color: const Color(0xFFEEEEEE)),
                   _buildDetailRow('Quantity', quantity),
@@ -270,6 +304,14 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
 }
 
   Widget _buildPhotoContent() {
+    if (_isUploading) {
+      return const Center(
+        child: CircularProgressIndicator(
+          color: Color(0xFFBA1A1A),
+        ),
+      );
+    }
+
     final int savedCount = _currentImagePaths.length;
     final int tempCount = _tempSelectedImages.length;
     final int totalCount = savedCount + tempCount;
@@ -332,7 +374,7 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
                     '${ApiConstants.storageUrl}$path',
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) => const Center(
-                      child: Icon(Icons.broken_image, size: 50, color: Color(0xFF8C0404)),
+                      child: Icon(Icons.broken_image, size: 50, color: Color(0xFFBA1A1A)),
                     ),
                   ),
                 ),
@@ -356,7 +398,7 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: _currentCarouselIndex == index
-                          ? const Color(0xFF8C0404)
+                          ? const Color(0xFFBA1A1A)
                           : Colors.grey.withValues(alpha: 0.5),
                     ),
                   );
@@ -371,6 +413,7 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
             child: GestureDetector(
               onTap: () {
                 setState(() {
+                  _originalImagePaths = List.from(_currentImagePaths);
                   _isAddingMore = true;
                   _tempSelectedImages.clear();
                 });
@@ -391,7 +434,7 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
                 ),
                 child: const Icon(
                   Icons.file_upload_outlined,
-                  color: Color(0xFF8C0404),
+                  color: Color(0xFFBA1A1A),
                   size: 20,
                 ),
               ),
@@ -411,9 +454,9 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
             width: 38,
             height: 38,
             child: CircularProgressIndicator(
-                color: Color(0xFF8C0404),
+                color: Color(0xFFBA1A1A),
                 strokeWidth: 3,
-                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF8C0404))),
+                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFBA1A1A))),
           )
         : GestureDetector(
             onTap: () => _handleSaveImages(),
@@ -421,7 +464,7 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
               width: 38,
               height: 38,
               decoration: BoxDecoration(
-                color: const Color(0xFF8C0404),
+                color: const Color(0xFFBA1A1A),
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 4, offset: const Offset(0, 2)),
@@ -437,6 +480,7 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
     return GestureDetector(
       onTap: () {
         setState(() {
+          _currentImagePaths = List.from(_originalImagePaths);
           _tempSelectedImages.clear();
           _isAddingMore = false;
         });
@@ -451,7 +495,7 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
             BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 4, offset: const Offset(0, 2)),
           ],
         ),
-        child: const Icon(Icons.close, color: Color(0xFF8C0404), size: 20),
+        child: const Icon(Icons.close, color: Color(0xFFBA1A1A), size: 20),
       ),
     );
   }
@@ -518,12 +562,34 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
 
   Future<void> _handleRemoveFromSequence(int index) async {
     final int savedCount = _currentImagePaths.length;
-    if (index < savedCount) {
-       await _handleDeleteImage(index);
+    final bool isSaved = index < savedCount;
+
+    if (isSaved) {
+      showDialog(
+        context: context,
+        builder: (context) => ConfirmationDialog(
+          message: 'Delete Image',
+          subtitle: 'Are you sure you want to remove this image?',
+          icon: Icons.delete_outline,
+          color: const Color(0xFFBA1A1A),
+          confirmText: 'Remove',
+          onConfirm: () {
+            setState(() {
+              _currentImagePaths.removeAt(index);
+            });
+            if (_currentImagePaths.isEmpty && _tempSelectedImages.isEmpty) {
+              _handleSaveImages();
+            }
+          },
+        ),
+      );
     } else {
-       setState(() {
-         _tempSelectedImages.removeAt(index - savedCount);
-       });
+      setState(() {
+        _tempSelectedImages.removeAt(index - savedCount);
+      });
+      if (_currentImagePaths.isEmpty && _tempSelectedImages.isEmpty) {
+        _handleSaveImages();
+      }
     }
   }
 
@@ -556,44 +622,44 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
           onTap: () => _showGalleryAccessModal(context),
           child: SvgPicture.asset(
             'assets/images/upload-photo.svg',
-            height: 75,
+            height: 60,
             fit: BoxFit.contain,
             errorBuilder: (context, error, stackTrace) {
-              return const Icon(Icons.cloud_upload_outlined, size: 55, color: Color(0xFF8C0404));
+              return const Icon(Icons.cloud_upload_outlined, size: 45, color: Color(0xFFBA1A1A));
             },
           ),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 6),
         GestureDetector(
           onTap: () => _showGalleryAccessModal(context),
           child: const Text(
             'Tap to upload photo',
-            style: TextStyle(color: Color(0xFF8C0404), fontSize: 14, fontWeight: FontWeight.bold),
+            style: TextStyle(color: Color(0xFFBA1A1A), fontSize: 12, fontWeight: FontWeight.bold),
           ),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 6),
         Row(
           children: [
             Expanded(child: Divider(color: Colors.grey[300], thickness: 1)),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 10),
-              child: Text('or', style: TextStyle(color: Colors.grey[400], fontSize: 12)),
+              child: Text('or', style: TextStyle(color: Colors.grey[400], fontSize: 11)),
             ),
             Expanded(child: Divider(color: Colors.grey[300], thickness: 1)),
           ],
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 6),
         ElevatedButton(
           onPressed: () => _showCameraPermissionModal(context),
           style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF8C0404),
-            padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 8),
+            backgroundColor: const Color(0xFFBA1A1A),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             elevation: 0,
           ),
           child: const Text(
             'Open camera',
-            style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
+            style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
           ),
         ),
       ],
@@ -620,7 +686,7 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
               color: const Color(0xFFF2F2F2),
               borderRadius: BorderRadius.circular(10),
               border: Border.all(
-                color: hasImage ? const Color(0xFF8C0404) : Colors.grey.shade300,
+                color: hasImage ? const Color(0xFFBA1A1A) : Colors.grey.shade300,
                 width: hasImage ? 1 : 0.5,
               ),
             ),
@@ -631,7 +697,7 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
                     ? InkWell(
                         onTap: () => _showAddMoreOptions(context),
                         child: const Center(
-                          child: Icon(Icons.add, color: Color(0xFF8C0404), size: 24),
+                          child: Icon(Icons.add, color: Color(0xFFBA1A1A), size: 24),
                         ),
                       )
                     : null),
@@ -652,7 +718,7 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
         mainAxisSize: MainAxisSize.min,
         children: [
           ListTile(
-            leading: const Icon(Icons.photo_library, color: Color(0xFF8C0404)),
+            leading: const Icon(Icons.photo_library, color: Color(0xFFBA1A1A)),
             title: const Text('Add from Gallery'),
             onTap: () {
               Navigator.pop(context);
@@ -660,7 +726,7 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
             },
           ),
           ListTile(
-            leading: const Icon(Icons.camera_alt, color: Color(0xFF8C0404)),
+            leading: const Icon(Icons.camera_alt, color: Color(0xFFBA1A1A)),
             title: const Text('Add from Camera'),
             onTap: () {
               Navigator.pop(context);
@@ -750,11 +816,11 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
     final String initialBuilding = _buildingController.text;
     final String initialRoom = _roomController.text;
 
-    showDialog(
+    showDialog<bool>(
       context: context,
       builder: (dialogContext) => CustomAlertDialog(
         message: 'Edit Location',
-        color: const Color(0xFF8C0404),
+        color: const Color(0xFFBA1A1A),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -789,85 +855,80 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
                 ),
               ),
             ),
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF8C0404),
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      elevation: 0,
-                    ),
-                    onPressed: () async {
-                      final itemId = widget.itemDetails['mr_id'] ?? widget.itemDetails['id'];
-                      final b = _buildingController.text.trim();
-                      final r = _roomController.text.trim();
+            const SizedBox(height: 15),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFBA1A1A),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  elevation: 0,
+                ),
+                onPressed: () async {
+                  final itemId = widget.itemDetails['mr_id'] ?? widget.itemDetails['id'];
+                  final b = _buildingController.text.trim();
+                  final r = _roomController.text.trim();
 
-                      final homeController = Provider.of<HomeController>(context, listen: false);
-                      final result = await homeController.updateItemLocation(
-                        itemId is int ? itemId : int.parse(itemId.toString()),
-                        b,
-                        r,
-                      );
+                  final homeController = Provider.of<HomeController>(context, listen: false);
+                  final result = await homeController.updateItemLocation(
+                    itemId is int ? itemId : int.parse(itemId.toString()),
+                    b,
+                    r,
+                  );
 
-                      if (mounted) {
-                        if (result['error'] == null) {
-                          setState(() {
-                            if (b.isNotEmpty && r.isNotEmpty) {
-                              _currentLocation = '$b - $r';
-                            } else if (b.isNotEmpty) {
-                              _currentLocation = b;
-                            } else if (r.isNotEmpty) {
-                              _currentLocation = r;
-                            } else {
-                              _currentLocation = null;
-                            }
-                          });
-                          if (dialogContext.mounted) {
-                            Navigator.pop(dialogContext);
-                          }
+                  if (mounted) {
+                    if (result['error'] == null) {
+                      setState(() {
+                        _hasChanges = true;
+                        if (b.isNotEmpty && r.isNotEmpty) {
+                          _currentLocation = '$b - $r';
+                        } else if (b.isNotEmpty) {
+                          _currentLocation = b;
+                        } else if (r.isNotEmpty) {
+                          _currentLocation = r;
                         } else {
-                          _showAlertDialog(
-                            message: 'Update failed',
-                            subtitle: result['error'],
-                            icon: Icons.error_outline,
-                            color: Colors.red,
-                          );
+                          _currentLocation = null;
                         }
+                      });
+                      if (dialogContext.mounted) {
+                        Navigator.pop(dialogContext, true);
                       }
-                    },
-                    child: const Text('Save Changes', style: TextStyle(fontWeight: FontWeight.bold)),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Container(
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF2F2F2),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: IconButton(
-                    icon: const Icon(Icons.close, color: Colors.black54),
-                    onPressed: () {
-                      _buildingController.text = initialBuilding;
-                      _roomController.text = initialRoom;
-                      Navigator.pop(dialogContext);
-                    },
-                  ),
-                ),
-              ],
+                    } else {
+                      _showAlertDialog(
+                        message: 'Update failed',
+                        subtitle: result['error'],
+                        icon: Icons.error_outline,
+                        color: Colors.red,
+                      );
+                    }
+                  }
+                },
+                child: const Text('Save Changes', style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
             ),
           ],
         ),
       ),
-    );
+    ).then((saved) {
+      if (saved != true) {
+        _buildingController.text = initialBuilding;
+        _roomController.text = initialRoom;
+      }
+    });
   }
 
-  Widget _buildDescriptionDetailRow(String label, String text, String actionText) {
+  Widget _buildDescriptionDetailRow(String label, String description) {
+    final style = TextStyle(
+      color: Colors.black87,
+      fontSize: 12.s,
+      fontWeight: FontWeight.bold,
+      fontFamily: 'Nunito',
+    );
+
     return Padding(
-      padding: EdgeInsets.fromLTRB(30.s, 11.s, 0, 11.s),
+      padding: EdgeInsets.fromLTRB(30.s, 11.s, 20.s, 11.s),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -879,29 +940,91 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
             ),
           ),
           Expanded(
-            child: RichText(
-              text: TextSpan(
-                style: TextStyle(
-                  color: Colors.black87,
-                  fontSize: 12.s,
-                  fontWeight: FontWeight.bold,
-                  fontFamily: 'Nunito',
-                ),
-                children: [
-                  TextSpan(text: text),
-                  if (actionText.isNotEmpty)
-                    TextSpan(
-                      text: actionText,
-                      style: TextStyle(
-                        color: const Color(0xFF8C0404), 
-                        fontWeight: FontWeight.bold,
-                        fontFamily: 'Nunito',
-                        fontSize: 12.s,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final span = TextSpan(text: description, style: style);
+                final tp = TextPainter(
+                  text: span,
+                  maxLines: 3,
+                  textDirection: TextDirection.ltr,
+                );
+                tp.layout(maxWidth: constraints.maxWidth);
+                final bool exceeds = tp.didExceedMaxLines;
+
+                if (!_isDescriptionExpanded) {
+                  if (exceeds) {
+                    final pos = tp.getPositionForOffset(Offset(constraints.maxWidth, tp.height - 2));
+                    final endOffset = (pos.offset - 12).clamp(0, description.length);
+                    final truncated = description.substring(0, endOffset);
+                    return GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _isDescriptionExpanded = true;
+                        });
+                      },
+                      child: RichText(
+                        text: TextSpan(
+                          style: style,
+                          children: [
+                            TextSpan(text: truncated),
+                            TextSpan(
+                              text: '... see more',
+                              style: TextStyle(
+                                color: const Color(0xFFBA1A1A),
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12.s,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                      recognizer: _tapGestureRecognizer,
-                    ),
-                ],
-              ),
+                    );
+                  } else {
+                    return Text(
+                      description,
+                      style: style,
+                    );
+                  }
+                } else {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ConstrainedBox(
+                        constraints: BoxConstraints(maxHeight: 100.s),
+                        child: Scrollbar(
+                          thumbVisibility: true,
+                          child: SingleChildScrollView(
+                            physics: const BouncingScrollPhysics(),
+                            child: Padding(
+                              padding: EdgeInsets.only(right: 8.s),
+                              child: Text(
+                                description,
+                                style: style,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 4.s),
+                      GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _isDescriptionExpanded = false;
+                          });
+                        },
+                        child: Text(
+                          'see less',
+                          style: TextStyle(
+                            color: const Color(0xFFBA1A1A),
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12.s,
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                }
+              },
             ),
           ),
         ],
@@ -993,6 +1116,7 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
 
     if (syncResult['error'] == null) {
       setState(() {
+        _hasChanges = true;
         _tempSelectedImages.clear();
         _isAddingMore = false;
         if (syncResult['all_images'] != null) {
@@ -1013,66 +1137,6 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
         icon: Icons.error_outline,
         color: Colors.red,
       );
-    }
-  }
-
-  Future<void> _handleDeleteImage(int index) async {
-    final int savedCount = _currentImagePaths.length;
-    final bool isSaved = index < savedCount;
-
-    if (isSaved) {
-      final itemId = widget.itemDetails['mr_id'] ?? widget.itemDetails['id'];
-
-      showDialog(
-        context: context,
-        builder: (context) => ConfirmationDialog(
-          message: 'Delete Image',
-          subtitle: 'Are you sure you want to permanently delete this image from the server?',
-          icon: Icons.delete_outline,
-          color: const Color(0xFF8C0404),
-          confirmText: 'Delete',
-          onConfirm: () async {
-            setState(() => _isUploading = true);
-            final homeController = Provider.of<HomeController>(context, listen: false);
-            final deleteResult = await homeController.deleteItemImage(
-              itemId is int ? itemId : int.parse(itemId.toString()),
-              _currentImagePaths[index],
-            );
-
-            if (mounted) {
-              setState(() => _isUploading = false);
-              if (deleteResult['error'] == null) {
-                setState(() {
-                  if (deleteResult['all_images'] != null) {
-                    _initializeImages(deleteResult['all_images']);
-                  } else {
-                    _currentImagePaths.removeAt(index);
-                  }
-                  if (_currentCarouselIndex >= _currentImagePaths.length) {
-                    _currentCarouselIndex = (_currentImagePaths.length - 1).clamp(0, 999);
-                  }
-                });
-                _showAlertDialog(
-                  message: 'Image deleted',
-                  icon: Icons.delete_sweep_outlined,
-                  color: Colors.green,
-                );
-              } else {
-                _showAlertDialog(
-                  message: 'Deletion failed',
-                  subtitle: deleteResult['error'],
-                  icon: Icons.error_outline,
-                  color: Colors.red,
-                );
-              }
-            }
-          },
-        ),
-      );
-    } else {
-      setState(() {
-        _tempSelectedImages.removeAt(index - savedCount);
-      });
     }
   }
 

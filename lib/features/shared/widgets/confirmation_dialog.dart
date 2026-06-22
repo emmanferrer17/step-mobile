@@ -8,9 +8,10 @@ class ConfirmationDialog extends StatelessWidget {
   final IconData icon;
   final Color color;
   final String confirmText;
-  final String cancelText;
+  final String? cancelText;
   final VoidCallback onConfirm;
   final VoidCallback? onCancel;
+  final bool showArrow;
 
   const ConfirmationDialog({
     super.key,
@@ -22,6 +23,7 @@ class ConfirmationDialog extends StatelessWidget {
     this.cancelText = 'Cancel',
     required this.onConfirm,
     this.onCancel,
+    this.showArrow = true,
   });
 
   @override
@@ -93,30 +95,32 @@ class ConfirmationDialog extends StatelessWidget {
             SizedBox(height: 32.s),
             Row(
               children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                      if (onCancel != null) onCancel!();
-                    },
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.grey.shade600,
-                      side: BorderSide(color: Colors.grey.shade300, width: 1.5.s),
-                      padding: EdgeInsets.symmetric(vertical: 14.s),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10.s),
+                if (cancelText != null) ...[
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        if (onCancel != null) onCancel!();
+                      },
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.grey.shade600,
+                        side: BorderSide(color: Colors.grey.shade300, width: 1.5.s),
+                        padding: EdgeInsets.symmetric(vertical: 14.s),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10.s),
+                        ),
                       ),
-                    ),
-                    child: Text(
-                      cancelText,
-                      style: TextStyle(
-                        fontSize: 15.s,
-                        fontWeight: FontWeight.bold,
+                      child: Text(
+                        cancelText!,
+                        style: TextStyle(
+                          fontSize: 15.s,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ),
-                ),
-                SizedBox(width: 12.s),
+                  SizedBox(width: 12.s),
+                ],
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () {
@@ -142,8 +146,10 @@ class ConfirmationDialog extends StatelessWidget {
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        SizedBox(width: 8.s),
-                        Icon(Icons.arrow_forward, size: 18.s),
+                        if (showArrow) ...[
+                          SizedBox(width: 8.s),
+                          Icon(Icons.arrow_forward, size: 18.s),
+                        ],
                       ],
                     ),
                   ),

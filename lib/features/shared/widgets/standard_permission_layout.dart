@@ -71,7 +71,7 @@ class StandardPermissionLayout extends StatelessWidget {
               child: Text(
                 centralText,
                 style: TextStyle(
-                  color: const Color(0xFF8C0404),
+                  color: const Color(0xFFBA1A1A),
                   fontSize: 48.s,
                   fontWeight: FontWeight.w300,
                 ),
@@ -83,7 +83,7 @@ class StandardPermissionLayout extends StatelessWidget {
           Text(
             title,
             style: TextStyle(
-              color: const Color(0xFF8C0404),
+              color: const Color(0xFFBA1A1A),
               fontSize: 20.s,
               fontWeight: FontWeight.bold,
             ),
@@ -136,7 +136,7 @@ class StandardPermissionLayout extends StatelessWidget {
                 child: ElevatedButton(
                   onPressed: onAllow,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF8C0404),
+                    backgroundColor: const Color(0xFFBA1A1A),
                     foregroundColor: Colors.white,
                     elevation: 0,
                     padding: EdgeInsets.symmetric(vertical: 14.s),

@@ -287,10 +287,8 @@ class ApiService {
       });
       request.fields['item_id'] = itemId.toString();
       
-      // Add existing images using explicit array indices for Laravel compatibility
-      for (int i = 0; i < existingImages.length; i++) {
-        request.fields['existing_images[$i]'] = existingImages[i];
-      }
+      // Send existing images as a JSON-encoded string for robust parsing on the backend
+      request.fields['existing_images'] = json.encode(existingImages);
 
       // Add new images as files using the array key 'item_image[]'
       for (var file in newImages) {
@@ -369,6 +367,30 @@ class ApiService {
   // --- MR Assign Method ---
   Future<Map<String, dynamic>> assignMrItems(String qrCode, String token) async {
     final url = Uri.parse(ApiConstants.assignMrUrl);
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: {'mr_qr_code': qrCode},
+      ).timeout(const Duration(seconds: 10));
+
+      return _handleResponse(response);
+    } on SocketException {
+      return {'status': 'error', 'message': 'Connection Error: Could not connect to the server.'};
+    } on TimeoutException {
+      return {'status': 'error', 'message': 'Connection Timeout: The server took too long to respond.'};
+    } catch (e) {
+      return {'status': 'error', 'message': 'An unexpected error occurred: ${e.toString()}'};
+    }
+  }
+
+  // --- MR Lookup Method ---
+  Future<Map<String, dynamic>> lookupMrItem(String qrCode, String token) async {
+    final url = Uri.parse(ApiConstants.lookupMrUrl);
     try {
       final response = await http.post(
         url,

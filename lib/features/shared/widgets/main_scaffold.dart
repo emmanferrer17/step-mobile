@@ -64,7 +64,7 @@ class _MainScaffoldState extends State<MainScaffold> with SingleTickerProviderSt
     }
   }
 
-  void _onItemTapped(int index) {
+  void onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
     });
@@ -118,7 +118,7 @@ class _MainScaffoldState extends State<MainScaffold> with SingleTickerProviderSt
 
   Widget _buildBottomNav() {
     return BottomAppBar(
-      color: const Color(0xFF660200),
+      color: const Color(0xFFBA1A1A),
       shape: const CircularNotchedRectangle(),
       notchMargin: 10.0.s,
       padding: EdgeInsets.zero,
@@ -130,84 +130,96 @@ class _MainScaffoldState extends State<MainScaffold> with SingleTickerProviderSt
           children: [
             // Inventory tab
             Expanded(
-              child: InkWell(
-                onTap: () => _onItemTapped(0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      padding: _selectedIndex == 0 
-                          ? EdgeInsets.symmetric(horizontal: 20.s, vertical: 6.s)
-                          : EdgeInsets.zero,
-                      decoration: _selectedIndex == 0
-                          ? BoxDecoration(
-                        color: const Color.fromARGB(255, 255, 255, 255).withOpacity(0.4),
-                              borderRadius: BorderRadius.circular(20.s),
-                            )
-                          : null,
-                      child: SvgPicture.asset(
-                        'assets/images/inventory.svg',
-                        colorFilter: ColorFilter.mode(
-                          const Color.fromARGB(255, 255, 255, 255),
-                          _selectedIndex == 0 ? BlendMode.srcIn : BlendMode.srcIn,
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () => onItemTapped(0),
+                  borderRadius: BorderRadius.circular(50.s),
+                  splashColor: Colors.transparent,
+                  highlightColor: Colors.transparent,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        padding: _selectedIndex == 0 
+                            ? EdgeInsets.symmetric(horizontal: 20.s, vertical: 6.s)
+                            : EdgeInsets.zero,
+                        decoration: _selectedIndex == 0
+                            ? BoxDecoration(
+                          color: const Color.fromARGB(255, 255, 255, 255).withOpacity(0.4),
+                                borderRadius: BorderRadius.circular(20.s),
+                              )
+                            : null,
+                        child: SvgPicture.asset(
+                          'assets/images/inventory.svg',
+                          colorFilter: ColorFilter.mode(
+                            const Color.fromARGB(255, 255, 255, 255),
+                            _selectedIndex == 0 ? BlendMode.srcIn : BlendMode.srcIn,
+                          ),
+                          width: 24.s,
+                          height: 24.s,
                         ),
-                        width: 24.s,
-                        height: 24.s,
                       ),
-                    ),
-                    SizedBox(height: 4.s),
-                    Text(
-                      'Inventory',
-                      style: TextStyle(
-                        color: const Color.fromARGB(255, 255, 255, 255),
-                        fontSize: 12.fs, 
-                        fontWeight: _selectedIndex == 0 ? FontWeight.bold : FontWeight.normal
+                      SizedBox(height: 4.s),
+                      Text(
+                        'Inventory',
+                        style: TextStyle(
+                          color: const Color.fromARGB(255, 255, 255, 255),
+                          fontSize: 12.fs, 
+                          fontWeight: _selectedIndex == 0 ? FontWeight.bold : FontWeight.normal
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
             SizedBox(width: 80.s), // Maintain gap for the notch
             // Profile tab
             Expanded(
-              child: InkWell(
-                onTap: () => _onItemTapped(1),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      padding: _selectedIndex == 1 
-                          ? EdgeInsets.symmetric(horizontal: 20.s, vertical: 6.s)
-                          : EdgeInsets.zero,
-                      decoration: _selectedIndex == 1
-                          ? BoxDecoration(
-                              color: const Color.fromARGB(255, 255, 255, 255).withOpacity(0.4),
-                              borderRadius: BorderRadius.circular(20.s),
-                            )
-                          : null,
-                      child: SvgPicture.asset(
-                        'assets/images/profile.svg',
-                        colorFilter: const ColorFilter.mode(
-                          Color.fromARGB(255, 255, 255, 255),
-                          BlendMode.srcIn,
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () => onItemTapped(1),
+                  borderRadius: BorderRadius.circular(25.s),
+                  splashColor: Colors.transparent,
+                  highlightColor: Colors.transparent,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        padding: _selectedIndex == 1 
+                            ? EdgeInsets.symmetric(horizontal: 20.s, vertical: 6.s)
+                            : EdgeInsets.zero,
+                        decoration: _selectedIndex == 1
+                            ? BoxDecoration(
+                                color: const Color.fromARGB(255, 255, 255, 255).withOpacity(0.4),
+                                borderRadius: BorderRadius.circular(20.s),
+                              )
+                            : null,
+                        child: SvgPicture.asset(
+                          'assets/images/profile.svg',
+                          colorFilter: const ColorFilter.mode(
+                            Color.fromARGB(255, 255, 255, 255),
+                            BlendMode.srcIn,
+                          ),
+                          width: 24.s,
+                          height: 24.s,
                         ),
-                        width: 24.s,
-                        height: 24.s,
                       ),
-                    ),
-                    SizedBox(height: 4.s),
-                    Text(
-                      'Profile',
-                      style: TextStyle(
-                        color: const Color.fromARGB(255, 255, 255, 255),
-                        fontSize: 12.fs,
-                        fontWeight: _selectedIndex == 1 ? FontWeight.bold : FontWeight.normal
+                      SizedBox(height: 4.s),
+                      Text(
+                        'Profile',
+                        style: TextStyle(
+                          color: const Color.fromARGB(255, 255, 255, 255),
+                          fontSize: 12.fs,
+                          fontWeight: _selectedIndex == 1 ? FontWeight.bold : FontWeight.normal
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -224,7 +236,7 @@ class _MainScaffoldState extends State<MainScaffold> with SingleTickerProviderSt
         width: UIConstants.qrButtonSize.s,
         height: UIConstants.qrButtonSize.s,
         child: FloatingActionButton(
-          backgroundColor: const Color(0xFF8C0404),
+          backgroundColor: const Color(0xFFBA1A1A),
           shape: const CircleBorder(),
           onPressed: () async {
             await CameraPermissionModal.startScannerFlow(context);

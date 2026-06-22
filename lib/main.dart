@@ -120,7 +120,7 @@ class _WelcomePageState extends State<WelcomePage> {
           child: ElevatedButton(
             onPressed: () => setState(() => _isLoginFormVisible = true),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF8C0404),
+              backgroundColor: const Color(0xFFBA1A1A),
               foregroundColor: Colors.white,
               padding: EdgeInsets.symmetric(vertical: 18.s),
               textStyle: TextStyle(fontSize: 18.s, fontFamily: 'Nunito'),
@@ -135,11 +135,11 @@ class _WelcomePageState extends State<WelcomePage> {
           child: OutlinedButton(
             onPressed: () => Navigator.pushNamed(context, AppRoutes.register),
             style: OutlinedButton.styleFrom(
-              foregroundColor: const Color(0xFF8C0404),
+              foregroundColor: const Color(0xFFBA1A1A),
               backgroundColor: Colors.white,
               padding: EdgeInsets.symmetric(vertical: 18.s),
               textStyle: TextStyle(fontSize: 18.s, fontFamily: 'Nunito', fontWeight: FontWeight.bold),
-              side: BorderSide(color: const Color(0xFF8C0404), width: 2.s),
+              side: BorderSide(color: const Color(0xFFBA1A1A), width: 2.s),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.s)),
             ),
             child: const Text('REGISTER'),
@@ -243,7 +243,7 @@ class _WelcomePageState extends State<WelcomePage> {
                 child: ElevatedButton(
                   onPressed: auth.isLoading ? null : _login,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF8C0404),
+                    backgroundColor: const Color(0xFFBA1A1A),
                     foregroundColor: Colors.white,
                     padding: EdgeInsets.symmetric(vertical: 2.s),
                     textStyle: TextStyle(fontSize: 17.s, fontFamily: 'Nunito'),
@@ -264,7 +264,7 @@ class _WelcomePageState extends State<WelcomePage> {
                   style: const TextStyle(fontFamily: 'Nunito', color: Colors.black),
                   children: <TextSpan>[
                     const TextSpan(text: "Don't have an account? "),
-                    TextSpan(text: 'Register.', style: TextStyle(color: const Color(0xFF8C0404), fontSize: 14.s)),
+                    TextSpan(text: 'Register.', style: TextStyle(color: const Color(0xFFBA1A1A), fontSize: 14.s)),
                   ],
                 ),
               ),
@@ -285,7 +285,7 @@ class _WelcomePageState extends State<WelcomePage> {
         child: Container(
           width: double.infinity,
           height: MediaQuery.of(context).size.height,
-          decoration: const BoxDecoration(color: Color(0xFF8C0404)),
+          decoration: const BoxDecoration(color: Color(0xFFBA1A1A)),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.start,

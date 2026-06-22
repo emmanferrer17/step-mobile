@@ -83,7 +83,7 @@ class _GeneralInfoDialogState extends State<GeneralInfoDialog> {
                   child: Text(
                     'General Information',
                     style: TextStyle(
-                      color: Color(0xFF8C0404),
+                      color: Color(0xFFBA1A1A),
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
@@ -150,7 +150,7 @@ class _GeneralInfoDialogState extends State<GeneralInfoDialog> {
                   child: Text(
                     'Change Password',
                     style: TextStyle(
-                      color: Color(0xFF8C0404),
+                      color: Color(0xFFBA1A1A),
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
@@ -313,7 +313,7 @@ class _GeneralInfoDialogState extends State<GeneralInfoDialog> {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: Color(0xFF8C0404), width: 1.5),
+          borderSide: const BorderSide(color: Color(0xFFBA1A1A), width: 1.5),
         ),
         suffixIcon: IconButton(
           icon: Icon(
@@ -335,7 +335,7 @@ class _GeneralInfoDialogState extends State<GeneralInfoDialog> {
         width: double.infinity,
         height: 50,
         decoration: BoxDecoration(
-          color: _isLoading ? Colors.grey : const Color(0xFF8C0404),
+          color: _isLoading ? Colors.grey : const Color(0xFFBA1A1A),
           borderRadius: BorderRadius.circular(10),
         ),
         child: Row(
@@ -496,7 +496,7 @@ class _GeneralInfoDialogState extends State<GeneralInfoDialog> {
   /// Helper: builds a single labeled info field.
   Widget _buildInfoField(String label, String value) {
     return Padding(
-      padding: const EdgeInsets.only(left: 16, bottom: 10),
+      padding: const EdgeInsets.only(left: 16, bottom: 3),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

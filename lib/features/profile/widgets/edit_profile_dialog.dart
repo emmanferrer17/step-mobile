@@ -115,7 +115,7 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
                 Text(
                   'General Information',
                   style: TextStyle(
-                    color: Color(0xFF8C0404),
+                    color: Color(0xFFBA1A1A),
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
@@ -379,7 +379,7 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: Color(0xFF8C0404), width: 1.5),
+          borderSide: const BorderSide(color: Color(0xFFBA1A1A), width: 1.5),
         ),
       ),
     );
@@ -421,7 +421,7 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: Color(0xFF8C0404), width: 1.5),
+          borderSide: const BorderSide(color: Color(0xFFBA1A1A), width: 1.5),
         ),
         suffixIcon: IconButton(
           icon: Icon(
@@ -551,7 +551,7 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
         width: double.infinity,
         height: 50,
         decoration: BoxDecoration(
-          color: _isLoading ? Colors.grey : const Color(0xFF8C0404),
+          color: _isLoading ? Colors.grey : const Color(0xFFBA1A1A),
           borderRadius: BorderRadius.circular(10),
         ),
         child: Row(
