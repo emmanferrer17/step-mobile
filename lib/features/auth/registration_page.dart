@@ -46,7 +46,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
   @override
   void initState() {
     super.initState();
-    _otpControllers = List.generate(6, (_) => TextEditingController());
+    _otpControllers = List.generate(6, (_) => TextEditingController(text: ' '));
     _otpFocusNodes = List.generate(6, (_) => FocusNode());
 
     // [MVC] Load departments via Controller on init
@@ -120,7 +120,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
   // ---------------------------------------------------------------
   Future<void> _finalizeRegistration() async {
     final reg = context.read<RegistrationController>();
-    _finalOtp = _otpControllers.map((c) => c.text).join();
+    _finalOtp = _otpControllers.map((c) => c.text.trim()).join();
     final verificationData = {
       'otp': _finalOtp,
       'user_firstname': _firstNameController.text,
@@ -143,8 +143,8 @@ class _RegistrationPageState extends State<RegistrationPage> {
           message: 'Registration Successful!',
           subtitle: 'You can now log in with your new account.',
           icon: Icons.check_circle_outline,
-          color: const Color(0xFF8C0404),
-          buttonText: 'OK',
+          color: const Color(0xFF00C853),
+          buttonText: 'Proceed to login.',
           onButtonPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
         ),
       );
@@ -166,7 +166,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
         return Scaffold(
           appBar: AppBar(
             toolbarHeight: 80.0.s,
-            backgroundColor: const Color(0xFF8C0404),
+            backgroundColor: const Color(0xFFBA1A1A),
             title: Text('Registration', style: TextStyle(fontFamily: 'Nunito', color: Colors.white, fontSize: 20.s)),
             leading: IconButton(
               icon: Icon(Icons.arrow_back, color: Colors.white, size: 24.s),
@@ -216,7 +216,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
   }
 
   Widget _buildStepIndicator({required String label, bool isActive = false}) {
-    final Color activeColor = const Color(0xFF8C0404);
+    final Color activeColor = const Color(0xFFBA1A1A);
     final Color inactiveColor = Colors.grey.shade400;
     IconData icon;
     switch (label) {
@@ -267,8 +267,10 @@ class _RegistrationPageState extends State<RegistrationPage> {
                 flex: 5, // TUPT-ID takes more space
                 child: TextFormField(
                   controller: _tuptIdController,
+                  style: const TextStyle(fontFamily: 'Nunito', fontWeight: FontWeight.bold, color: Colors.black87),
                   decoration: InputDecoration(
                     hintText: 'TUPT-ID',
+                    hintStyle: TextStyle(fontFamily: 'Nunito', fontWeight: FontWeight.normal, color: Colors.black.withValues(alpha: 0.38)),
                     filled: true, fillColor: Colors.grey[200],
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
                     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -293,9 +295,11 @@ class _RegistrationPageState extends State<RegistrationPage> {
           const SizedBox(height: 24),
           TextFormField(
             controller: _tupEmailController,
+            style: const TextStyle(fontFamily: 'Nunito', fontWeight: FontWeight.bold, color: Colors.black87),
             keyboardType: TextInputType.emailAddress,
             decoration: InputDecoration(
               hintText: 'TUP Email',
+              hintStyle: TextStyle(fontFamily: 'Nunito', fontWeight: FontWeight.normal, color: Colors.black.withValues(alpha: 0.38)),
               filled: true, fillColor: Colors.grey[200],
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -326,7 +330,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
             width: double.infinity,
             child: ElevatedButton(
               onPressed: _goToNextStep,
-              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF8C0404), padding: const EdgeInsets.symmetric(vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFBA1A1A), padding: const EdgeInsets.symmetric(vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
               child: const Text('Next', style: TextStyle(fontFamily: 'Nunito', color: Colors.white, fontSize: 18)),
             ),
           ),
@@ -381,7 +385,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
           child: ElevatedButton(
             // [MVC] isLoading from controller
             onPressed: reg.isLoading ? null : _proceedToVerification,
-            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF8C0404), padding: const EdgeInsets.symmetric(vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFBA1A1A), padding: const EdgeInsets.symmetric(vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
             child: reg.isLoading
                 ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3))
                 : const Text('Proceed to Email Verification', style: TextStyle(fontFamily: 'Nunito', color: Colors.white, fontSize: 18)),
@@ -414,13 +418,39 @@ class _RegistrationPageState extends State<RegistrationPage> {
               focusNode: _otpFocusNodes[index],
               textAlign: TextAlign.center,
               keyboardType: TextInputType.number,
-              maxLength: 1,
               style: const TextStyle(fontSize: 22, fontFamily: 'Nunito', fontWeight: FontWeight.bold),
               decoration: const InputDecoration(counterText: '', border: OutlineInputBorder(), contentPadding: EdgeInsets.zero),
               onChanged: (value) {
-                if (value.isNotEmpty && index < 5) _otpFocusNodes[index + 1].requestFocus();
-                if (value.isEmpty && index > 0) _otpFocusNodes[index - 1].requestFocus();
-                setState(() => _finalOtp = _otpControllers.map((c) => c.text).join());
+                if (value == ' ') return;
+                if (value.length == 1 && value != ' ') {
+                  if (index < 5) {
+                    _otpFocusNodes[index + 1].requestFocus();
+                  }
+                  setState(() => _finalOtp = _otpControllers.map((c) => c.text.trim()).join());
+                  return;
+                }
+                
+                if (value.isEmpty) {
+                  _otpControllers[index].text = ' ';
+                  if (index > 0) {
+                    _otpFocusNodes[index - 1].requestFocus();
+                    _otpControllers[index - 1].text = ' ';
+                  }
+                } else {
+                  String cleanValue = value.replaceAll(' ', '');
+                  if (cleanValue.isNotEmpty) {
+                    if (cleanValue.length > 1) {
+                      cleanValue = cleanValue.substring(cleanValue.length - 1);
+                    }
+                    _otpControllers[index].text = cleanValue;
+                    if (index < 5) {
+                      _otpFocusNodes[index + 1].requestFocus();
+                    }
+                  } else {
+                    _otpControllers[index].text = ' ';
+                  }
+                }
+                setState(() => _finalOtp = _otpControllers.map((c) => c.text.trim()).join());
               },
             ),
           )),
@@ -428,7 +458,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
         const SizedBox(height: 24),
         Center(
           child: reg.isResendLoading
-              ? const SizedBox(height: 24, width: 24, child: CircularProgressIndicator(strokeWidth: 3, valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF8C0404))))
+              ? const SizedBox(height: 24, width: 24, child: CircularProgressIndicator(strokeWidth: 3, valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFBA1A1A))))
               : TextButton(
                   // [MVC] Cooldown state from controller
                   onPressed: reg.resendCooldownValue > 0 ? null : () async {
@@ -439,7 +469,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                   },
                   child: Text(
                     reg.resendCooldownValue > 0 ? 'Resend in ${reg.resendCooldownValue}s' : 'Resend',
-                    style: TextStyle(fontFamily: 'Nunito', fontSize: 16, color: reg.resendCooldownValue > 0 ? Colors.grey : const Color(0xFF8C0404), fontWeight: FontWeight.bold),
+                    style: TextStyle(fontFamily: 'Nunito', fontSize: 16, color: reg.resendCooldownValue > 0 ? Colors.grey : const Color(0xFFBA1A1A), fontWeight: FontWeight.bold),
                   ),
                 ),
         ),
@@ -448,7 +478,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
           width: double.infinity,
           child: ElevatedButton(
             onPressed: (_finalOtp.length == 6 && !reg.isLoading) ? _finalizeRegistration : null,
-            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF8C0404), disabledBackgroundColor: Colors.grey.shade400, padding: const EdgeInsets.symmetric(vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFBA1A1A), disabledBackgroundColor: Colors.grey.shade400, padding: const EdgeInsets.symmetric(vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
             child: reg.isLoading
                 ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3))
                 : const Text('REGISTER', style: TextStyle(fontFamily: 'Nunito', color: Colors.white, fontSize: 18)),
@@ -474,18 +504,33 @@ class _RegistrationPageState extends State<RegistrationPage> {
   Widget _buildPasswordInfoItem(String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        SizedBox(width: 140, child: Text('$label:', style: const TextStyle(fontFamily: 'Nunito', fontWeight: FontWeight.bold))),
-        Expanded(child: Text(_isPasswordVisibleInStep2 ? value : '•' * value.length, style: const TextStyle(fontFamily: 'Nunito'))),
-        IconButton(icon: Icon(_isPasswordVisibleInStep2 ? Icons.visibility_off : Icons.visibility, size: 20), onPressed: () => setState(() => _isPasswordVisibleInStep2 = !_isPasswordVisibleInStep2), padding: EdgeInsets.zero, constraints: const BoxConstraints()),
-      ]),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          SizedBox(width: 140, child: Text('$label:', style: const TextStyle(fontFamily: 'Nunito', fontWeight: FontWeight.bold))),
+          Expanded(child: Text(_isPasswordVisibleInStep2 ? value : '•' * value.length, style: const TextStyle(fontFamily: 'Nunito'))),
+          IconButton(
+            icon: Icon(_isPasswordVisibleInStep2 ? Icons.visibility_off : Icons.visibility, size: 20), 
+            onPressed: () => setState(() => _isPasswordVisibleInStep2 = !_isPasswordVisibleInStep2), 
+            padding: EdgeInsets.zero, 
+            constraints: const BoxConstraints(),
+          ),
+        ],
+      ),
     );
   }
 
   Widget _buildTextField(String hintText, {required TextEditingController controller, bool isRequired = true}) {
     return TextFormField(
       controller: controller,
-      decoration: InputDecoration(hintText: hintText, filled: true, fillColor: Colors.grey[200], border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none), contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12)),
+      style: const TextStyle(fontFamily: 'Nunito', fontWeight: FontWeight.bold, color: Colors.black87),
+      decoration: InputDecoration(
+        hintText: hintText,
+        hintStyle: TextStyle(fontFamily: 'Nunito', fontWeight: FontWeight.normal, color: Colors.black.withValues(alpha: 0.38)),
+        filled: true, fillColor: Colors.grey[200],
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      ),
       validator: (v) => (isRequired && (v == null || v.isEmpty)) ? 'This field is required' : null,
     );
   }
@@ -494,11 +539,19 @@ class _RegistrationPageState extends State<RegistrationPage> {
     return TextFormField(
       controller: controller,
       obscureText: isObscured,
+      style: const TextStyle(fontFamily: 'Nunito', fontWeight: FontWeight.bold, color: Colors.black87),
       decoration: InputDecoration(
-        hintText: hintText, filled: true, fillColor: Colors.grey[200],
+        hintText: hintText,
+        hintStyle: TextStyle(fontFamily: 'Nunito', fontWeight: FontWeight.normal, color: Colors.black.withValues(alpha: 0.38)),
+        filled: true, fillColor: Colors.grey[200],
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        suffixIcon: IconButton(icon: Icon(isObscured ? Icons.visibility_off : Icons.visibility), onPressed: onToggle),
+        suffixIcon: IconButton(
+          icon: Icon(isObscured ? Icons.visibility_off : Icons.visibility),
+          onPressed: onToggle,
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(),
+        ),
       ),
       validator: (v) {
         if (v == null || v.isEmpty) return 'This field is required';
@@ -512,11 +565,25 @@ class _RegistrationPageState extends State<RegistrationPage> {
   // [MVC] User type is stored in controller, not widget state
   Widget _buildUserTypeDropdown(RegistrationController reg) {
     return DropdownButtonFormField<String>(
-      value: reg.userType,
+      initialValue: reg.userType,
       isExpanded: true,
-      hint: const Text('User Type', style: TextStyle(fontFamily: 'Nunito', color: Colors.grey)),
+      style: const TextStyle(fontFamily: 'Nunito', fontWeight: FontWeight.bold, color: Colors.black87, fontSize: 15),
+      hint: Text('User Type', style: TextStyle(fontFamily: 'Nunito', color: Colors.black.withValues(alpha: 0.38), fontWeight: FontWeight.normal, fontSize: 15)),
       decoration: InputDecoration(filled: true, fillColor: Colors.grey[200], border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none), contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12)),
-      items: ['Faculty', 'Staff'].map((v) => DropdownMenuItem<String>(value: v, child: Text(v))).toList(),
+      selectedItemBuilder: (BuildContext context) {
+        return ['Faculty', 'Staff'].map((String value) {
+          return Text(
+            value,
+            style: const TextStyle(
+              fontFamily: 'Nunito',
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+              fontSize: 15,
+            ),
+          );
+        }).toList();
+      },
+      items: ['Faculty', 'Staff'].map((v) => DropdownMenuItem<String>(value: v, child: Text(v, style: const TextStyle(fontFamily: 'Nunito', fontWeight: FontWeight.normal)))).toList(),
       onChanged: reg.setUserType,
       validator: (v) => v == null ? 'Please select an option' : null,
     );
@@ -547,54 +614,100 @@ class _RegistrationPageState extends State<RegistrationPage> {
         return DropdownMenuItem<String>(
           value: d.id.toString(),
           child: Container(
-            // Using a container to force compact layout within the 48px constraint
             alignment: Alignment.centerLeft,
             child: Padding(
               padding: const EdgeInsets.only(left: 8.0),
-              child: Text(d.name, style: const TextStyle(fontSize: 15)),
+              child: Text(
+                d.name,
+                style: const TextStyle(fontSize: 15),
+                maxLines: 3,
+              ),
             ),
           ),
         );
       }));
     });
 
-    return DropdownButtonFormField<String>(
-      value: reg.selectedDepartmentId,
-      isExpanded: true,
-      itemHeight: 48.0, // Minimum allowed height to avoid assertion error
-      padding: EdgeInsets.zero, // Remove any default field padding
-      hint: const Text('Office', style: TextStyle(fontFamily: 'Nunito', color: Colors.grey, fontSize: 14)),
-      decoration: InputDecoration(filled: true, fillColor: Colors.grey[200], border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none), contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12)),
-      // selectedItemBuilder ensures the selected text is truncated with "..."
-      selectedItemBuilder: (BuildContext context) {
-        return items.map((DropdownMenuItem<String> item) {
-          // Extract text from either the header (Text) or the item (Padding > Text)
-          String text = '';
-          if (item.child is Text) {
-            text = (item.child as Text).data ?? '';
-          } else if (item.child is Padding) {
-            final paddingChild = (item.child as Padding).child;
-            if (paddingChild is Text) {
-              text = paddingChild.data ?? '';
-            }
-          }
-          
-          return Text(
-            text,
-            overflow: TextOverflow.ellipsis,
-            maxLines: 1,
-            style: const TextStyle(fontSize: 14),
-          );
-        }).toList();
-      },
-      items: items,
-      onChanged: reg.setDepartmentId,
+    return FormField<String>(
+      initialValue: reg.selectedDepartmentId,
       validator: (v) => v == null ? 'Please select an office' : null,
+      builder: (FormFieldState<String> state) {
+        // Sync state value when controller value changes
+        if (state.value != reg.selectedDepartmentId) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            state.didChange(reg.selectedDepartmentId);
+          });
+        }
+
+        return InputDecorator(
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: Colors.grey[200],
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            errorText: state.errorText,
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: reg.selectedDepartmentId,
+              isExpanded: true,
+              isDense: true, // Crucial: removes the fixed SizedBox height wrapper in DropdownButton
+              itemHeight: null, // Crucial: lets items size themselves to fit content
+              hint: Text('Office', style: TextStyle(fontFamily: 'Nunito', color: Colors.black.withValues(alpha: 0.38), fontWeight: FontWeight.normal, fontSize: 14)),
+              onChanged: (String? value) {
+                reg.setDepartmentId(value);
+                state.didChange(value);
+              },
+              selectedItemBuilder: (BuildContext context) {
+                return items.map((DropdownMenuItem<String> item) {
+                  String text = '';
+                  Widget? current = item.child;
+                  while (current != null) {
+                    if (current is Text) {
+                      text = current.data ?? '';
+                      break;
+                    } else if (current is Container) {
+                      current = current.child;
+                    } else if (current is Padding) {
+                      current = current.child;
+                    } else {
+                      break;
+                    }
+                  }
+                  
+                  double fontSize = 13.5.s;
+                  if (text.length > 45) {
+                    fontSize = 11.s;
+                  } else if (text.length > 30) {
+                    fontSize = 12.0.s;
+                  } else if (text.length > 20) {
+                    fontSize = 13.s;
+                  }
+                  
+                  return Text(
+                    text,
+                    maxLines: 3,
+                    softWrap: true,
+                    style: TextStyle(
+                      fontFamily: 'Nunito',
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                      fontSize: fontSize,
+                      height: 1.15,
+                    ),
+                  );
+                }).toList();
+              },
+              items: items,
+            ),
+          ),
+        );
+      },
     );
   }
 
   Widget? _buildValidationIcon(bool isChecking, bool isValid, String? error) {
-    if (isChecking) return const Padding(padding: EdgeInsets.all(12.0), child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2.5, color: Color(0xFF8C0404))));
+    if (isChecking) return const Padding(padding: EdgeInsets.all(12.0), child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2.5, color: Color(0xFFBA1A1A))));
     if (isValid && error == null) return const Icon(Icons.check_circle, color: Colors.green);
     if (error != null) return const Icon(Icons.error, color: Colors.red);
     return null;

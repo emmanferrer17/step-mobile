@@ -1,0 +1,45 @@
+Analyzing ITRAC-mobile...                                       
+
+warning • The value of the field '_blockSizeHorizontal' isn't used. Try removing the field, or using it • lib/app/config/size_config.dart:7:22 • unused_field
+warning • The value of the field '_blockSizeVertical' isn't used. Try removing the field, or using it • lib/app/config/size_config.dart:8:22 • unused_field
+warning • Unused import: 'package:flutter/material.dart'. Try removing the import directive • lib/app/config/ui_constants.dart:1:8 • unused_import
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement • lib/features/archive/archive_page.dart:244:33 • deprecated_member_use
+   info • Constructors for public widgets should have a named 'key' parameter. Try adding a named parameter to the constructor • lib/features/auth/registration_page.dart:18:7 • use_key_in_widget_constructors
+   info • Invalid use of a private type in a public API. Try making the private type public, or making the API that uses the private type also be private • lib/features/auth/registration_page.dart:20:3 • library_private_types_in_public_api
+   info • Statements in a for should be enclosed in a block. Try wrapping the statement in a block • lib/features/auth/registration_page.dart:76:36 • curly_braces_in_flow_control_structures
+   info • Statements in a for should be enclosed in a block. Try wrapping the statement in a block • lib/features/auth/registration_page.dart:77:35 • curly_braces_in_flow_control_structures
+   info • 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre. Try replacing the use of the deprecated member with the replacement • lib/features/auth/registration_page.dart:568:7 • deprecated_member_use
+   info • Unnecessary use of string interpolation. Try replacing the string literal with the variable name • lib/features/home/home_page.dart:174:9 • unnecessary_string_interpolations
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement • lib/features/home/home_page.dart:232:45 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement • lib/features/home/home_page.dart:275:39 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement • lib/features/home/home_page.dart:306:37 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement • lib/features/profile/profile_page.dart:188:37 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement • lib/features/profile/profile_page.dart:257:45 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement • lib/features/profile/profile_page.dart:350:46 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement • lib/features/profile/profile_page.dart:352:65 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement • lib/features/profile/profile_page.dart:434:39 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement • lib/features/profile/widgets/faq_dialog.dart:93:59 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement • lib/features/profile/widgets/faq_dialog.dart:96:33 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement • lib/features/profile/widgets/faq_dialog.dart:112:53 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement • lib/features/qr_scanner/qr_scanner_page.dart:313:56 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement • lib/features/qr_scanner/qr_scanner_page.dart:405:35 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement • lib/features/qr_scanner/qr_scanner_page.dart:431:30 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement • lib/features/shared/widgets/confirmation_dialog.dart:57:34 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement • lib/features/shared/widgets/main_scaffold.dart:150:75 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement • lib/features/shared/widgets/main_scaffold.dart:198:81 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement • lib/features/shared/widgets/standard_permission_layout.dart:63:39 • deprecated_member_use
+   info • Constructors for public widgets should have a named 'key' parameter. Try adding a named parameter to the constructor • lib/main.dart:47:7 • use_key_in_widget_constructors
+   info • Invalid use of a private type in a public API. Try making the private type public, or making the API that uses the private type also be private • lib/main.dart:49:3 • library_private_types_in_public_api
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement • lib/main.dart:181:62 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement • lib/main.dart:207:62 • deprecated_member_use
+   info • Don't invoke 'print' in production code. Try using a logging framework • test_api.dart:15:5 • avoid_print
+   info • Don't invoke 'print' in production code. Try using a logging framework • test_api.dart:16:5 • avoid_print
+warning • The value of the local variable 'user' isn't used. Try removing the variable or using it • test_api.dart:20:16 • unused_local_variable
+   info • Don't invoke 'print' in production code. Try using a logging framework • test_api.dart:21:10 • avoid_print
+   info • Don't invoke 'print' in production code. Try using a logging framework • test_api.dart:23:10 • avoid_print
+   info • Don't invoke 'print' in production code. Try using a logging framework • test_api.dart:27:5 • avoid_print
+warning • The value of the local variable 'user' isn't used. Try removing the variable or using it • test_parse.dart:8:15 • unused_local_variable
+   info • Don't invoke 'print' in production code. Try using a logging framework • test_parse.dart:9:5 • avoid_print
+   info • Don't invoke 'print' in production code. Try using a logging framework • test_parse.dart:11:5 • avoid_print
+   info • Don't invoke 'print' in production code. Try using a logging framework • test_parse.dart:12:5 • avoid_print
+

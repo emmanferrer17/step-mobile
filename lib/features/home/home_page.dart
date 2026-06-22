@@ -5,6 +5,7 @@ import '../../app/config/constants.dart';
 import '../../app/config/ui_constants.dart';
 import '../../app/controllers/auth_controller.dart';
 import '../../app/controllers/home_controller.dart';
+import '../../data/models/user_model.dart';
 import '../../data/services/api_service.dart';
 import 'widgets/item_details_modal.dart';
 import 'widgets/filter_bottom_sheet.dart';
@@ -120,9 +121,9 @@ class HomePageState extends State<HomePage> {
                   bottom: 40.s,
                 ),
                 decoration: const BoxDecoration(
-                  color: Color(0xFF8C0404),
+                  color: Color(0xFFBA1A1A),
                 ),
-                child: _buildHeaderContent(displayName, profilePhoto),
+                child: _buildHeaderContent(user, displayName, profilePhoto),
               ),
               // Search Bar & Filter
               Positioned(
@@ -172,7 +173,7 @@ class HomePageState extends State<HomePage> {
       child: Text(
         '$_selectedCategory',
         style: TextStyle(
-          color: const Color(0xFF8C0404),
+          color: const Color(0xFFBA1A1A),
           fontSize: 14.s,
           fontWeight: FontWeight.bold,
         ),
@@ -180,7 +181,7 @@ class HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildHeaderContent(String userName, String? profilePhoto) {
+  Widget _buildHeaderContent(UserModel? user, String userName, String? profilePhoto) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -210,14 +211,27 @@ class HomePageState extends State<HomePage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    SizedBox(
+                      height: 22.s,
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          userName,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16.s,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
                     Text(
-                      userName,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                      user?.roleName ?? user?.userType ?? '',
                       style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16.s,
-                        fontWeight: FontWeight.w600,
+                        color: Colors.white.withOpacity(0.8),
+                        fontSize: 12.s,
+                        fontWeight: FontWeight.w400,
                       ),
                     ),
                   ],
@@ -337,16 +351,16 @@ class HomePageState extends State<HomePage> {
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: isSelected ? const Color(0xFF8C0404) : Colors.white,
+                  color: isSelected ? const Color(0xFFBA1A1A) : Colors.white,
                   border: Border.all(
-                    color: const Color(0xFF8C0404),
+                    color: const Color(0xFFBA1A1A),
                     width: 1.5.s,
                   ),
                 ),
                 child: SvgPicture.asset(
                   category['iconPath'] as String,
                   colorFilter: ColorFilter.mode(
-                    isSelected ? Colors.white : const Color(0xFF8C0404),
+                    isSelected ? Colors.white : const Color(0xFFBA1A1A),
                     BlendMode.srcIn,
                   ),
                   width: 28.s,
@@ -363,7 +377,7 @@ class HomePageState extends State<HomePage> {
   Widget _buildItemList() {
     if (_isLoading) {
       return const Center(
-        child: CircularProgressIndicator(color: Color(0xFF8C0404)),
+        child: CircularProgressIndicator(color: Color(0xFFBA1A1A)),
       );
     }
 
@@ -385,7 +399,7 @@ class HomePageState extends State<HomePage> {
               ElevatedButton(
                 onPressed: fetchItems,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF8C0404),
+                  backgroundColor: const Color(0xFFBA1A1A),
                   foregroundColor: Colors.white,
                 ),
                 child: const Text('RETRY'),
@@ -422,7 +436,7 @@ class HomePageState extends State<HomePage> {
 
     return RefreshIndicator(
       onRefresh: fetchItems,
-      color: const Color(0xFF8C0404),
+      color: const Color(0xFFBA1A1A),
       child: ListView.separated(
         controller: widget.scrollController,
         physics: const AlwaysScrollableScrollPhysics(),
@@ -440,7 +454,7 @@ class HomePageState extends State<HomePage> {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                color: const Color(0xFF8C0404),
+                color: const Color(0xFFBA1A1A),
                 fontWeight: FontWeight.w600,
                 fontSize: 16.s,
               ),

@@ -67,4 +67,18 @@ class HomeController extends ChangeNotifier {
       return {'error': result['message'] ?? 'Failed to update item location.'};
     }
   }
+
+  /// Fetches all MR items for the logged-in user.
+  Future<Map<String, dynamic>> getMrItems() async {
+    final token = _authController.token;
+    if (token == null) return {'error': 'Not authenticated'};
+
+    final result = await _apiService.getMrItems(token);
+    
+    if (result['status'] == 'success') {
+      return {'error': null, 'items': result['data']?['items'] ?? []};
+    } else {
+      return {'error': result['message'] ?? 'Failed to fetch items.'};
+    }
+  }
 }

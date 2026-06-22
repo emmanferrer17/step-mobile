@@ -11,10 +11,11 @@ import 'package:mobile/app/controllers/profile_controller.dart';
 import '../../data/models/user_model.dart';
 import '../../data/services/api_service.dart';
 import 'widgets/general_info_dialog.dart';
-import 'widgets/faq_dialog.dart';
+import 'widgets/help_center_dialog.dart';
 import '../shared/widgets/gallery_access_modal.dart';
 import '../shared/widgets/confirmation_dialog.dart';
 import '../shared/widgets/custom_alert_dialog.dart';
+import '../shared/widgets/main_scaffold.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -89,68 +90,80 @@ class _ProfilePageState extends State<ProfilePage> {
     final double statusBarHeight = MediaQuery.of(context).padding.top;
     final user = context.watch<AuthController>().loggedInUser;
 
-    return Container(
-      color: const Color(0xFFF5EFE6), // Light beige background
-      child: Column(
-        children: [
-          // ─── Red Header Area ────────────────────────────────────────────
-          Container(
-            width: double.infinity,
-            color: const Color(0xFF8C0404),
-            padding: EdgeInsets.only(
-              top: statusBarHeight, // respect the system status bar
-              left: 10.s,
-              right: 10.s,
-              bottom: 20.s,
-            ),
-            child: Row(
-              children: [
-                // Back button – tapping returns to the Home Page
-                IconButton(
-                  icon: Icon(Icons.arrow_back, color: Colors.white, size: 24.s),
-                  onPressed: () {
-                    // Logic to navigate back to Home index in MainScaffold
-                    // For now, since it's an IndexedStack, usually we don't have a "back" 
-                    // unless we specifically want to switch tabs.
-                    // But if this is used as a standalone, we keep it.
-                  },
+    return Scaffold(
+      backgroundColor: const Color(0xFFF5EFE6), // Light beige background
+      body: SingleChildScrollView(
+        child: Stack(
+          alignment: Alignment.topCenter,
+          children: [
+            // ─── Red Header Area Background ─────────────────────────────────
+            Container(
+              width: double.infinity,
+              height: 220.s + statusBarHeight,
+              decoration: BoxDecoration(
+                color: const Color(0xFFBA1A1A),
+                borderRadius: BorderRadius.vertical(
+                  bottom: Radius.circular(5.s),
                 ),
-                // Centered page title
-                Expanded(
-                  child: Padding(
-                    padding: EdgeInsets.only(right: 48.0.s),
-                    child: Center(
-                      child: Text(
-                        'My Profile',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 20.s,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          SizedBox(height: 40.s),
-
-          // ─── Scrollable Body ─────────────────────────────────────────────
-          Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  _buildProfileCard(context, user),
-                  SizedBox(height: 35.s),
-                  _buildStatisticsSection(),
-                  SizedBox(height: 30.s),
-                ],
               ),
             ),
-          ),
-        ],
+
+            // ─── Foreground Contents ────────────────────────────────────────
+            Column(
+              children: [
+                SizedBox(height: statusBarHeight),
+                // Header navigation & title row
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 10.s, vertical: 10.s),
+                  child: Row(
+                    children: [
+                      // Back button
+                      IconButton(
+                        icon: Icon(Icons.arrow_back, color: Colors.white, size: 24.s),
+                        onPressed: () {
+                          // Return to the first tab (Inventory)
+                          final mainScaffold = context.findAncestorStateOfType<State<MainScaffold>>();
+                          if (mainScaffold != null) {
+                            try {
+                              (mainScaffold as dynamic).onItemTapped(0);
+                            } catch (_) {
+                              if (Navigator.of(context).canPop()) {
+                                Navigator.of(context).pop();
+                              }
+                            }
+                          } else if (Navigator.of(context).canPop()) {
+                            Navigator.of(context).pop();
+                          }
+                        },
+                      ),
+                      // Centered page title
+                      Expanded(
+                        child: Padding(
+                          padding: EdgeInsets.only(right: 48.0.s),
+                          child: Center(
+                            child: Text(
+                              'My Profile',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 20.s,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: 10.s),
+                _buildProfileCard(context, user),
+                SizedBox(height: 35.s),
+                _buildStatisticsSection(),
+                SizedBox(height: 30.s),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -184,31 +197,38 @@ class _ProfilePageState extends State<ProfilePage> {
                 name,
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 20.s,
+                  fontSize: 18.s,
                   fontWeight: FontWeight.bold,
                   color: Colors.black87,
                 ),
               ),
-              SizedBox(height: 5.s),
+              SizedBox(height: 2.s),
               Text(
                 role,
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 12.s,
+                  fontSize: 15.s,
                   fontWeight: FontWeight.w600,
-                  color: const Color(0xFF8C0404),
+                  color: const Color(0xFFBA1A1A),
                 ),
               ),
               SizedBox(height: 25.s),
               _buildMenuButton(
                 label: 'General Information',
+                icon: Icons.person_outline,
                 onPressed: () => _showGeneralInfoModal(context, user),
               ),
               SizedBox(height: 12.s),
               _buildMenuButton(
                 label: 'I-TRAC Manual Booklet',
                 icon: Icons.help_outline,
-                onPressed: () => _showFaqModal(context),
+                onPressed: () => _showDownloadManualDialog(context),
+              ),
+              SizedBox(height: 12.s),
+              _buildMenuButton(
+                label: 'Help Center',
+                icon: Icons.headset_mic_outlined,
+                onPressed: () => _showHelpCenterModal(context),
               ),
               SizedBox(height: 12.s),
               _buildMenuButton(
@@ -261,11 +281,11 @@ class _ProfilePageState extends State<ProfilePage> {
                     child: Container(
                       padding: EdgeInsets.all(6.s),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: const Color(0xFFBA1A1A),
                         shape: BoxShape.circle,
-                        border: Border.all(color: const Color(0xFF8C0404)),
+                        border: Border.all(color: Colors.white, width: 1.5.s),
                       ),
-                      child: Icon(Icons.edit_outlined, size: 18.s, color: Colors.black87),
+                      child: Icon(Icons.file_upload_outlined, size: 18.s, color: Colors.white),
                     ),
                   ),
                 ),
@@ -285,21 +305,21 @@ class _ProfilePageState extends State<ProfilePage> {
   }) {
     return InkWell(
       onTap: onPressed,
-      borderRadius: BorderRadius.circular(10.s),
+      borderRadius: BorderRadius.circular(12.s),
       child: Container(
         width: double.infinity,
         padding: EdgeInsets.symmetric(horizontal: 20.s, vertical: 14.s),
         decoration: BoxDecoration(
-          color: isPrimary ? const Color(0xFF8C0404) : Colors.white,
-          borderRadius: BorderRadius.circular(10.s),
-          border: isPrimary ? null : Border.all(color: const Color(0xFF8C0404)),
+          color: isPrimary ? const Color(0xFFBA1A1A) : Colors.white,
+          borderRadius: BorderRadius.circular(12.s),
+          border: isPrimary ? null : Border.all(color: const Color.fromARGB(255, 202, 202, 202), width: 1.5.s),
         ),
         child: Row(
           children: [
             if (icon != null) ...[
               Icon(
                 icon,
-                color: isPrimary ? Colors.white : Colors.black87,
+                color: isPrimary ? Colors.white : const Color.fromARGB(255, 0, 0, 0),
                 size: 24.s,
               ),
               SizedBox(width: 15.s),
@@ -307,9 +327,9 @@ class _ProfilePageState extends State<ProfilePage> {
             Text(
               label,
               style: TextStyle(
-                color: isPrimary ? Colors.white : Colors.black87,
+                color: isPrimary ? Colors.white : Colors.black,
                 fontSize: 16.s,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ],
@@ -327,19 +347,19 @@ class _ProfilePageState extends State<ProfilePage> {
           child: Container(
             padding: EdgeInsets.all(12.s),
             decoration: BoxDecoration(
-              color: const Color(0xFF8C0404).withOpacity(0.05),
+              color: const Color(0xFFBA1A1A).withOpacity(0.05),
               borderRadius: BorderRadius.circular(8.s),
-              border: Border.all(color: const Color(0xFF8C0404).withOpacity(0.3)),
+              border: Border.all(color: const Color(0xFFBA1A1A).withOpacity(0.3)),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.refresh, color: const Color(0xFF8C0404), size: 18.s),
+                Icon(Icons.refresh, color: const Color(0xFFBA1A1A), size: 18.s),
                 SizedBox(width: 8.s),
                 Text(
                   'Failed to load counts. Tap to retry.',
                   style: TextStyle(
-                    color: const Color(0xFF8C0404),
+                    color: const Color(0xFFBA1A1A),
                     fontSize: 12.s,
                     fontWeight: FontWeight.w600,
                   ),
@@ -401,14 +421,14 @@ class _ProfilePageState extends State<ProfilePage> {
         clipBehavior: Clip.none,
         children: [
           Container(
-            margin: EdgeInsets.only(top: 30.s, left: 6.s, right: 6.s),
+            margin: EdgeInsets.only(top: 34.s, left: 6.s, right: 6.s),
             width: double.infinity,
             constraints: BoxConstraints(minHeight: 80.s),
-            padding: EdgeInsets.only(top: 35.s, left: 4.s, right: 4.s, bottom: 10.s),
+            padding: EdgeInsets.only(top: 42.s, left: 4.s, right: 4.s, bottom: 10.s),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(12.s),
-              border: Border.all(color: const Color(0xFF8C0404)),
+              border: Border.all(color: const Color(0xFFBA1A1A)),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.03),
@@ -423,8 +443,8 @@ class _ProfilePageState extends State<ProfilePage> {
                 Text(
                   count,
                   style: TextStyle(
-                    color: const Color(0xFF8C0404),
-                    fontSize: 22.s,
+                    color: const Color(0xFFBA1A1A),
+                    fontSize: 26.s,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -435,20 +455,20 @@ class _ProfilePageState extends State<ProfilePage> {
             top: 0,
             child: SvgPicture.asset(
               svgPath,
-              width: 60.s,
-              height: 60.s,
+              width: 68.s,
+              height: 68.s,
               errorBuilder: (context, error, stackTrace) {
                 return Container(
-                  width: 60.s,
-                  height: 60.s,
+                  width: 68.s,
+                  height: 68.s,
                   decoration: const BoxDecoration(
-                    color: Color(0xFF8C0404),
+                    color: Color(0xFFBA1A1A),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
                     Icons.broken_image_outlined,
                     color: Colors.white,
-                    size: 30.s,
+                    size: 34.s,
                   ),
                 );
               },
@@ -471,14 +491,39 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  void _showFaqModal(BuildContext context) {
+  void _showDownloadManualDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) => ConfirmationDialog(
+        message: 'Download Manual?',
+        subtitle: 'Access the full guide to help you \n navigate I-TRAC.',
+        icon: Icons.question_mark,
+        color: const Color(0xFF00C853),
+        confirmText: 'Download Manual',
+        cancelText: null,
+        showArrow: false,
+        onConfirm: () {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Downloading manual...'),
+              backgroundColor: Color(0xFF00C853),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  void _showHelpCenterModal(BuildContext context) {
     showDialog(
       context: context,
       barrierDismissible: true,
       builder: (context) => Dialog(
         backgroundColor: Colors.transparent,
         insetPadding: EdgeInsets.symmetric(horizontal: 20.s, vertical: 24.s),
-        child: const FaqDialog(),
+        child: const HelpCenterDialog(),
       ),
     );
   }
@@ -491,7 +536,7 @@ class _ProfilePageState extends State<ProfilePage> {
           message: 'Log out',
           subtitle: 'Are you sure you want to log out?',
           icon: Icons.logout,
-          color: const Color(0xFF8C0404),
+          color: const Color(0xFFBA1A1A),
           confirmText: 'Log out',
           onConfirm: () async {
             final authController = context.read<AuthController>();
@@ -552,9 +597,9 @@ class _ProfilePageState extends State<ProfilePage> {
         return const CustomAlertDialog(
           message: 'Uploading photo...',
           icon: Icons.cloud_upload_outlined,
-          color: Color(0xFF8C0404),
+          color: Color(0xFFBA1A1A),
           child: Center(
-            child: CircularProgressIndicator(color: Color(0xFF8C0404)),
+            child: CircularProgressIndicator(color: Color(0xFFBA1A1A)),
           ),
         );
       },
