@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../app/config/constants.dart';
+import '../../app/config/app_colors.dart';
 import '../../app/config/ui_constants.dart';
 import '../../app/controllers/auth_controller.dart';
 import '../../app/controllers/home_controller.dart';
@@ -9,6 +10,7 @@ import '../../data/models/user_model.dart';
 import '../../data/services/api_service.dart';
 import 'widgets/item_details_modal.dart';
 import 'widgets/filter_bottom_sheet.dart';
+import '../shared/widgets/main_scaffold.dart';
 
 class HomePage extends StatefulWidget {
   final ScrollController? scrollController;
@@ -20,10 +22,10 @@ class HomePage extends StatefulWidget {
 
 class HomePageState extends State<HomePage> {
   final List<Map<String, dynamic>> categories = [
-    {'name': 'All Items', 'iconPath': 'assets/images/all.svg', 'isSelected': true},
+    {'name': 'All', 'iconPath': 'assets/images/all.svg', 'isSelected': true},
     {'name': 'Equipment', 'iconPath': 'assets/images/equipment.svg', 'isSelected': false},
     {'name': 'Semi-Expendable', 'iconPath': 'assets/images/semi-expendable.svg', 'isSelected': false},
-    {'name': 'Supplies and Materials', 'iconPath': 'assets/images/supplies.svg', 'isSelected': false},
+    {'name': 'Supplies & Materials', 'iconPath': 'assets/images/supplies.svg', 'isSelected': false},
   ];
 
   // State variables for dynamic items and loading
@@ -31,7 +33,8 @@ class HomePageState extends State<HomePage> {
   bool _isLoading = true;
   String? _errorMessage;
   String _searchQuery = '';
-  String _selectedCategory = 'All Items';
+  String _selectedCategory = 'All';
+  Map<String, dynamic> _appliedFilters = {};
 
   @override
   void initState() {
@@ -80,11 +83,53 @@ class HomePageState extends State<HomePage> {
     }
   }
 
+  void _clearFilters() {
+    setState(() {
+      _appliedFilters = {};
+    });
+  }
+
   List<dynamic> get _filteredItems {
-    List<dynamic> list = _assignedItems;
-    if (_selectedCategory != 'All Items') {
+    List<dynamic> list = List.from(_assignedItems);
+
+    // 1. Category filter (synced between top bar and filter sheet)
+    if (_selectedCategory != 'All') {
       list = list.where((item) => item['category'] == _selectedCategory).toList();
     }
+
+    // 2. Advanced filters from bottom sheet
+    if (_appliedFilters.isNotEmpty) {
+      // Location
+      final locations = _appliedFilters['locations'] as List<String>?;
+      if (locations != null && locations.isNotEmpty) {
+        list = list.where((item) {
+          final loc = (item['location'] ?? '').toString();
+          return locations.any((l) => loc.startsWith(l));
+        }).toList();
+      }
+
+      // Date
+      final date = _appliedFilters['date'] as DateTime?;
+      if (date != null) {
+        list = list.where((item) {
+          final scannedAt = item['date_scanned'];
+          if (scannedAt == null) return false;
+          final d = DateTime.tryParse(scannedAt.toString());
+          if (d == null) return false;
+          return d.year == date.year && d.month == date.month && d.day == date.day;
+        }).toList();
+      }
+
+      // Sort
+      final sort = _appliedFilters['sort'] as String?;
+      if (sort == 'A-Z') {
+        list.sort((a, b) => (a['item_name'] ?? '').toString().compareTo((b['item_name'] ?? '').toString()));
+      } else if (sort == 'Z-A') {
+        list.sort((a, b) => (b['item_name'] ?? '').toString().compareTo((a['item_name'] ?? '').toString()));
+      }
+    }
+
+    // 3. Search query (always live)
     if (_searchQuery.isNotEmpty) {
       final query = _searchQuery.toLowerCase();
       list = list.where((item) {
@@ -122,6 +167,10 @@ class HomePageState extends State<HomePage> {
                 ),
                 decoration: const BoxDecoration(
                   color: Color(0xFFBA1A1A),
+                  borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(8),
+                    bottomRight: Radius.circular(8),
+                  ),
                 ),
                 child: _buildHeaderContent(user, displayName, profilePhoto),
               ),
@@ -143,7 +192,7 @@ class HomePageState extends State<HomePage> {
           // Item List Box
           Expanded(
             child: Container(
-              margin: EdgeInsets.symmetric(horizontal: 20.s),
+              margin: EdgeInsets.only(left: 20.s, right: 20.s, top: 8.s, bottom: 30.s), // Increased top margin, added bottom margin
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(10.s),
@@ -163,6 +212,8 @@ class HomePageState extends State<HomePage> {
   }
 
   Widget _buildStickyCategoryHeader() {
+    // Only show "Remove filters" if there are applied filters (independent of category)
+    final bool hasActiveFilters = _appliedFilters.isNotEmpty;
     return Container(
       width: double.infinity,
       padding: EdgeInsets.symmetric(horizontal: 15.s, vertical: 12.s),
@@ -170,13 +221,46 @@ class HomePageState extends State<HomePage> {
         color: Colors.white,
         border: Border(bottom: BorderSide(color: Color(0xFFEEEEEE))),
       ),
-      child: Text(
-        '$_selectedCategory',
-        style: TextStyle(
-          color: const Color(0xFFBA1A1A),
-          fontSize: 14.s,
-          fontWeight: FontWeight.bold,
-        ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            children: [
+              Text(
+                _selectedCategory,
+                style: TextStyle(
+                  color: const Color(0xFFBA1A1A),
+                  fontSize: 14.s,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.only(left: 8.s),
+                child: Text(
+                  '${_filteredItems.length} items',
+                  style: TextStyle(
+                    fontSize: 13.s,
+                    color: Colors.grey.shade600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          if (hasActiveFilters)
+            GestureDetector(
+              onTap: _clearFilters,
+              child: Text(
+                'Remove filters',
+                style: TextStyle(
+                  fontFamily: 'Nunito',
+                  fontSize: 12.s,
+                  color: AppColors.primaryRed,
+                  fontWeight: FontWeight.w600,
+                  decoration: TextDecoration.underline,
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -189,20 +273,30 @@ class HomePageState extends State<HomePage> {
         Expanded(
           child: Row(
             children: [
-              Container(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.blueAccent, width: 2.s),
-                ),
-                child: CircleAvatar(
-                  radius: 26.s,
-                  backgroundColor: Colors.white,
-                  backgroundImage: profilePhoto != null 
-                      ? NetworkImage('${ApiConstants.storageUrl}$profilePhoto')
-                      : null,
-                  child: profilePhoto == null 
-                      ? Icon(Icons.person, size: 35.s, color: Colors.grey)
-                      : null,
+              GestureDetector(
+                onTap: () {
+                  final mainScaffold = context.findAncestorStateOfType<State<MainScaffold>>();
+                  if (mainScaffold != null) {
+                    try {
+                      (mainScaffold as dynamic).onItemTapped(1);
+                    } catch (_) {}
+                  }
+                },
+                child: Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.blueAccent, width: 2.s),
+                  ),
+                  child: CircleAvatar(
+                    radius: 26.s,
+                    backgroundColor: Colors.white,
+                    backgroundImage: profilePhoto != null 
+                        ? NetworkImage('${ApiConstants.storageUrl}$profilePhoto')
+                        : null,
+                    child: profilePhoto == null 
+                        ? Icon(Icons.person, size: 35.s, color: Colors.grey)
+                        : null,
+                  ),
                 ),
               ),
               SizedBox(width: 15.s),
@@ -229,7 +323,7 @@ class HomePageState extends State<HomePage> {
                     Text(
                       user?.roleName ?? user?.userType ?? '',
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.8),
+                        color: Colors.white.withValues(alpha: 0.8),
                         fontSize: 12.s,
                         fontWeight: FontWeight.w400,
                       ),
@@ -272,7 +366,7 @@ class HomePageState extends State<HomePage> {
               borderRadius: BorderRadius.circular(10.s),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: Colors.black.withValues(alpha: 0.05),
                   blurRadius: 5.s,
                   offset: Offset(0, 3.s),
                 )
@@ -303,7 +397,7 @@ class HomePageState extends State<HomePage> {
             borderRadius: BorderRadius.circular(10.s),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.05),
+                color: Colors.black.withValues(alpha: 0.05),
                 blurRadius: 5.s,
                 offset: Offset(0, 3.s),
               )
@@ -311,13 +405,30 @@ class HomePageState extends State<HomePage> {
           ),
           child: IconButton(
             icon: const Icon(Icons.tune, color: Color(0xFF333333)),
-            onPressed: () {
-              showModalBottomSheet(
+            onPressed: () async {
+              final result = await showModalBottomSheet<Map<String, dynamic>>(
                 context: context,
                 isScrollControlled: true,
                 backgroundColor: Colors.transparent,
-                builder: (context) => const FilterBottomSheet(),
+                builder: (context) => FilterBottomSheet(
+                  items: _assignedItems,
+                  initialFilters: _appliedFilters,
+                ),
               );
+
+              if (result != null) {
+                setState(() {
+                  _appliedFilters = result;
+                  // Sync top category if it changed in the filter sheet
+                  final sheetCat = result['category'] as String?;
+                  if (sheetCat != null) {
+                    _selectedCategory = sheetCat;
+                    for (var cat in categories) {
+                      cat['isSelected'] = (cat['name'] == sheetCat);
+                    }
+                  }
+                });
+              }
             },
           ),
         ),
@@ -351,16 +462,25 @@ class HomePageState extends State<HomePage> {
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: isSelected ? const Color(0xFFBA1A1A) : Colors.white,
-                  border: Border.all(
-                    color: const Color(0xFFBA1A1A),
-                    width: 1.5.s,
-                  ),
+                  color: isSelected ? AppColors.primaryRed : Colors.white,
+                  border: isSelected
+                      ? null
+                      : Border.all(
+                          color: AppColors.categoryCircleUnselected,
+                          width: 1.5.s,
+                        ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0x1A000000), // Reduced opacity (from 2B to 1A)
+                      blurRadius: 6.s, // Reduced blur (from 10 to 6)
+                      offset: Offset(0, 2.s), // Adjusted offset
+                    ),
+                  ],
                 ),
                 child: SvgPicture.asset(
                   category['iconPath'] as String,
                   colorFilter: ColorFilter.mode(
-                    isSelected ? Colors.white : const Color(0xFFBA1A1A),
+                    isSelected ? Colors.white : AppColors.categoryCircleUnselected,
                     BlendMode.srcIn,
                   ),
                   width: 28.s,
@@ -448,7 +568,10 @@ class HomePageState extends State<HomePage> {
           final name = item['item_name'] ?? 'Unknown Item';
           final location = item['location'] ?? 'Unknown Location';
           return ListTile(
-            contentPadding: EdgeInsets.symmetric(horizontal: 15.s, vertical: 2.s),
+            dense: true,
+            visualDensity: const VisualDensity(vertical: -1),
+            contentPadding: EdgeInsets.symmetric(horizontal: 15.s, vertical: 0),
+            minVerticalPadding: 0,
             title: Text(
               name,
               maxLines: 1,
@@ -461,7 +584,7 @@ class HomePageState extends State<HomePage> {
             ),
             subtitle: Row(
               children: [
-                Icon(Icons.location_on, size: 14.s, color: Colors.grey),
+                Icon(Icons.location_on, size: 14.s, color: AppColors.itemLocationColor),
                 SizedBox(width: 4.s),
                 Expanded(
                   child: Text(
@@ -469,7 +592,7 @@ class HomePageState extends State<HomePage> {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      color: Colors.grey,
+                      color: AppColors.itemLocationColor,
                       fontSize: 13.s,
                       fontWeight: FontWeight.w600,
                     ),

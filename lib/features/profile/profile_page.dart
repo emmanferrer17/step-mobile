@@ -1,10 +1,14 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:open_filex/open_filex.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:image_cropper/image_cropper.dart';
 import '../../app/config/constants.dart';
+import '../../app/config/app_colors.dart';
 import '../../app/config/ui_constants.dart';
 import 'package:mobile/app/controllers/auth_controller.dart';
 import 'package:mobile/app/controllers/profile_controller.dart';
@@ -185,7 +189,7 @@ class _ProfilePageState extends State<ProfilePage> {
             borderRadius: BorderRadius.circular(15.s),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.07),
+                color: Colors.black.withValues(alpha: 0.07),
                 blurRadius: 12.s,
                 offset: Offset(0, 5.s),
               ),
@@ -254,7 +258,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     color: Colors.white,
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
+                        color: Colors.black.withValues(alpha: 0.1),
                         blurRadius: 8.s,
                         offset: Offset(0, 4.s),
                       ),
@@ -347,9 +351,9 @@ class _ProfilePageState extends State<ProfilePage> {
           child: Container(
             padding: EdgeInsets.all(12.s),
             decoration: BoxDecoration(
-              color: const Color(0xFFBA1A1A).withOpacity(0.05),
+              color: const Color(0xFFBA1A1A).withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(8.s),
-              border: Border.all(color: const Color(0xFFBA1A1A).withOpacity(0.3)),
+              border: Border.all(color: const Color(0xFFBA1A1A).withValues(alpha: 0.3)),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -389,19 +393,19 @@ class _ProfilePageState extends State<ProfilePage> {
           Row(
             children: [
               _buildStatBox(
-                svgPath: 'assets/images/mr-all.svg',
+                svgPath: 'assets/images/all.svg',
                 count: allCount,
               ),
               _buildStatBox(
-                svgPath: 'assets/images/mr-equipment.svg',
+                svgPath: 'assets/images/equipment.svg',
                 count: equipmentCount,
               ),
               _buildStatBox(
-                svgPath: 'assets/images/mr-semi-expandable.svg',
+                svgPath: 'assets/images/semi-expendable.svg',
                 count: appliancesCount,
               ),
               _buildStatBox(
-                svgPath: 'assets/images/mr-supplies.svg',
+                svgPath: 'assets/images/supplies.svg',
                 count: suppliesCount,
               ),
             ],
@@ -428,10 +432,10 @@ class _ProfilePageState extends State<ProfilePage> {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(12.s),
-              border: Border.all(color: const Color(0xFFBA1A1A)),
+              border: Border.all(color: AppColors.navBarOutlineLight),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.03),
+                  color: Colors.black.withValues(alpha: 0.03),
                   blurRadius: 4.s,
                   offset: Offset(0, 2.s),
                 ),
@@ -453,25 +457,26 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
           Positioned(
             top: 0,
-            child: SvgPicture.asset(
-              svgPath,
+            child: Container(
               width: 68.s,
               height: 68.s,
-              errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  width: 68.s,
-                  height: 68.s,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFBA1A1A),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+                border: Border.all(color: const Color(0xFFBA1A1A), width: 1.5.s),
+              ),
+              padding: EdgeInsets.all(18.s),
+              child: SvgPicture.asset(
+                svgPath,
+                colorFilter: const ColorFilter.mode(Color(0xFFBA1A1A), BlendMode.srcIn),
+                errorBuilder: (context, error, stackTrace) {
+                  return Icon(
                     Icons.broken_image_outlined,
-                    color: Colors.white,
-                    size: 34.s,
-                  ),
-                );
-              },
+                    color: const Color(0xFFBA1A1A),
+                    size: 30.s,
+                  );
+                },
+              ),
             ),
           ),
         ],
@@ -503,17 +508,58 @@ class _ProfilePageState extends State<ProfilePage> {
         confirmText: 'Download Manual',
         cancelText: null,
         showArrow: false,
-        onConfirm: () {
+        onConfirm: () => _downloadManual(context),
+      ),
+    );
+  }
+
+  Future<void> _downloadManual(BuildContext context) async {
+    try {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Downloading manual...'),
+          backgroundColor: Color(0xFF00C853),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+
+      // 1. Get the bytes from assets
+      final ByteData data = await rootBundle.load(ApiConstants.manualAssetPath);
+      final List<int> bytes = data.buffer.asUint8List();
+
+      // 2. Get the directory to save the file
+      final directory = await getApplicationDocumentsDirectory();
+      final String filePath = '${directory.path}/itrac_manual.pdf';
+      final File file = File(filePath);
+
+      // 3. Write the file
+      await file.writeAsBytes(bytes);
+
+      // 4. Open the file
+      final result = await OpenFilex.open(filePath);
+
+      if (result.type != ResultType.done) {
+        if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Downloading manual...'),
-              backgroundColor: Color(0xFF00C853),
+            SnackBar(
+              content: Text('Could not open file: ${result.message}'),
+              backgroundColor: Colors.red,
               behavior: SnackBarBehavior.floating,
             ),
           );
-        },
-      ),
-    );
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${e.toString()}'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
   }
 
   void _showHelpCenterModal(BuildContext context) {
@@ -535,9 +581,10 @@ class _ProfilePageState extends State<ProfilePage> {
         return ConfirmationDialog(
           message: 'Log out',
           subtitle: 'Are you sure you want to log out?',
-          icon: Icons.logout,
+          icon: Icons.priority_high,
           color: const Color(0xFFBA1A1A),
-          confirmText: 'Log out',
+          confirmText: 'Confirm',
+          showArrow: false,
           onConfirm: () async {
             final authController = context.read<AuthController>();
             await authController.logout();

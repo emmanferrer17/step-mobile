@@ -38,6 +38,11 @@ android {
     }
 }
 
+configurations.all {
+    exclude(group = "com.google.dart.jni", module = "jni")
+    exclude(group = "com.google.dart.jni", module = "jni_flutter")
+}
+
 flutter {
     source = "../.."
 }

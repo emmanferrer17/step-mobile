@@ -27,6 +27,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
   final _firstNameController = TextEditingController();
   final _middleNameController = TextEditingController();
   final _lastNameController = TextEditingController();
+  final _contactNumberController = TextEditingController();
   final _suffixController = TextEditingController();
   final _tuptIdController = TextEditingController();
   final _tupEmailController = TextEditingController();
@@ -68,13 +69,18 @@ class _RegistrationPageState extends State<RegistrationPage> {
     _firstNameController.dispose();
     _middleNameController.dispose();
     _lastNameController.dispose();
+    _contactNumberController.dispose();
     _suffixController.dispose();
     _tuptIdController.dispose();
     _tupEmailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
-    for (var c in _otpControllers) c.dispose();
-    for (var f in _otpFocusNodes) f.dispose();
+    for (var c in _otpControllers) {
+      c.dispose();
+    }
+    for (var f in _otpFocusNodes) {
+      f.dispose();
+    }
     super.dispose();
   }
 
@@ -104,11 +110,13 @@ class _RegistrationPageState extends State<RegistrationPage> {
       'user_firstname': _firstNameController.text,
       'user_middlename': _middleNameController.text,
       'user_lastname': _lastNameController.text,
+      'user_contactno': _contactNumberController.text,
       'user_suffix': _suffixController.text,
       'user_tupid': _tuptIdController.text,
       'user_email': _tupEmailController.text,
       'user_password': _passwordController.text,
       'user_type': reg.userType ?? '',
+      'department_id': reg.selectedDepartmentId ?? '',
       'selected_department_id': reg.selectedDepartmentId ?? '',
     };
     await reg.proceedToVerification(userData);
@@ -126,11 +134,13 @@ class _RegistrationPageState extends State<RegistrationPage> {
       'user_firstname': _firstNameController.text,
       'user_middlename': _middleNameController.text,
       'user_lastname': _lastNameController.text,
+      'user_contactno': _contactNumberController.text,
       'user_suffix': _suffixController.text,
       'user_tupid': _tuptIdController.text,
       'user_email': _tupEmailController.text,
       'user_password': _passwordController.text,
       'user_type': reg.userType ?? '',
+      'department_id': reg.selectedDepartmentId ?? '',
       'selected_department_id': reg.selectedDepartmentId ?? '',
     };
     final success = await reg.finalizeRegistration(verificationData);
@@ -249,11 +259,32 @@ class _RegistrationPageState extends State<RegistrationPage> {
           const SizedBox(height: 32),
           const Text('Personal Information', style: TextStyle(fontFamily: 'Nunito', fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 24),
-          _buildTextField('First Name', controller: _firstNameController),
+          _buildTextField('First Name *', controller: _firstNameController),
           const SizedBox(height: 20),
-          _buildTextField('Middle Name', controller: _middleNameController),
+          _buildTextField('Middle Name', controller: _middleNameController, isRequired: false),
           const SizedBox(height: 20),
-          _buildTextField('Last Name', controller: _lastNameController),
+          _buildTextField('Last Name *', controller: _lastNameController),
+          const SizedBox(height: 20),
+          TextFormField(
+            controller: _contactNumberController,
+            style: const TextStyle(fontFamily: 'Nunito', fontWeight: FontWeight.bold, color: Colors.black87),
+            keyboardType: TextInputType.phone,
+            maxLength: 11,
+            decoration: InputDecoration(
+              hintText: 'Contact Number *',
+              hintStyle: TextStyle(fontFamily: 'Nunito', fontWeight: FontWeight.normal, color: Colors.black.withValues(alpha: 0.38)),
+              filled: true, fillColor: Colors.grey[200],
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              counterText: '',
+            ),
+            validator: (v) {
+              if (v == null || v.isEmpty) return 'Required';
+              if (v.length != 11) return 'Must be 11 digits';
+              if (!v.startsWith('09')) return 'Must start with "09"';
+              return null;
+            },
+          ),
           const SizedBox(height: 20),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -269,7 +300,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                   controller: _tuptIdController,
                   style: const TextStyle(fontFamily: 'Nunito', fontWeight: FontWeight.bold, color: Colors.black87),
                   decoration: InputDecoration(
-                    hintText: 'TUPT-ID',
+                    hintText: 'TUPT-ID *',
                     hintStyle: TextStyle(fontFamily: 'Nunito', fontWeight: FontWeight.normal, color: Colors.black.withValues(alpha: 0.38)),
                     filled: true, fillColor: Colors.grey[200],
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
@@ -298,7 +329,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
             style: const TextStyle(fontFamily: 'Nunito', fontWeight: FontWeight.bold, color: Colors.black87),
             keyboardType: TextInputType.emailAddress,
             decoration: InputDecoration(
-              hintText: 'TUP Email',
+              hintText: 'TUP Email *',
               hintStyle: TextStyle(fontFamily: 'Nunito', fontWeight: FontWeight.normal, color: Colors.black.withValues(alpha: 0.38)),
               filled: true, fillColor: Colors.grey[200],
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
@@ -310,21 +341,13 @@ class _RegistrationPageState extends State<RegistrationPage> {
             validator: (v) => (v == null || v.isEmpty) ? 'Required' : (!RegExp(r'^[a-zA-Z0-9._%+-]+@tup\.edu\.ph$').hasMatch(v)) ? 'Invalid TUP email' : null,
           ),
           const SizedBox(height: 20),
-          _buildPasswordTextField('Password', controller: _passwordController, isObscured: _isPasswordObscured, onToggle: () => setState(() => _isPasswordObscured = !_isPasswordObscured)),
+          _buildPasswordTextField('Password *', controller: _passwordController, isObscured: _isPasswordObscured, onToggle: () => setState(() => _isPasswordObscured = !_isPasswordObscured)),
           const SizedBox(height: 20),
-          _buildPasswordTextField('Confirm Password', controller: _confirmPasswordController, isObscured: _isConfirmPasswordObscured, onToggle: () => setState(() => _isConfirmPasswordObscured = !_isConfirmPasswordObscured)),
+          _buildPasswordTextField('Confirm Password *', controller: _confirmPasswordController, isObscured: _isConfirmPasswordObscured, onToggle: () => setState(() => _isConfirmPasswordObscured = !_isConfirmPasswordObscured)),
           const SizedBox(height: 20),
-          Row(children: [
-            Expanded(
-              flex: 3,
-              child: _buildUserTypeDropdown(reg),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              flex: 5,
-              child: _buildDepartmentDropdown(reg),
-            ),
-          ]),
+          _buildUserTypeDropdown(reg),
+          const SizedBox(height: 20),
+          _buildDepartmentDropdown(reg),
           const SizedBox(height: 40),
           SizedBox(
             width: double.infinity,
@@ -365,6 +388,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             _buildInfoItem('Name', '${_firstNameController.text} ${_middleNameController.text} ${_lastNameController.text} ${_suffixController.text}'.trim()),
             _buildInfoItem('TUP-ID', _tuptIdController.text),
+            _buildInfoItem('Contact Number', _contactNumberController.text),
           ]),
         ),
         const SizedBox(height: 16),
@@ -564,28 +588,49 @@ class _RegistrationPageState extends State<RegistrationPage> {
 
   // [MVC] User type is stored in controller, not widget state
   Widget _buildUserTypeDropdown(RegistrationController reg) {
-    return DropdownButtonFormField<String>(
+    return FormField<String>(
       initialValue: reg.userType,
-      isExpanded: true,
-      style: const TextStyle(fontFamily: 'Nunito', fontWeight: FontWeight.bold, color: Colors.black87, fontSize: 15),
-      hint: Text('User Type', style: TextStyle(fontFamily: 'Nunito', color: Colors.black.withValues(alpha: 0.38), fontWeight: FontWeight.normal, fontSize: 15)),
-      decoration: InputDecoration(filled: true, fillColor: Colors.grey[200], border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none), contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12)),
-      selectedItemBuilder: (BuildContext context) {
-        return ['Faculty', 'Staff'].map((String value) {
-          return Text(
-            value,
-            style: const TextStyle(
-              fontFamily: 'Nunito',
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
-              fontSize: 15,
-            ),
-          );
-        }).toList();
-      },
-      items: ['Faculty', 'Staff'].map((v) => DropdownMenuItem<String>(value: v, child: Text(v, style: const TextStyle(fontFamily: 'Nunito', fontWeight: FontWeight.normal)))).toList(),
-      onChanged: reg.setUserType,
       validator: (v) => v == null ? 'Please select an option' : null,
+      builder: (FormFieldState<String> state) {
+        return InputDecorator(
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: Colors.grey[200],
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0), // Set vertical to 0
+            errorText: state.errorText,
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: reg.userType,
+              isExpanded: false,
+              isDense: true, // Use isDense to reduce internal height
+              hint: Text('User Type *', style: TextStyle(fontFamily: 'Nunito', color: Colors.black.withValues(alpha: 0.38), fontWeight: FontWeight.normal, fontSize: 15)),
+              items: ['Faculty', 'Staff'].map((v) => DropdownMenuItem<String>(value: v, child: Text(v, style: const TextStyle(fontFamily: 'Nunito', fontWeight: FontWeight.normal)))).toList(),
+              onChanged: (val) {
+                reg.setUserType(val);
+                state.didChange(val);
+              },
+              selectedItemBuilder: (BuildContext context) {
+                return ['Faculty', 'Staff'].map((String value) {
+                  return Container(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      value,
+                      style: const TextStyle(
+                        fontFamily: 'Nunito',
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                        fontSize: 15,
+                      ),
+                    ),
+                  );
+                }).toList();
+              },
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -653,7 +698,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
               isExpanded: true,
               isDense: true, // Crucial: removes the fixed SizedBox height wrapper in DropdownButton
               itemHeight: null, // Crucial: lets items size themselves to fit content
-              hint: Text('Office', style: TextStyle(fontFamily: 'Nunito', color: Colors.black.withValues(alpha: 0.38), fontWeight: FontWeight.normal, fontSize: 14)),
+              hint: Text('Office *', style: TextStyle(fontFamily: 'Nunito', color: Colors.black.withValues(alpha: 0.38), fontWeight: FontWeight.normal, fontSize: 14)),
               onChanged: (String? value) {
                 reg.setDepartmentId(value);
                 state.didChange(value);
@@ -675,25 +720,20 @@ class _RegistrationPageState extends State<RegistrationPage> {
                     }
                   }
                   
-                  double fontSize = 13.5.s;
-                  if (text.length > 45) {
-                    fontSize = 11.s;
-                  } else if (text.length > 30) {
-                    fontSize = 12.0.s;
-                  } else if (text.length > 20) {
-                    fontSize = 13.s;
-                  }
-                  
-                  return Text(
-                    text,
-                    maxLines: 3,
-                    softWrap: true,
-                    style: TextStyle(
-                      fontFamily: 'Nunito',
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                      fontSize: fontSize,
-                      height: 1.15,
+                  return Container(
+                    alignment: Alignment.centerLeft,
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        text,
+                        maxLines: 1,
+                        style: const TextStyle(
+                          fontFamily: 'Nunito',
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                          fontSize: 15,
+                        ),
+                      ),
                     ),
                   );
                 }).toList();

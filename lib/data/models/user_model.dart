@@ -48,8 +48,8 @@ class UserModel {
       tupId: (map['user_tupid'] as String?) ?? '',
       email: (map['user_email'] as String?) ?? '',
       userType: (map['user_type'] as String?) ?? '',
-      departmentId: map['selected_department_id'] != null
-          ? int.tryParse(map['selected_department_id'].toString())
+      departmentId: (map['department_id'] != null || map['selected_department_id'] != null || map['department_id_fk'] != null)
+          ? int.tryParse((map['department_id'] ?? map['selected_department_id'] ?? map['department_id_fk']).toString())
           : null,
       roleName: map['roles'] != null && (map['roles'] as List).isNotEmpty
           ? map['roles'][0]['role_name'] as String?
@@ -72,11 +72,13 @@ class UserModel {
       'user_firstname': firstName,
       'user_middlename': middleName,
       'user_lastname': lastName,
+      'user_contactno': contactNo,
       'user_suffix': suffix,
       'user_tupid': tupId,
       'user_email': email,
       'user_password': password,
       'user_type': userType,
+      'department_id': departmentId,
       'selected_department_id': departmentId,
     };
   }
@@ -105,6 +107,25 @@ class UserModel {
       profilePhoto: profilePhoto ?? this.profilePhoto,
       contactNo: contactNo ?? this.contactNo,
     );
+  }
+
+  // toMap: converts this object into a Map format suitable for JSON serialization and local storage.
+  Map<String, dynamic> toMap() {
+    return {
+      'user_id': id,
+      'user_firstname': firstName,
+      'user_middlename': middleName,
+      'user_lastname': lastName,
+      'user_suffix': suffix,
+      'user_tupid': tupId,
+      'user_email': email,
+      'user_type': userType,
+      'department_id': departmentId,
+      'roles': roleName != null ? [{'role_name': roleName}] : null,
+      'departments': departmentName != null ? [{'dep_name': departmentName}] : null,
+      'user_profile_photo': profilePhoto,
+      'user_contactno': contactNo,
+    };
   }
 
   // Get the user's full name in one convenient property

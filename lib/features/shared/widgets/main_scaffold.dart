@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import '../../../app/config/app_colors.dart';
 import '../../../app/config/size_config.dart';
 import '../../../app/config/ui_constants.dart';
 import '../../home/home_page.dart';
@@ -16,13 +17,19 @@ class MainScaffold extends StatefulWidget {
 }
 
 class _MainScaffoldState extends State<MainScaffold> with SingleTickerProviderStateMixin {
-  late int _selectedIndex;
+  int _selectedIndex = 0;
   AnimationController? _hideController;
   ScrollController? _scrollController;
   bool _isVisible = true;
 
   // Keys to access state for refreshing if needed
   final GlobalKey<HomePageState> _homeKey = GlobalKey<HomePageState>();
+
+  // Size parameters for bottom navigation bar and QR button
+  static const double _qrButtonSize = 82.0;
+  double get _qrButtonSizeScaled => _qrButtonSize.s;
+  double get _notchRadius => (_qrButtonSize / 2 + 6.0).s;
+  double get _navBarHeight => (_qrButtonSize - 14.0).s;
 
   @override
   void initState() {
@@ -65,6 +72,7 @@ class _MainScaffoldState extends State<MainScaffold> with SingleTickerProviderSt
   }
 
   void onItemTapped(int index) {
+    if (_selectedIndex == index) return;
     setState(() {
       _selectedIndex = index;
     });
@@ -75,6 +83,8 @@ class _MainScaffoldState extends State<MainScaffold> with SingleTickerProviderSt
     SizeConfig().init(context);
 
     return Scaffold(
+      extendBody: true,
+      resizeToAvoidBottomInset: false,
       body: NotificationListener<ScrollNotification>(
         onNotification: (ScrollNotification notification) {
           if (notification is ScrollEndNotification) {
@@ -118,141 +128,267 @@ class _MainScaffoldState extends State<MainScaffold> with SingleTickerProviderSt
 
   Widget _buildBottomNav() {
     return BottomAppBar(
-      color: const Color(0xFFBA1A1A),
-      shape: const CircularNotchedRectangle(),
-      notchMargin: 10.0.s,
+      color: Colors.transparent,
+      elevation: 0,
       padding: EdgeInsets.zero,
-      clipBehavior: Clip.antiAlias,
-      child: SizedBox(
-        height: 50.s,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            // Inventory tab
-            Expanded(
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  onTap: () => onItemTapped(0),
-                  borderRadius: BorderRadius.circular(50.s),
-                  splashColor: Colors.transparent,
-                  highlightColor: Colors.transparent,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        padding: _selectedIndex == 0 
-                            ? EdgeInsets.symmetric(horizontal: 20.s, vertical: 6.s)
-                            : EdgeInsets.zero,
-                        decoration: _selectedIndex == 0
-                            ? BoxDecoration(
-                          color: const Color.fromARGB(255, 255, 255, 255).withOpacity(0.4),
-                                borderRadius: BorderRadius.circular(20.s),
-                              )
-                            : null,
-                        child: SvgPicture.asset(
-                          'assets/images/inventory.svg',
-                          colorFilter: ColorFilter.mode(
-                            const Color.fromARGB(255, 255, 255, 255),
-                            _selectedIndex == 0 ? BlendMode.srcIn : BlendMode.srcIn,
+      clipBehavior: Clip.none,
+      child: Padding(
+        padding: EdgeInsets.only(left: 16.s, right: 16.s, bottom: 16.s),
+        child: CustomPaint(
+          painter: FloatingNavbarPainter(
+            cornerRadius: 24.s,
+            notchRadius: _notchRadius,
+          ),
+          child: SizedBox(
+            height: _navBarHeight,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                // Inventory tab (renamed to Items)
+                Expanded(
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () => onItemTapped(0),
+                      borderRadius: BorderRadius.circular(50.s),
+                      splashColor: Colors.transparent,
+                      highlightColor: Colors.transparent,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            padding: _selectedIndex == 0 
+                                ? EdgeInsets.symmetric(horizontal: 20.s, vertical: 6.s)
+                                : EdgeInsets.zero,
+                            decoration: _selectedIndex == 0
+                                ? BoxDecoration(
+                                    color: AppColors.navBarSelectedHighlight,
+                                    borderRadius: BorderRadius.circular(20.s),
+                                  )
+                                : null,
+                            child: SvgPicture.asset(
+                              'assets/images/inventory.svg',
+                              colorFilter: ColorFilter.mode(
+                                _selectedIndex == 0 ? AppColors.primaryRed : AppColors.navBarUnselected,
+                                BlendMode.srcIn,
+                              ),
+                              width: 20.s,
+                              height: 20.s,
+                            ),
                           ),
-                          width: 24.s,
-                          height: 24.s,
-                        ),
+                          SizedBox(height: 4.s),
+                          Text(
+                            'Items',
+                            style: TextStyle(
+                              color: _selectedIndex == 0 ? AppColors.primaryRed : AppColors.navBarUnselected,
+                              fontSize: 10.fs, 
+                              fontWeight: _selectedIndex == 0 ? FontWeight.bold : FontWeight.normal
+                            ),
+                          ),
+                        ],
                       ),
-                      SizedBox(height: 4.s),
-                      Text(
-                        'Inventory',
-                        style: TextStyle(
-                          color: const Color.fromARGB(255, 255, 255, 255),
-                          fontSize: 12.fs, 
-                          fontWeight: _selectedIndex == 0 ? FontWeight.bold : FontWeight.normal
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                 ),
-              ),
-            ),
-            SizedBox(width: 80.s), // Maintain gap for the notch
-            // Profile tab
-            Expanded(
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  onTap: () => onItemTapped(1),
-                  borderRadius: BorderRadius.circular(25.s),
-                  splashColor: Colors.transparent,
-                  highlightColor: Colors.transparent,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        padding: _selectedIndex == 1 
-                            ? EdgeInsets.symmetric(horizontal: 20.s, vertical: 6.s)
-                            : EdgeInsets.zero,
-                        decoration: _selectedIndex == 1
-                            ? BoxDecoration(
-                                color: const Color.fromARGB(255, 255, 255, 255).withOpacity(0.4),
-                                borderRadius: BorderRadius.circular(20.s),
-                              )
-                            : null,
-                        child: SvgPicture.asset(
-                          'assets/images/profile.svg',
-                          colorFilter: const ColorFilter.mode(
-                            Color.fromARGB(255, 255, 255, 255),
-                            BlendMode.srcIn,
+                SizedBox(width: 80.s), // Maintain gap for the notch
+                // Profile tab
+                Expanded(
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () => onItemTapped(1),
+                      borderRadius: BorderRadius.circular(25.s),
+                      splashColor: Colors.transparent,
+                      highlightColor: Colors.transparent,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            padding: _selectedIndex == 1 
+                                ? EdgeInsets.symmetric(horizontal: 20.s, vertical: 6.s)
+                                : EdgeInsets.zero,
+                            decoration: _selectedIndex == 1
+                                ? BoxDecoration(
+                                    color: AppColors.navBarSelectedHighlight,
+                                    borderRadius: BorderRadius.circular(20.s),
+                                  )
+                                : null,
+                            child: SvgPicture.asset(
+                              'assets/images/profile.svg',
+                              colorFilter: ColorFilter.mode(
+                                _selectedIndex == 1 ? AppColors.primaryRed : AppColors.navBarUnselected,
+                                BlendMode.srcIn,
+                              ),
+                              width: 20.s,
+                              height: 20.s,
+                            ),
                           ),
-                          width: 24.s,
-                          height: 24.s,
-                        ),
+                          SizedBox(height: 4.s),
+                          Text(
+                            'Profile',
+                            style: TextStyle(
+                              color: _selectedIndex == 1 ? AppColors.primaryRed : AppColors.navBarUnselected,
+                              fontSize: 10.fs,
+                              fontWeight: _selectedIndex == 1 ? FontWeight.bold : FontWeight.normal
+                            ),
+                          ),
+                        ],
                       ),
-                      SizedBox(height: 4.s),
-                      Text(
-                        'Profile',
-                        style: TextStyle(
-                          color: const Color.fromARGB(255, 255, 255, 255),
-                          fontSize: 12.fs,
-                          fontWeight: _selectedIndex == 1 ? FontWeight.bold : FontWeight.normal
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                 ),
-              ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
   }
 
   Widget _buildQRButton() {
-    return Transform.translate(
-      offset: Offset(0, 4.s), // Lower the button deeper into the notch
-      child: SizedBox(
-        width: UIConstants.qrButtonSize.s,
-        height: UIConstants.qrButtonSize.s,
-        child: FloatingActionButton(
-          backgroundColor: const Color(0xFFBA1A1A),
-          shape: const CircleBorder(),
-          onPressed: () async {
-            await CameraPermissionModal.startScannerFlow(context);
-            _homeKey.currentState?.fetchItems();
-          },
-          child: SvgPicture.asset(
-            'assets/images/qr.svg',
-            colorFilter: const ColorFilter.mode(
-              Colors.white,
-              BlendMode.srcIn,
+    return Container(
+      width: _qrButtonSizeScaled,
+      height: _qrButtonSizeScaled,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 4.s,
+            offset: Offset(0, 2.s),
+          ),
+        ],
+      ),
+      padding: EdgeInsets.all(2.s), // Outer white ring gap
+      child: Container(
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: AppColors.primaryRed,
+            width: 2.s,
+          ),
+          color: Colors.white, // Inner white ring
+        ),
+        padding: EdgeInsets.all(2.s), // Thickness of the inner white ring
+        child: Container(
+          decoration: const BoxDecoration(
+            shape: BoxShape.circle,
+            color: AppColors.primaryRed,
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              customBorder: const CircleBorder(),
+              onTap: () async {
+                await CameraPermissionModal.startScannerFlow(context);
+                _homeKey.currentState?.fetchItems();
+              },
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SvgPicture.asset(
+                    'assets/images/qr.svg',
+                    colorFilter: const ColorFilter.mode(
+                      Colors.white,
+                      BlendMode.srcIn,
+                    ),
+                    width: 28.s,
+                    height: 28.s,
+                  ),
+                  // SizedBox(height: 2.s),
+                  // Text(
+                  //   'QR',
+                  //   style: TextStyle(
+                  //     color: Colors.white,
+                  //     fontSize: 10.fs,
+                  //     fontWeight: FontWeight.bold,
+                  //   ),
+                  // ),
+                ],
+              ),
             ),
-            width: UIConstants.qrIconSize.s,
-            height: UIConstants.qrIconSize.s,
           ),
         ),
       ),
     );
+  }
+}
+
+class FloatingNavbarPainter extends CustomPainter {
+  final double cornerRadius;
+  final double notchRadius;
+
+  FloatingNavbarPainter({
+    required this.cornerRadius,
+    required this.notchRadius,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final double width = size.width;
+    final double height = size.height;
+    final double cx = width / 2;
+    final double r = notchRadius;
+
+    final Path path = Path();
+    
+    // Draw the rounded rectangle with the notch
+    path.moveTo(cornerRadius, 0);
+    path.lineTo(cx - r, 0);
+    
+    // Sharp semi-circle notch dipping downwards
+    path.arcToPoint(
+      Offset(cx + r, 0),
+      radius: Radius.circular(r),
+      clockwise: false,
+    );
+    
+    path.lineTo(width - cornerRadius, 0);
+    path.arcToPoint(
+      Offset(width, cornerRadius),
+      radius: Radius.circular(cornerRadius),
+    );
+    
+    path.lineTo(width, height - cornerRadius);
+    path.arcToPoint(
+      Offset(width - cornerRadius, height),
+      radius: Radius.circular(cornerRadius),
+    );
+    
+    path.lineTo(cornerRadius, height);
+    path.arcToPoint(
+      Offset(0, height - cornerRadius),
+      radius: Radius.circular(cornerRadius),
+    );
+    
+    path.lineTo(0, cornerRadius);
+    path.arcToPoint(
+      Offset(cornerRadius, 0),
+      radius: Radius.circular(cornerRadius),
+    );
+    
+    path.close();
+
+    // 1. Fill the background
+    final Paint fillPaint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.fill;
+    canvas.drawPath(path, fillPaint);
+
+    // 2. Draw the outline (same style as category circles but lighter)
+    final Paint strokePaint = Paint()
+      ..color = AppColors.navBarOutlineLight
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.5.s;
+    canvas.drawPath(path, strokePaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant FloatingNavbarPainter oldDelegate) {
+    return oldDelegate.cornerRadius != cornerRadius ||
+        oldDelegate.notchRadius != notchRadius;
   }
 }
