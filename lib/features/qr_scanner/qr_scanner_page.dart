@@ -140,7 +140,13 @@ class _QRScannerPageState extends State<QRScannerPage> with SingleTickerProvider
           final List<dynamic> items = result['data']?['items'] ?? [];
           _showSuccessDialog(trimmedQr, items);
         } else {
-          _showErrorDialog(result['message'] ?? 'An unknown error occurred.');
+          final message = result['message']?.toString() ?? '';
+          if (message.toLowerCase().contains('already claimed')) {
+            final List<dynamic> items = result['data']?['items'] ?? [];
+            _showAlreadyClaimedDialog(trimmedQr, items);
+          } else {
+            _showErrorDialog(message.isEmpty ? 'An unknown error occurred.' : message);
+          }
         }
       }
     } catch (e) {
@@ -167,6 +173,117 @@ class _QRScannerPageState extends State<QRScannerPage> with SingleTickerProvider
     });
   }
 
+
+  // [UI] Displays a dialog for already claimed property
+  void _showAlreadyClaimedDialog(String qrCode, List<dynamic> items) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogCtx) {
+        return CustomAlertDialog(
+          message: 'Property already claimed',
+          subtitle: 'This item is already in your inventory.',
+          icon: Icons.info_outline,
+          color: const Color(0xFFFBC02D), // Yellowish for warning/info
+          buttonText: 'Okay',
+          onButtonPressed: () {
+            Navigator.pop(dialogCtx);
+            setState(() => _isScanCompleted = false);
+          },
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Divider(height: 1, color: Colors.black12),
+              const SizedBox(height: 12),
+              const Text(
+                'Item Summary:',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black45,
+                ),
+              ),
+              const SizedBox(height: 8),
+              _buildItemsList(items),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  // Helper to build the items list for dialogs
+  Widget _buildItemsList(List<dynamic> items) {
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxHeight: 180),
+      child: items.isEmpty
+          ? const Padding(
+              padding: EdgeInsets.symmetric(vertical: 20),
+              child: Text(
+                'No items to list.',
+                style: TextStyle(color: Colors.black54),
+              ),
+            )
+          : ListView.separated(
+              shrinkWrap: true,
+              itemCount: items.length,
+              separatorBuilder: (context, index) => const Divider(height: 1),
+              itemBuilder: (context, index) {
+                final item = items[index];
+                final name = item['item_name'] ?? 'Unknown Item';
+                final qty = item['quantity'] ?? 1;
+                final unit = item['unit'] ?? 'pcs';
+                final specs = item['specification'] ?? '';
+
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              name,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            if (specs.toString().isNotEmpty) ...[
+                              const SizedBox(height: 2),
+                              Text(
+                                specs.toString(),
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  color: Colors.black54,
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        '$qty $unit',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF7CB342),
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+    );
+  }
 
   // [UI] Displays a success dialog with the list of claimed items
   void _showSuccessDialog(String qrCode, List<dynamic> items) {
@@ -199,76 +316,7 @@ class _QRScannerPageState extends State<QRScannerPage> with SingleTickerProvider
                 ),
               ),
               const SizedBox(height: 8),
-              ConstrainedBox(
-                constraints: const BoxConstraints(maxHeight: 180),
-                child: items.isEmpty
-                    ? const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 20),
-                        child: Text(
-                          'No items to list.',
-                          style: TextStyle(color: Colors.black54),
-                        ),
-                      )
-                    : ListView.separated(
-                        shrinkWrap: true,
-                        itemCount: items.length,
-                        separatorBuilder: (context, index) => const Divider(height: 1),
-                        itemBuilder: (context, index) {
-                          final item = items[index];
-                          final name = item['item_name'] ?? 'Unknown Item';
-                          final qty = item['quantity'] ?? 1;
-                          final unit = item['unit'] ?? 'pcs';
-                          final specs = item['specification'] ?? '';
-                          final stock = item['stock'] ?? 'N/A';
-                          debugPrint('Item stock: $stock');
-
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 8),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        name,
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 13,
-                                          color: Colors.black87,
-                                        ),
-                                      ),
-                                      if (specs.toString().isNotEmpty) ...[
-                                        const SizedBox(height: 2),
-                                        Text(
-                                          specs.toString(),
-                                          style: const TextStyle(
-                                            fontSize: 11,
-                                            color: Colors.black54,
-                                          ),
-                                          maxLines: 2,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ],
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  '$qty $unit',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFF7CB342),
-                                    fontSize: 13,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                      ),
-              ),
+              _buildItemsList(items),
             ],
           ),
         );
@@ -284,9 +332,10 @@ class _QRScannerPageState extends State<QRScannerPage> with SingleTickerProvider
       builder: (dialogCtx) => CustomAlertDialog(
         message: 'Scanning Failed',
         subtitle: errorMessage,
-        icon: Icons.error_outline,
+        icon: Icons.priority_high,
         color: Colors.red,
         buttonText: 'Try again',
+        showArrow: false,
         onButtonPressed: () {
           Navigator.pop(dialogCtx);
           setState(() => _isScanCompleted = false);
@@ -353,7 +402,7 @@ class _QRScannerPageState extends State<QRScannerPage> with SingleTickerProvider
                     color: const Color(0xFFBA1A1A),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFFBA1A1A).withOpacity(0.5),
+                        color: const Color(0xFFBA1A1A).withValues(alpha: 0.5),
                         blurRadius: 10,
                         spreadRadius: 2,
                       ),
@@ -379,7 +428,7 @@ class _QRScannerPageState extends State<QRScannerPage> with SingleTickerProvider
                     onPressed: () => Navigator.pop(context),
                   ),
                   const Text(
-                    'SCANNER',
+                    'QR Scanner',
                     style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: 2),
                   ),
                   const SizedBox(width: 48), // Spacer for centering
@@ -410,13 +459,14 @@ class _QRScannerPageState extends State<QRScannerPage> with SingleTickerProvider
             ),
           ),
           
-          const Positioned(
-            bottom: 140,
+          Positioned(
+            top: scanWindow.bottom + 20,
             left: 0,
             right: 0,
-            child: Center(
+            child: const Center(
               child: Text(
-                'Place the QR code inside the box',
+                'Align the QR code within the frame to scan',
+                textAlign: TextAlign.center,
                 style: TextStyle(color: Colors.white70, fontSize: 14),
               ),
             ),
@@ -445,7 +495,7 @@ class _QRScannerPageState extends State<QRScannerPage> with SingleTickerProvider
           child: Container(
             padding: const EdgeInsets.all(15),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
+              color: Colors.white.withValues(alpha: 0.2),
               shape: BoxShape.circle,
             ),
             child: Icon(icon, color: Colors.white, size: 28),

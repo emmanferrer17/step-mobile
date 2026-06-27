@@ -64,27 +64,27 @@ class HelpCenterDialog extends StatelessWidget {
                   ),
                   SizedBox(height: 25.s),
                   
-                  // Contact 1: Emmanuel Ferrer
+                  // Contact 1: I-TRAC Development Team
                   _buildContactSection(
-                    name: 'Emmanuel Ferrer',
-                    email: 'emmanuel.ferrer@tup.edu.ph',
+                    name: 'I-TRAC Development Team',
+                    email: 'itrac2026@gmail.com',
                     phone: '09994600625',
                   ),
                   
-                  Padding(
-                    padding: EdgeInsets.symmetric(vertical: 15.s),
-                    child: Divider(
-                      height: 1.s,
-                      color: const Color(0xFFEEEEEE),
-                    ),
-                  ),
+                  // Padding(
+                  //   padding: EdgeInsets.symmetric(vertical: 15.s),
+                  //   child: Divider(
+                  //     height: 1.s,
+                  //     color: const Color(0xFFEEEEEE),
+                  //   ),
+                  // ),
                   
-                  // Contact 2: John Rex Duran
-                  _buildContactSection(
-                    name: 'John Rex Duran',
-                    email: 'johnrex.duran@tup.edu.ph',
-                    phone: '09615033412',
-                  ),
+                  // // Contact 2: John Rex Duran
+                  // _buildContactSection(
+                  //   name: 'John Rex Duran',
+                  //   email: 'johnrex.duran@tup.edu.ph',
+                  //   phone: '09615033412',
+                  // ),
                 ],
               ),
             ),

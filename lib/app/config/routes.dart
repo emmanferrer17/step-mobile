@@ -3,7 +3,8 @@ import 'package:provider/provider.dart';
 import '../controllers/auth_controller.dart';
 import '../controllers/registration_controller.dart';
 import '../controllers/home_controller.dart';
-import '../../features/auth/registration_page.dart';
+import 'package:mobile/features/auth/registration_page.dart';
+import 'package:mobile/features/auth/welcome_page.dart';
 import '../../features/qr_scanner/qr_scanner_page.dart'; 
 import '../../features/archive/archive_page.dart';
 import '../../features/shared/widgets/main_scaffold.dart';
@@ -19,9 +20,7 @@ class AppRoutes {
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
       case welcome:
-        // Note: WelcomePage is now defined in main.dart or imported if moved
-        // For now we assume it's the home property of MaterialApp
-        return _buildRoute(settings, Container()); 
+        return _buildRoute(settings, WelcomePage()); 
 
       case home:
         return _buildRoute(

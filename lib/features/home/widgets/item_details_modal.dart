@@ -27,6 +27,7 @@ class ItemDetailsModal extends StatefulWidget {
 class _ItemDetailsModalState extends State<ItemDetailsModal> {
   bool _isDescriptionExpanded = false;
   bool _hasChanges = false;
+  int _currentPage = 0;
   
   // Location editing UI state variables
   late TextEditingController _buildingController;
@@ -39,7 +40,6 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
   List<String> _currentImagePaths = [];
   List<String> _originalImagePaths = [];
   bool _isAddingMore = false;
-  int _currentCarouselIndex = 0;
   final PageController _pageController = PageController();
 
   @override
@@ -260,12 +260,88 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
                         ),
                       ),
                       
-                      // Primary Remove Button (Draft Mode Only)
-                      if (isDraftMode && (_currentImagePaths.isNotEmpty || _tempSelectedImages.isNotEmpty))
+                      // Left Navigation Button
+                      if (!isDraftMode && _currentImagePaths.length > 1)
                         Positioned(
-                          top: -10.s,
-                          right: -10.s,
-                          child: _buildRemoveButton(0, isPrimary: true),
+                          left: -12.s,
+                          top: 0,
+                          bottom: 0,
+                          child: Center(
+                            child: GestureDetector(
+                              onTap: () {
+                                if (_currentPage == 0) {
+                                  _pageController.animateToPage(
+                                    _currentImagePaths.length - 1,
+                                    duration: const Duration(milliseconds: 300),
+                                    curve: Curves.easeInOut,
+                                  );
+                                } else {
+                                  _pageController.previousPage(
+                                    duration: const Duration(milliseconds: 300),
+                                    curve: Curves.easeInOut,
+                                  );
+                                }
+                              },
+                              child: Container(
+                                width: 32.s,
+                                height: 32.s,
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(8.s),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(alpha: 0.1),
+                                      blurRadius: 4.s,
+                                      offset: Offset(0, 2.s),
+                                    ),
+                                  ],
+                                ),
+                                child: Icon(Icons.chevron_left, color: Colors.black, size: 24.s),
+                              ),
+                            ),
+                          ),
+                        ),
+
+                      // Right Navigation Button
+                      if (!isDraftMode && _currentImagePaths.length > 1)
+                        Positioned(
+                          right: -12.s,
+                          top: 0,
+                          bottom: 0,
+                          child: Center(
+                            child: GestureDetector(
+                              onTap: () {
+                                if (_currentPage == _currentImagePaths.length - 1) {
+                                  _pageController.animateToPage(
+                                    0,
+                                    duration: const Duration(milliseconds: 300),
+                                    curve: Curves.easeInOut,
+                                  );
+                                } else {
+                                  _pageController.nextPage(
+                                    duration: const Duration(milliseconds: 300),
+                                    curve: Curves.easeInOut,
+                                  );
+                                }
+                              },
+                              child: Container(
+                                width: 32.s,
+                                height: 32.s,
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(8.s),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(alpha: 0.1),
+                                      blurRadius: 4.s,
+                                      offset: Offset(0, 2.s),
+                                    ),
+                                  ],
+                                ),
+                                child: Icon(Icons.chevron_right, color: Colors.black, size: 24.s),
+                              ),
+                            ),
+                          ),
                         ),
                     ],
                   ),
@@ -328,17 +404,27 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
           else
             _buildSelectionPlaceholder(),
 
-          // Floating Action Buttons (Bottom Right)
+          // Floating Action Buttons (Bottom)
           if (!isEmptyDraft)
             Positioned(
               bottom: 10,
+              left: 10,
               right: 10,
               child: Row(
-                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _buildSaveButton(),
-                  const SizedBox(width: 8),
-                  _buildCancelButton(),
+                  // Trash Icon (Bottom Left)
+                  _buildRemoveButton(0, isPrimary: true),
+                  
+                  // Save/Cancel Buttons (Bottom Right)
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _buildSaveButton(),
+                      const SizedBox(width: 8),
+                      _buildCancelButton(),
+                    ],
+                  ),
                 ],
               ),
             ),
@@ -352,12 +438,12 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
         children: [
           PageView.builder(
             controller: _pageController,
+            itemCount: savedCount,
             onPageChanged: (index) {
               setState(() {
-                _currentCarouselIndex = index;
+                _currentPage = index;
               });
             },
-            itemCount: savedCount,
             itemBuilder: (context, index) {
               final path = _currentImagePaths[index];
               return GestureDetector(
@@ -381,30 +467,6 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
               );
             },
           ),
-
-          // Indicator Dots
-          if (savedCount > 1)
-            Positioned(
-              bottom: 15,
-              left: 0,
-              right: 0,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(savedCount, (index) {
-                  return Container(
-                    width: 8,
-                    height: 8,
-                    margin: const EdgeInsets.symmetric(horizontal: 4),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: _currentCarouselIndex == index
-                          ? const Color(0xFFBA1A1A)
-                          : Colors.grey.withValues(alpha: 0.5),
-                    ),
-                  );
-                }),
-              ),
-            ),
 
           // Action Button (Enter Edit Mode) - Changed to Upward Arrow
           Positioned(
@@ -465,7 +527,7 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
               height: 38,
               decoration: BoxDecoration(
                 color: const Color(0xFFBA1A1A),
-                shape: BoxShape.circle,
+                borderRadius: BorderRadius.circular(8),
                 boxShadow: [
                   BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 4, offset: const Offset(0, 2)),
                 ],
@@ -490,7 +552,7 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
         height: 38,
         decoration: BoxDecoration(
           color: Colors.white,
-          shape: BoxShape.circle,
+          borderRadius: BorderRadius.circular(8),
           boxShadow: [
             BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 4, offset: const Offset(0, 2)),
           ],
@@ -538,23 +600,27 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
     );
   }
 
-  /// Plain White Circle, No Border, Black X icon
+  /// Rounded Square Trash Button for Primary, Small Round X for Tray
   Widget _buildRemoveButton(int index, {required bool isPrimary}) {
     return GestureDetector(
       onTap: () => _handleRemoveFromSequence(index),
       child: Container(
-        padding: const EdgeInsets.all(4),
+        width: isPrimary ? 38 : null,
+        height: isPrimary ? 38 : null,
+        padding: EdgeInsets.all(isPrimary ? 8 : 4),
         decoration: BoxDecoration(
           color: Colors.white,
-          shape: BoxShape.circle,
+          shape: isPrimary ? BoxShape.rectangle : BoxShape.circle,
+          borderRadius: isPrimary ? BorderRadius.circular(8) : null,
+          border: isPrimary ? Border.all(color: const Color(0xFFBA1A1A), width: 1.5) : null,
           boxShadow: [
             BoxShadow(color: Colors.black.withValues(alpha: 0.15), blurRadius: 4, spreadRadius: 1),
           ],
         ),
         child: Icon(
-          Icons.close, 
-          size: isPrimary ? 16 : 10, 
-          color: Colors.black,
+          isPrimary ? Icons.delete_outline : Icons.close, 
+          size: isPrimary ? 20 : 10, 
+          color: isPrimary ? const Color(0xFFBA1A1A) : Colors.black,
         ),
       ),
     );
@@ -573,13 +639,12 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
           icon: Icons.delete_outline,
           color: const Color(0xFFBA1A1A),
           confirmText: 'Remove',
-          onConfirm: () {
+          onConfirm: () async {
             setState(() {
               _currentImagePaths.removeAt(index);
             });
-            if (_currentImagePaths.isEmpty && _tempSelectedImages.isEmpty) {
-              _handleSaveImages();
-            }
+            // Trigger sync immediately after removal confirmation
+            await _handleSaveImages();
           },
         ),
       );
@@ -587,9 +652,8 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
       setState(() {
         _tempSelectedImages.removeAt(index - savedCount);
       });
-      if (_currentImagePaths.isEmpty && _tempSelectedImages.isEmpty) {
-        _handleSaveImages();
-      }
+      // Also trigger sync if it's a temp image to show the dialog
+      await _handleSaveImages();
     }
   }
 
@@ -833,7 +897,8 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
                 controller: _buildingController,
                 style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                 decoration: const InputDecoration(
-                  hintText: 'Building / Office',
+                  hintText: 'Building / Office (e.g. BASD)',
+                  hintStyle: TextStyle(fontWeight: FontWeight.normal),
                   contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                   border: InputBorder.none,
                 ),
@@ -849,7 +914,8 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
                 controller: _roomController,
                 style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                 decoration: const InputDecoration(
-                  hintText: 'Room number',
+                  hintText: 'Room number (e.g. RM-103)',
+                  hintStyle: TextStyle(fontWeight: FontWeight.normal),
                   contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                   border: InputBorder.none,
                 ),
@@ -1115,6 +1181,8 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
     });
 
     if (syncResult['error'] == null) {
+      final bool wasDeleted = _originalImagePaths.length > _currentImagePaths.length && _tempSelectedImages.isEmpty;
+
       setState(() {
         _hasChanges = true;
         _tempSelectedImages.clear();
@@ -1125,10 +1193,10 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
       });
 
       _showAlertDialog(
-        message: 'Image updated successfully!',
-        subtitle: 'You can now see your uploaded image.',
-        icon: Icons.check_circle_outline,
-        color: Colors.green,
+        message: wasDeleted ? 'Image successfully deleted' : 'Image updated successfully!',
+        subtitle: wasDeleted ? 'The image has been removed from this item.' : 'You can now see your uploaded image.',
+        icon: Icons.check,
+        color: const Color(0xFF7CB342),
       );
     } else {
       _showAlertDialog(
