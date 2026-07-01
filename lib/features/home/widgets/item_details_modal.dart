@@ -165,7 +165,11 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
   String _formatDate(String? dateString) {
     if (dateString == null) return 'N/A';
     try {
-      final DateTime dt = DateTime.parse(dateString);
+      final DateTime dt = DateTime.parse(dateString).toLocal();
+      final now = DateTime.now();
+      if (dt.year == now.year && dt.month == now.month && dt.day == now.day) {
+        return 'Today';
+      }
       return "${dt.month.toString().padLeft(2, '0')}/${dt.day.toString().padLeft(2, '0')}/${dt.year}";
     } catch (e) {
       return dateString;
@@ -357,7 +361,7 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
                   // Metadata Table / Details List
                   _buildLocationRow(),
                   Divider(height: 1, color: const Color(0xFFEEEEEE)),
-                  _buildDetailRow('Date Scanned', _formatDate(dateScanned)),
+                  _buildDetailRow('Date Received', _formatDate(dateScanned)),
                   Divider(height: 1, color: const Color(0xFFEEEEEE)),
                   _buildDetailRow('Stock No.', stock),
                   Divider(height: 1, color: const Color(0xFFEEEEEE)),

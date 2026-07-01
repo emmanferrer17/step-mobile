@@ -152,7 +152,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
         builder: (context) => CustomAlertDialog(
           message: 'Registration Successful!',
           subtitle: 'You can now log in with your new account.',
-          icon: Icons.check_circle_outline,
+          icon: Icons.check,
           color: const Color(0xFF00C853),
           buttonText: 'Proceed to login.',
           onButtonPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
@@ -386,7 +386,15 @@ class _RegistrationPageState extends State<RegistrationPage> {
         Padding(
           padding: const EdgeInsets.only(left: 20.0),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            _buildInfoItem('Name', '${_firstNameController.text} ${_middleNameController.text} ${_lastNameController.text} ${_suffixController.text}'.trim()),
+            _buildInfoItem(
+              'Name',
+              [
+                _firstNameController.text,
+                _middleNameController.text,
+                _lastNameController.text,
+                _suffixController.text
+              ].where((s) => s.trim().isNotEmpty).join(' '),
+            ),
             _buildInfoItem('TUP-ID', _tuptIdController.text),
             _buildInfoItem('Contact Number', _contactNumberController.text),
           ]),
