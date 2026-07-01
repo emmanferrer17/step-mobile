@@ -16,7 +16,7 @@ class ProfileController extends ChangeNotifier {
   // Orchestrates calling the update profile and/or update password APIs.
   // Returns null on absolute success, or a Map<String, String> mapping field names to validation errors.
   Future<Map<String, String>?> updateAccountDetails({
-    required Map<String, String> profileData,
+    Map<String, String>? profileData,
     Map<String, String>? passwordData,
   }) async {
     final token = _authController.token;
@@ -24,35 +24,37 @@ class ProfileController extends ChangeNotifier {
       return {'general': 'Not authenticated'};
     }
 
-    // 1. Update Profile Information First
-    final profileResult = await _apiService.updateProfile(profileData, token);
-    if (profileResult['status'] != 'success') {
-      final Map<String, String> errors = {};
-      if (profileResult['data'] != null && profileResult['data']['errors'] != null) {
-        final apiErrors = profileResult['data']['errors'];
-        apiErrors.forEach((key, value) {
-          if (value is List && value.isNotEmpty) {
-            errors[key] = value[0].toString();
-          } else {
-            errors[key] = value.toString();
-          }
-        });
-      } else {
-        errors['general'] = profileResult['message'] ?? 'Failed to update profile information.';
+    // 1. Update Profile Information if provided
+    if (profileData != null && profileData.isNotEmpty) {
+      final profileResult = await _apiService.updateProfile(profileData, token);
+      if (profileResult['status'] != 'success') {
+        final Map<String, String> errors = {};
+        if (profileResult['data'] != null && profileResult['data']['errors'] != null) {
+          final apiErrors = profileResult['data']['errors'];
+          apiErrors.forEach((key, value) {
+            if (value is List && value.isNotEmpty) {
+              errors[key] = value[0].toString();
+            } else {
+              errors[key] = value.toString();
+            }
+          });
+        } else {
+          errors['general'] = profileResult['message'] ?? 'Failed to update profile information.';
+        }
+        return errors;
       }
-      return errors;
-    }
 
-    // Update the local UserModel inside AuthController so the UI reflects the changes instantly
-    if (_authController.loggedInUser != null) {
-      final updatedUser = _authController.loggedInUser!.copyWith(
-        firstName: profileData['user_firstname'],
-        middleName: profileData['user_middlename'],
-        lastName: profileData['user_lastname'],
-        suffix: profileData['user_suffix'],
-        contactNo: profileData['user_contactno'],
-      );
-      _authController.updateUserLocally(updatedUser);
+      // Update the local UserModel inside AuthController so the UI reflects the changes instantly
+      if (_authController.loggedInUser != null) {
+        final updatedUser = _authController.loggedInUser!.copyWith(
+          firstName: profileData['user_firstname'],
+          middleName: profileData['user_middlename'],
+          lastName: profileData['user_lastname'],
+          suffix: profileData['user_suffix'],
+          contactNo: profileData['user_contactno'],
+        );
+        _authController.updateUserLocally(updatedUser);
+      }
     }
 
     // 2. Update Password if requested

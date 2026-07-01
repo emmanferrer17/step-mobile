@@ -482,11 +482,17 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
 
                 final profileData = {
                   'user_firstname': _firstNameController.text.trim(),
-                  'user_middlename': _middleNameController.text.trim(),
                   'user_lastname': _lastNameController.text.trim(),
-                  'user_suffix': _suffixController.text.trim(),
                   'user_contactno': _contactNoController.text.trim(),
                 };
+
+                // Only include optional fields if they are not empty to avoid backend validation issues
+                if (_middleNameController.text.trim().isNotEmpty) {
+                  profileData['user_middlename'] = _middleNameController.text.trim();
+                }
+                if (_suffixController.text.trim().isNotEmpty) {
+                  profileData['user_suffix'] = _suffixController.text.trim();
+                }
 
                 Map<String, String>? passwordData;
                 if (_currentPasswordController.text.isNotEmpty ||

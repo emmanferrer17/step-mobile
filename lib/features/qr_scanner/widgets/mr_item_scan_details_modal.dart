@@ -11,7 +11,11 @@ class MrItemScanDetailsModal extends StatelessWidget {
   String _formatDate(String? dateString) {
     if (dateString == null || dateString == 'N/A') return 'N/A';
     try {
-      final DateTime dt = DateTime.parse(dateString);
+      final DateTime dt = DateTime.parse(dateString).toLocal();
+      final now = DateTime.now();
+      if (dt.year == now.year && dt.month == now.month && dt.day == now.day) {
+        return 'Today';
+      }
       return "${dt.month.toString().padLeft(2, '0')}/${dt.day.toString().padLeft(2, '0')}/${dt.year}";
     } catch (e) {
       return dateString;

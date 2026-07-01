@@ -129,9 +129,9 @@ class UserModel {
   }
 
   // Get the user's full name in one convenient property
-  String get fullName =>
-      '$firstName $middleName $lastName ${suffix.isNotEmpty ? suffix : ''}'
-          .trim();
+  String get fullName => [firstName, middleName, lastName, suffix]
+      .where((s) => s.trim().isNotEmpty)
+      .join(' ');
 
   @override
   String toString() => 'UserModel(id: $id, email: $email, type: $userType)';

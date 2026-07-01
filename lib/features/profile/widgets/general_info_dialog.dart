@@ -50,17 +50,20 @@ class _GeneralInfoDialogState extends State<GeneralInfoDialog> {
     final String middleNameVal = (localUser == null || localUser.middleName.isEmpty) ? 'N/A' : localUser.middleName;
     final String suffixVal = (localUser == null || localUser.suffix.isEmpty) ? 'N/A' : localUser.suffix;
 
-    return Container(
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.85,
+    return Material(
+      color: Colors.transparent,
+      child: Container(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.85,
+        ),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: _isChangingPassword
+            ? _buildChangePasswordView()
+            : _buildGeneralInfoView(middleNameVal, suffixVal),
       ),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: _isChangingPassword
-          ? _buildChangePasswordView()
-          : _buildGeneralInfoView(middleNameVal, suffixVal),
     );
   }
 
@@ -328,21 +331,22 @@ class _GeneralInfoDialogState extends State<GeneralInfoDialog> {
   }
 
   Widget _buildSaveChangesButton() {
-    return InkWell(
-      onTap: _isLoading ? null : _handleSaveChanges,
-      borderRadius: BorderRadius.circular(10),
-      child: Container(
-        width: double.infinity,
-        height: 50,
-        decoration: BoxDecoration(
-          color: _isLoading ? Colors.grey : const Color(0xFFBA1A1A),
-          borderRadius: BorderRadius.circular(10),
+    return SizedBox(
+      width: double.infinity,
+      height: 50,
+      child: ElevatedButton(
+        onPressed: _isLoading ? null : _handleSaveChanges,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFFBA1A1A),
+          foregroundColor: Colors.white,
+          disabledBackgroundColor: Colors.grey,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          elevation: 0,
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            if (_isLoading)
-              const SizedBox(
+        child: _isLoading
+            ? const SizedBox(
                 width: 20,
                 height: 20,
                 child: CircularProgressIndicator(
@@ -350,40 +354,40 @@ class _GeneralInfoDialogState extends State<GeneralInfoDialog> {
                   strokeWidth: 2,
                 ),
               )
-            else ...[
-              const Icon(Icons.check, color: Colors.white, size: 20),
-              const SizedBox(width: 8),
-              const Text(
-                'Save Changes',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
+            : const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.check, size: 20),
+                  SizedBox(width: 8),
+                  Text(
+                    'Save Changes',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ],
-        ),
       ),
     );
   }
 
   Widget _buildGoBackButton() {
-    return InkWell(
-      onTap: () {
-        setState(() {
-          _isChangingPassword = false;
-          _clearErrorsAndInputs();
-        });
-      },
-      borderRadius: BorderRadius.circular(10),
-      child: Container(
-        width: double.infinity,
-        height: 50,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: Colors.grey.shade400),
+    return SizedBox(
+      width: double.infinity,
+      height: 50,
+      child: OutlinedButton(
+        onPressed: () {
+          setState(() {
+            _isChangingPassword = false;
+            _clearErrorsAndInputs();
+          });
+        },
+        style: OutlinedButton.styleFrom(
+          side: BorderSide(color: Colors.grey.shade400),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -406,6 +410,8 @@ class _GeneralInfoDialogState extends State<GeneralInfoDialog> {
 
   Future<void> _handleSaveChanges() async {
     if (_formKey.currentState!.validate()) {
+      FocusScope.of(context).unfocus(); // Close keyboard for visual feedback
+      
       setState(() {
         _isLoading = true;
         _apiGeneralErrorMessage = null;
@@ -417,14 +423,6 @@ class _GeneralInfoDialogState extends State<GeneralInfoDialog> {
 
       final profileController = Provider.of<ProfileController>(context, listen: false);
 
-      final profileData = {
-        'user_firstname': widget.user?.firstName ?? '',
-        'user_middlename': widget.user?.middleName ?? '',
-        'user_lastname': widget.user?.lastName ?? '',
-        'user_suffix': widget.user?.suffix ?? '',
-        'user_contactno': widget.user?.contactNo ?? '',
-      };
-
       final passwordData = {
         'current_password': _currentPasswordController.text,
         'new_password': _newPasswordController.text,
@@ -432,7 +430,6 @@ class _GeneralInfoDialogState extends State<GeneralInfoDialog> {
       };
 
       final error = await profileController.updateAccountDetails(
-        profileData: profileData,
         passwordData: passwordData,
       );
 
@@ -461,7 +458,14 @@ class _GeneralInfoDialogState extends State<GeneralInfoDialog> {
           _currentPasswordError = error['current_password'];
           _newPasswordError = error['new_password'];
           _confirmPasswordError = error['confirm_password'];
-          _apiGeneralErrorMessage = error['general'];
+          
+          // Collect all other errors into general error message
+          final otherErrors = error.entries
+              .where((e) => !['current_password', 'new_password', 'confirm_password', 'general'].contains(e.key))
+              .map((e) => "${e.key}: ${e.value}")
+              .join(", ");
+              
+          _apiGeneralErrorMessage = error['general'] ?? (otherErrors.isNotEmpty ? otherErrors : 'Failed to update password.');
         });
       }
     }

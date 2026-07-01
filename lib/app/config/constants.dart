@@ -3,15 +3,15 @@ class ApiConstants {
   // 1. USB Debugging: Use 'localhost' and run 'adb reverse tcp:8080 tcp:8080'
   // 2. Wi-Fi Debugging: Use your PC's IP (e.g., '192.168.x.x')
   // // //
-  static const String ipAddress = '192.168.0.44';
+  // static const String ipAddress = 'localhost';
+  //
+  // static const String baseUrl = 'http://$ipAddress:8080/api';
+  // static const String storageUrl = 'http://$ipAddress:8080/';
 
-  static const String baseUrl = 'http://$ipAddress:8080/api';
-  static const String storageUrl = 'http://$ipAddress:8080/';
-  //
-  // static const String ipAddress = 'itrac.tupt.edu.ph';
-  //
-  // static const String baseUrl = 'https://itrac.tupt.edu.ph/api';
-  // static const String storageUrl = 'https://itrac.tupt.edu.ph/';
+  static const String ipAddress = 'itrac.tupt.edu.ph';
+
+  static const String baseUrl = 'https://itrac.tupt.edu.ph/api';
+  static const String storageUrl = 'https://itrac.tupt.edu.ph/';
 
   // Auth Endpoints
   static const String loginUrl = '$baseUrl/user/login';
@@ -35,6 +35,6 @@ class ApiConstants {
   static const String departmentsUrl = '$baseUrl/user/departments';
 
   // Assets
-  static const String manualAssetPath = 'assets/docs/manual.pdf';
+  static const String manualAssetPath = 'assets/docs/I-TRAC Manual.pdf';
 }
 

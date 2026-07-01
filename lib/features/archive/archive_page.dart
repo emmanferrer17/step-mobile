@@ -47,7 +47,7 @@ class _ArchivePageState extends State<ArchivePage> {
 
       if (result['status'] == 'success') {
         setState(() {
-          _assignedItems = result['data']?['items'] ?? result['items'] ?? [];
+          _assignedItems = List<dynamic>.from(result['data']?['items'] ?? result['items'] ?? []);
           _isLoading = false;
         });
       } else {
@@ -196,7 +196,7 @@ class _ArchivePageState extends State<ArchivePage> {
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 40.s),
               child: Text(
-                'Items you scan or receive will appear here as part of your inventory history.',
+                'Items you scan and receive will appear here as part of your inventory history.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 14.s,
@@ -321,7 +321,7 @@ class _ArchivePageState extends State<ArchivePage> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
-                              'details',
+                              'View details',
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 13.s,
