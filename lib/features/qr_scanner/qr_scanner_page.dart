@@ -87,10 +87,10 @@ class _QRScannerPageState extends State<QRScannerPage> with SingleTickerProvider
   Future<void> _processScan(String qrCode) async {
     final String trimmedQr = qrCode.trim();
     final bool isLookup = trimmedQr.startsWith('MR-');
-    final bool isBatchAssignment = trimmedQr.startsWith('RIS-') || trimmedQr.startsWith('PAR-');
+    final bool isBatchAssignment = trimmedQr.startsWith('RIS-') || trimmedQr.startsWith('PAR-') || trimmedQr.startsWith('ICS-');
 
     if (!isLookup && !isBatchAssignment) {
-      _showErrorDialog('Invalid QR code format. Please scan a valid RIS/PAR form or an item\'s printed sticker QR.');
+      _showErrorDialog('Invalid QR code format. Please scan a valid RIS/PAR/ICS form or an item\'s printed sticker QR.');
       return;
     }
 
