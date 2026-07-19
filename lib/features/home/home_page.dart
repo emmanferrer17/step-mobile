@@ -35,6 +35,7 @@ class HomePageState extends State<HomePage> {
   String _searchQuery = '';
   String _selectedCategory = 'All';
   Map<String, dynamic> _appliedFilters = {};
+  Set<int> _highlightedMrIds = {};
 
   @override
   void initState() {
@@ -81,6 +82,26 @@ class HomePageState extends State<HomePage> {
         _isLoading = false;
       });
     }
+  }
+
+  void highlightItems(List<dynamic> mrIds) {
+    setState(() {
+      _searchQuery = '';
+      _selectedCategory = 'All';
+      for (var cat in categories) {
+        cat['isSelected'] = (cat['name'] == 'All');
+      }
+      _appliedFilters.clear();
+      _highlightedMrIds = mrIds.map((id) => int.tryParse(id.toString()) ?? 0).toSet();
+    });
+
+    Future.delayed(const Duration(milliseconds: 2500), () {
+      if (mounted) {
+        setState(() {
+          _highlightedMrIds.clear();
+        });
+      }
+    });
   }
 
   void _clearFilters() {
@@ -567,47 +588,53 @@ class HomePageState extends State<HomePage> {
           final item = filtered[index];
           final name = item['item_name'] ?? 'Unknown Item';
           final location = item['location'] ?? 'Unknown Location';
-          return ListTile(
-            dense: true,
-            visualDensity: const VisualDensity(vertical: -1),
-            contentPadding: EdgeInsets.symmetric(horizontal: 15.s, vertical: 0),
-            minVerticalPadding: 0,
-            title: Text(
-              name,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: const Color(0xFFBA1A1A),
-                fontWeight: FontWeight.w600,
-                fontSize: 16.s,
+          final mrId = int.tryParse(item['mr_id']?.toString() ?? '0') ?? 0;
+          final isHighlighted = _highlightedMrIds.contains(mrId);
+          return AnimatedContainer(
+            duration: const Duration(milliseconds: 500),
+            color: isHighlighted ? const Color(0xFFC8E6C9) : Colors.transparent,
+            child: ListTile(
+              dense: true,
+              visualDensity: const VisualDensity(vertical: -1),
+              contentPadding: EdgeInsets.symmetric(horizontal: 15.s, vertical: 0),
+              minVerticalPadding: 0,
+              title: Text(
+                name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: const Color(0xFFBA1A1A),
+                  fontWeight: FontWeight.w600,
+                  fontSize: 16.s,
+                ),
               ),
-            ),
-            subtitle: Row(
-              children: [
-                Icon(Icons.location_on, size: 14.s, color: AppColors.itemLocationColor),
-                SizedBox(width: 4.s),
-                Expanded(
-                  child: Text(
-                    location,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: AppColors.itemLocationColor,
-                      fontSize: 13.s,
-                      fontWeight: FontWeight.w600,
+              subtitle: Row(
+                children: [
+                  Icon(Icons.location_on, size: 14.s, color: AppColors.itemLocationColor),
+                  SizedBox(width: 4.s),
+                  Expanded(
+                    child: Text(
+                      location,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: AppColors.itemLocationColor,
+                        fontSize: 13.s,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
+              trailing: Icon(
+                Icons.keyboard_double_arrow_right,
+                color: Colors.grey,
+                size: 22.s,
+              ),
+              onTap: () {
+                _showItemDetailsModal(context, item);
+              },
             ),
-            trailing: Icon(
-              Icons.keyboard_double_arrow_right,
-              color: Colors.grey,
-              size: 22.s,
-            ),
-            onTap: () {
-              _showItemDetailsModal(context, item);
-            },
           );
         },
       ),

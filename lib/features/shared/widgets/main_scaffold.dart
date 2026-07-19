@@ -283,8 +283,11 @@ class _MainScaffoldState extends State<MainScaffold> with SingleTickerProviderSt
             child: InkWell(
               customBorder: const CircleBorder(),
               onTap: () async {
-                await CameraPermissionModal.startScannerFlow(context);
-                _homeKey.currentState?.fetchItems();
+                final result = await CameraPermissionModal.startScannerFlow(context);
+                await _homeKey.currentState?.fetchItems();
+                if (result is List && _homeKey.currentState != null) {
+                  _homeKey.currentState!.highlightItems(result);
+                }
               },
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,

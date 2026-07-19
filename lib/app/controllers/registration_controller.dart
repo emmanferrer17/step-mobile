@@ -79,11 +79,15 @@ class RegistrationController extends ChangeNotifier {
   }
 
   Future<void> _validateTupId(String tupId) async {
-    // New Format: XXXX0-00-0000 (13 characters)
-    final tupIdRegex = RegExp(r'^[A-Z]{4}\d-\d{2}-\d{4}$');
-    if (!tupIdRegex.hasMatch(tupId)) {
+    if (tupId.trim().isEmpty) {
       isTupIdValid = false;
-      tupIdError = tupId.isEmpty ? null : 'Invalid TUP-ID format \n(e.g., INST1-00-0000)';
+      tupIdError = 'TUPT-ID is required';
+      notifyListeners();
+      return;
+    }
+    if (tupId.length > 20) {
+      isTupIdValid = false;
+      tupIdError = 'TUPT-ID cannot exceed 20 characters';
       notifyListeners();
       return;
     }
