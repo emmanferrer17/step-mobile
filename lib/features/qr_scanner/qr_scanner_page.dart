@@ -138,7 +138,10 @@ class _QRScannerPageState extends State<QRScannerPage> with SingleTickerProvider
 
         if (result['status'] == 'success') {
           final List<dynamic> items = result['data']?['items'] ?? [];
-          _showSuccessDialog(trimmedQr, items);
+          final bool isTransfer = (result['data']?['is_transfer'] == true) || trimmedQr.startsWith('ICS-');
+          final String message = result['data']?['message']?.toString() ?? '';
+          final bool alreadyScanned = message.toLowerCase().contains('already claimed');
+          _showSuccessDialog(trimmedQr, items, isTransfer, alreadyScanned: alreadyScanned);
         } else {
           final message = result['message']?.toString() ?? '';
           if (message.toLowerCase().contains('already claimed')) {
@@ -286,20 +289,38 @@ class _QRScannerPageState extends State<QRScannerPage> with SingleTickerProvider
   }
 
   // [UI] Displays a success dialog with the list of claimed items
-  void _showSuccessDialog(String qrCode, List<dynamic> items) {
+  void _showSuccessDialog(String qrCode, List<dynamic> items, bool isTransfer, {bool alreadyScanned = false}) {
+    String displayMessage = 'Property is successfully claimed.';
+    if (alreadyScanned) {
+      displayMessage = 'You already scanned this form';
+    } else if (isTransfer) {
+      displayMessage = 'Transferred property is successfully claimed';
+    }
+
+    IconData displayIcon = Icons.check;
+    if (alreadyScanned) {
+      displayIcon = Icons.priority_high;
+    } else if (isTransfer) {
+      displayIcon = Icons.swap_horiz;
+    }
+
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (dialogCtx) {
         return CustomAlertDialog(
-          message: 'Property is successfully claimed.',
+          message: displayMessage,
           subtitle: 'The items are now available in your inventory.',
-          icon: Icons.check,
+          icon: displayIcon,
           color: const Color(0xFF7CB342),
           buttonText: 'View items',
+          onClose: () {
+            Navigator.pop(context); // Go back to Home without highlights
+          },
           onButtonPressed: () {
             Navigator.pop(dialogCtx); // Close the dialog
-            Navigator.pop(context); // Go back to Home
+            final mrIds = items.map((e) => e['mr_id']).toList();
+            Navigator.pop(context, mrIds); // Go back to Home with mrIds
           },
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -307,9 +328,9 @@ class _QRScannerPageState extends State<QRScannerPage> with SingleTickerProvider
             children: [
               const Divider(height: 1, color: Colors.black12),
               const SizedBox(height: 12),
-              const Text(
-                'Summary of Scanned Items:',
-                style: TextStyle(
+              Text(
+                isTransfer ? 'Summary of Transferred Items:' : 'Summary of Scanned Items:',
+                style: const TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
                   color: Colors.black45,

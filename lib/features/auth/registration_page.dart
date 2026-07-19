@@ -311,12 +311,11 @@ class _RegistrationPageState extends State<RegistrationPage> {
                     counterText: '',
                   ),
                   keyboardType: TextInputType.text,
-                  maxLength: 13,
+                  maxLength: 20,
                   inputFormatters: [
                     UpperCaseTextFormatter(),
-                    TupIdFormatter(),
                   ],
-                  validator: (v) => (v == null || v.isEmpty) ? 'Required' : (v.length != 13) ? 'Invalid format' : null,
+                  validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
                 ),
               ),
             ],
@@ -776,46 +775,4 @@ class UpperCaseTextFormatter extends TextInputFormatter {
   }
 }
 
-class TupIdFormatter extends TextInputFormatter {
-  @override
-  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
-    final text = newValue.text;
 
-    // Format: XXXX0-00-0000
-    if (newValue.selection.baseOffset < oldValue.selection.baseOffset) {
-      return newValue;
-    }
-
-    String formatted = '';
-    for (int i = 0; i < text.length; i++) {
-      final char = text[i];
-      // Skip existing hyphens
-      if (char == '-') continue;
-
-      // Add hyphens at correct positions
-      if (formatted.length == 5 || formatted.length == 8) {
-        formatted += '-';
-      }
-
-      // Append character if it matches the format part
-      if (formatted.length < 4) {
-        // Letters
-        if (RegExp(r'[A-Z]').hasMatch(char)) formatted += char;
-      } else if (formatted.length == 4) {
-        // Digit after 4 letters
-        if (RegExp(r'\d').hasMatch(char)) formatted += char;
-      } else if (formatted.length > 5 && formatted.length < 8) {
-        // 2 digits
-        if (RegExp(r'\d').hasMatch(char)) formatted += char;
-      } else if (formatted.length > 8) {
-        // 4 digits
-        if (RegExp(r'\d').hasMatch(char)) formatted += char;
-      }
-    }
-
-    return TextEditingValue(
-      text: formatted,
-      selection: TextSelection.collapsed(offset: formatted.length),
-    );
-  }
-}
