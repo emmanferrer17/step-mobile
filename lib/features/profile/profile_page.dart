@@ -382,9 +382,6 @@ class _ProfilePageState extends State<ProfilePage> {
     final appliancesCount = _isLoading
         ? '-'
         : _items.where((item) => item['category'] == 'Semi-Expendable').length.toString();
-    final suppliesCount = _isLoading
-        ? '-'
-        : _items.where((item) => item['category'] == 'Supplies').length.toString();
 
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 15.0.s),
@@ -403,10 +400,6 @@ class _ProfilePageState extends State<ProfilePage> {
               _buildStatBox(
                 svgPath: 'assets/images/semi-expendable.svg',
                 count: appliancesCount,
-              ),
-              _buildStatBox(
-                svgPath: 'assets/images/supplies.svg',
-                count: suppliesCount,
               ),
             ],
           ),
@@ -507,7 +500,6 @@ class _ProfilePageState extends State<ProfilePage> {
         color: const Color(0xFF00C853),
         confirmText: 'Download Manual',
         cancelText: null,
-        showArrow: false,
         onConfirm: () => _downloadManual(context),
       ),
     );
@@ -584,7 +576,6 @@ class _ProfilePageState extends State<ProfilePage> {
           icon: Icons.priority_high,
           color: const Color(0xFFBA1A1A),
           confirmText: 'Confirm',
-          showArrow: false,
           onConfirm: () async {
             final authController = context.read<AuthController>();
             await authController.logout();

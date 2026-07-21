@@ -22,10 +22,9 @@ class HomePage extends StatefulWidget {
 
 class HomePageState extends State<HomePage> {
   final List<Map<String, dynamic>> categories = [
-    {'name': 'All', 'iconPath': 'assets/images/all.svg', 'isSelected': true},
+    {'name': 'All Items', 'iconPath': 'assets/images/all.svg', 'isSelected': true},
     {'name': 'Equipment', 'iconPath': 'assets/images/equipment.svg', 'isSelected': false},
     {'name': 'Semi-Expendable', 'iconPath': 'assets/images/semi-expendable.svg', 'isSelected': false},
-    {'name': 'Supplies & Materials', 'iconPath': 'assets/images/supplies.svg', 'isSelected': false},
   ];
 
   // State variables for dynamic items and loading
@@ -33,7 +32,7 @@ class HomePageState extends State<HomePage> {
   bool _isLoading = true;
   String? _errorMessage;
   String _searchQuery = '';
-  String _selectedCategory = 'All';
+  String _selectedCategory = 'All Items';
   Map<String, dynamic> _appliedFilters = {};
   Set<int> _highlightedMrIds = {};
 
@@ -87,9 +86,9 @@ class HomePageState extends State<HomePage> {
   void highlightItems(List<dynamic> mrIds) {
     setState(() {
       _searchQuery = '';
-      _selectedCategory = 'All';
+      _selectedCategory = 'All Items';
       for (var cat in categories) {
-        cat['isSelected'] = (cat['name'] == 'All');
+        cat['isSelected'] = (cat['name'] == 'All Items');
       }
       _appliedFilters.clear();
       _highlightedMrIds = mrIds.map((id) => int.tryParse(id.toString()) ?? 0).toSet();
@@ -114,7 +113,7 @@ class HomePageState extends State<HomePage> {
     List<dynamic> list = List.from(_assignedItems);
 
     // 1. Category filter (synced between top bar and filter sheet)
-    if (_selectedCategory != 'All') {
+    if (_selectedCategory != 'All Items') {
       list = list.where((item) => item['category'] == _selectedCategory).toList();
     }
 
@@ -466,7 +465,19 @@ class HomePageState extends State<HomePage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: categories.map((category) {
           final isSelected = category['isSelected'] as bool;
+          final name = category['name'] as String;
+          final iconPath = category['iconPath'] as String;
+          
+          // TWEAK PILL DIMENSIONS:
+          // - containerHeight: adjusts the height of the pill/circle (default is 65.s)
+          // - containerWidth: isSelected defines the expanded width (default is 190.s), 
+          //   while the second option defines the unselected compact circle diameter (default is 65.s)
+          final double containerHeight = 65.s;
+          final double containerWidth = isSelected ? 190.s : 65.s;
+
           return Padding(
+            // TWEAK SPACING BETWEEN CATEGORY ITEMS:
+            // Adjust the horizontal padding value below (default is 10.s, which creates a 20.s gap between pills)
             padding: EdgeInsets.symmetric(horizontal: 10.s),
             child: GestureDetector(
               onTap: () {
@@ -474,39 +485,96 @@ class HomePageState extends State<HomePage> {
                   for (var cat in categories) {
                     cat['isSelected'] = (cat == category);
                   }
-                  _selectedCategory = category['name'] as String;
+                  _selectedCategory = name;
                 });
               },
-              child: Container(
-                width: 65.s,
-                height: 65.s,
-                alignment: Alignment.center,
+              child: AnimatedContainer(
+                // TWEAK ANIMATION SETTINGS:
+                // - duration: speed of the transition (e.g. Duration(milliseconds: 450))
+                // - curve: motion curve of the transition (e.g. Curves.easeInOut)
+                duration: const Duration(milliseconds: 450),
+                curve: Curves.easeInOut,
+                width: containerWidth,
+                height: containerHeight,
                 decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: isSelected ? AppColors.primaryRed : Colors.white,
-                  border: isSelected
-                      ? null
-                      : Border.all(
-                          color: AppColors.categoryCircleUnselected,
-                          width: 1.5.s,
-                        ),
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(containerHeight / 2),
+                  border: Border.all(
+                    color: isSelected ? const Color(0xFFBA1A1A) : AppColors.categoryCircleUnselected,
+                    width: 1.5.s,
+                  ),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0x1A000000), // Reduced opacity (from 2B to 1A)
-                      blurRadius: 6.s, // Reduced blur (from 10 to 6)
-                      offset: Offset(0, 2.s), // Adjusted offset
+                      color: const Color(0x1A000000),
+                      blurRadius: 6.s,
+                      offset: Offset(0, 2.s),
                     ),
                   ],
                 ),
-                child: SvgPicture.asset(
-                  category['iconPath'] as String,
-                  colorFilter: ColorFilter.mode(
-                    isSelected ? Colors.white : AppColors.categoryCircleUnselected,
-                    BlendMode.srcIn,
-                  ),
-                  width: 28.s,
-                  height: 28.s,
-                ),
+                clipBehavior: Clip.antiAlias,
+                child: isSelected
+                    ? Row(
+                        children: [
+                          Padding(
+                            padding: EdgeInsets.all(5.s),
+                            child: Container(
+                              // TWEAK SELECTED SOLID CIRCLE SIZE:
+                              // Adjust the inner circular container's width/height (default is 53.s)
+                              width: 53.s,
+                              height: 53.s,
+                              decoration: const BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Color(0xFFBA1A1A),
+                              ),
+                              alignment: Alignment.center,
+                              child: SvgPicture.asset(
+                                iconPath,
+                                colorFilter: const ColorFilter.mode(
+                                  Colors.white,
+                                  BlendMode.srcIn,
+                                ),
+                                // TWEAK ICON SIZE inside the selected solid circle:
+                                width: 24.s,
+                                height: 24.s,
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: Center(
+                              child: Padding(
+                                padding: EdgeInsets.only(right: 15.s),
+                                // FittedBox ensures that long labels (e.g. "Semi-expendable")
+                                // do not get cut off with "..." on smaller screen widths or large font scales.
+                                // It will automatically scale the text down to fit the available space.
+                                child: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: Text(
+                                    name,
+                                    maxLines: 1,
+                                    style: TextStyle(
+                                      fontFamily: 'Nunito',
+                                      color: const Color(0xFFBA1A1A),
+                                      fontSize: 14.s,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      )
+                    : Center(
+                        child: SvgPicture.asset(
+                          iconPath,
+                          colorFilter: ColorFilter.mode(
+                            AppColors.categoryCircleUnselected,
+                            BlendMode.srcIn,
+                          ),
+                          width: 28.s,
+                          height: 28.s,
+                        ),
+                      ),
               ),
             ),
           );

@@ -11,8 +11,6 @@ class CustomAlertDialog extends StatelessWidget {
   final Widget? child;
   final String? buttonText;
   final VoidCallback? onButtonPressed;
-  final bool showArrow;
-
   const CustomAlertDialog({
     super.key,
     required this.message,
@@ -23,7 +21,6 @@ class CustomAlertDialog extends StatelessWidget {
     this.child,
     this.buttonText,
     this.onButtonPressed,
-    this.showArrow = true,
   });
 
   @override
@@ -148,10 +145,6 @@ class CustomAlertDialog extends StatelessWidget {
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          if (showArrow) ...[
-                            SizedBox(width: 8.s),
-                            Icon(Icons.arrow_forward, size: 18.s),
-                          ],
                         ],
                       ),
                     ),

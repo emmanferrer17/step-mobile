@@ -11,8 +11,6 @@ class ConfirmationDialog extends StatelessWidget {
   final String? cancelText;
   final VoidCallback onConfirm;
   final VoidCallback? onCancel;
-  final bool showArrow;
-
   const ConfirmationDialog({
     super.key,
     required this.message,
@@ -23,7 +21,6 @@ class ConfirmationDialog extends StatelessWidget {
     this.cancelText = 'Cancel',
     required this.onConfirm,
     this.onCancel,
-    this.showArrow = true,
   });
 
   @override
@@ -146,10 +143,6 @@ class ConfirmationDialog extends StatelessWidget {
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        if (showArrow) ...[
-                          SizedBox(width: 8.s),
-                          Icon(Icons.arrow_forward, size: 18.s),
-                        ],
                       ],
                     ),
                   ),

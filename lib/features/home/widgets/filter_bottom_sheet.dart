@@ -25,7 +25,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
   @override
   void initState() {
     super.initState();
-    _selectedCategory = widget.initialFilters?['category'] ?? 'All';
+    _selectedCategory = widget.initialFilters?['category'] ?? 'All Items';
     _selectedSort = widget.initialFilters?['sort'];
     _selectedLocations = List<String>.from(widget.initialFilters?['locations'] ?? []);
     _selectedDate = widget.initialFilters?['date'];
@@ -101,7 +101,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _buildSectionTitle('Categories'),
-                      _buildRadioList(['All', 'Equipment', 'Semi-Expendable', 'Supplies & Materials'], _selectedCategory, (val) {
+                      _buildRadioList(['All Items', 'Equipment', 'Semi-Expendable'], _selectedCategory, (val) {
                         setState(() => _selectedCategory = val!);
                       }),
                       const Divider(height: 30, color: Color(0xFFEEEEEE)),

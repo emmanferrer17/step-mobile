@@ -591,7 +591,13 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
         GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: isPrimary ? null : () => _handleSwapWithPrimary(index),
-          child: SizedBox.expand(child: imageWidget),
+          child: Padding(
+            padding: EdgeInsets.all(isPrimary ? 0 : 1.s),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(isPrimary ? 12.5.s : 8.5.s),
+              child: SizedBox.expand(child: imageWidget),
+            ),
+          ),
         ),
         // Tray slots remove buttons (Primary remove button is at build() level)
         if (!isPrimary)
@@ -1117,13 +1123,19 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
   }
 
   Future<void> _pickImagesFromGallery() async {
+    final int availableSlots = 5 - (_currentImagePaths.length + _tempSelectedImages.length);
+    if (availableSlots <= 0) return;
+
     final ImagePicker picker = ImagePicker();
-    final List<XFile> images = await picker.pickMultiImage(imageQuality: 70);
+    final List<XFile> images = await picker.pickMultiImage(
+      imageQuality: 70,
+      limit: availableSlots,
+    );
     
     if (images.isEmpty) return;
     if (!mounted) return;
 
-    final int availableSlots = 5 - (_currentImagePaths.length + _tempSelectedImages.length);
+    final bool exceeded = images.length > availableSlots;
     final List<XFile> toProcess = images.take(availableSlots).toList();
 
     for (var xfile in toProcess) {
@@ -1135,6 +1147,15 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
     setState(() {
       _isAddingMore = false; 
     });
+
+    if (exceeded) {
+      _showAlertDialog(
+        message: 'Slots Limit Exceeded',
+        subtitle: 'You can only add up to $availableSlots more image${availableSlots == 1 ? "" : "s"}. Only the first $availableSlots selected image${availableSlots == 1 ? " was" : "s were"} added.',
+        icon: Icons.warning_amber_outlined,
+        color: const Color(0xFFBA1A1A),
+      );
+    }
   }
 
   Future<void> _pickImage(ImageSource source) async {
