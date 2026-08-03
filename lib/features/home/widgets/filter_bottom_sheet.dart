@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../app/config/app_colors.dart';
 
 class FilterBottomSheet extends StatefulWidget {
   final List<dynamic> items;
@@ -55,9 +56,9 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
     return FractionallySizedBox(
       heightFactor: 0.85,
       child: Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.only(
+        decoration: BoxDecoration(
+          color: AppColors.modalBackground,
+          borderRadius: const BorderRadius.only(
             topLeft: Radius.circular(20),
             topRight: Radius.circular(20),
           ),
@@ -73,25 +74,25 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.grey[300],
+                    color: AppColors.borderLight,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
               ),
               const SizedBox(height: 16),
               // Title
-              const Center(
+              Center(
                 child: Text(
                   'Filter',
                   style: TextStyle(
-                    color: Color(0xFFBA1A1A),
+                    color: AppColors.primaryRed,
                     fontSize: 20,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
               const SizedBox(height: 16),
-              const Divider(height: 1, color: Color(0xFFEEEEEE)),
+              Divider(height: 1, color: AppColors.divider),
               
               // Scrollable Content
               Expanded(
@@ -104,13 +105,13 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                       _buildRadioList(['All Items', 'Equipment', 'Semi-Expendable'], _selectedCategory, (val) {
                         setState(() => _selectedCategory = val!);
                       }),
-                      const Divider(height: 30, color: Color(0xFFEEEEEE)),
+                      Divider(height: 30, color: AppColors.divider),
                       
                       _buildSectionTitle('Sort by Item Name'),
                       _buildRadioList(['A-Z', 'Z-A'], _selectedSort, (val) {
                         setState(() => _selectedSort = val);
                       }, allowNone: true),
-                      const Divider(height: 30, color: Color(0xFFEEEEEE)),
+                      Divider(height: 30, color: AppColors.divider),
                       
                       if (_availableLocations.isNotEmpty) ...[
                         _buildSectionTitle('Location'),
@@ -123,7 +124,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                             }
                           });
                         }),
-                        const Divider(height: 30, color: Color(0xFFEEEEEE)),
+                        Divider(height: 30, color: AppColors.divider),
                       ],
                       
                       _buildSectionTitle('Date Scanned'),
@@ -134,7 +135,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                 ),
               ),
               
-              const Divider(height: 1, color: Color(0xFFEEEEEE)),
+              Divider(height: 1, color: AppColors.divider),
               // Bottom Action Buttons
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
@@ -151,8 +152,8 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                           });
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFBA1A1A),
-                          foregroundColor: Colors.white,
+                          backgroundColor: AppColors.primaryRed,
+                          foregroundColor: AppColors.buttonPrimaryForeground,
                           elevation: 0,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(5),
@@ -169,8 +170,8 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                           Navigator.pop(context);
                         },
                         style: OutlinedButton.styleFrom(
-                          foregroundColor: Colors.grey,
-                          side: const BorderSide(color: Color(0xFFCCCCCC)),
+                          foregroundColor: AppColors.textMuted,
+                          side: BorderSide(color: AppColors.borderLight),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(5),
                           ),
@@ -194,8 +195,8 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
       padding: const EdgeInsets.only(bottom: 8.0),
       child: Text(
         title,
-        style: const TextStyle(
-          color: Colors.black54,
+        style: TextStyle(
+          color: AppColors.textMuted,
           fontSize: 15,
           fontWeight: FontWeight.w500,
         ),
@@ -213,12 +214,12 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(option, style: const TextStyle(color: Colors.black87, fontSize: 14)),
+                Text(option, style: TextStyle(color: AppColors.textDark, fontSize: 14)),
                 Radio<String>(
                   value: option,
                   groupValue: selectedValue,
                   onChanged: (val) => onChanged(val == selectedValue && allowNone ? null : val),
-                  activeColor: const Color(0xFFBA1A1A),
+                  activeColor: AppColors.primaryRed,
                   materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   visualDensity: VisualDensity.compact,
                 ),
@@ -241,11 +242,11 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Expanded(child: Text(option, style: const TextStyle(color: Colors.black87, fontSize: 14))),
+                Expanded(child: Text(option, style: TextStyle(color: AppColors.textDark, fontSize: 14))),
                 Checkbox(
                   value: isSelected,
                   onChanged: (val) => onChanged(option, val ?? false),
-                  activeColor: const Color(0xFFBA1A1A),
+                  activeColor: AppColors.primaryRed,
                   materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   visualDensity: VisualDensity.compact,
                 ),
@@ -268,11 +269,19 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
           builder: (context, child) {
             return Theme(
               data: Theme.of(context).copyWith(
-                colorScheme: const ColorScheme.light(
-                  primary: Color(0xFFBA1A1A),
-                  onPrimary: Colors.white,
-                  onSurface: Colors.black,
-                ),
+                colorScheme: AppColors.isDarkMode
+                    ? ColorScheme.dark(
+                        primary: AppColors.primaryRed,
+                        onPrimary: AppColors.buttonPrimaryForeground,
+                        onSurface: AppColors.textDark,
+                        surface: AppColors.modalBackground,
+                      )
+                    : ColorScheme.light(
+                        primary: AppColors.primaryRed,
+                        onPrimary: AppColors.buttonPrimaryForeground,
+                        onSurface: AppColors.textDark,
+                        surface: AppColors.modalBackground,
+                      ),
               ),
               child: child!,
             );
@@ -287,9 +296,9 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
         decoration: BoxDecoration(
-          color: Colors.grey[100],
+          color: AppColors.inputFill,
           borderRadius: BorderRadius.circular(5),
-          border: Border.all(color: Colors.grey[300]!),
+          border: Border.all(color: AppColors.borderLight),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -299,11 +308,11 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                   ? "${_selectedDate!.month.toString().padLeft(2, '0')}/${_selectedDate!.day.toString().padLeft(2, '0')}/${_selectedDate!.year}"
                   : 'mm/dd/yyyy',
               style: TextStyle(
-                color: _selectedDate != null ? Colors.black87 : Colors.grey[600],
+                color: _selectedDate != null ? AppColors.textDark : AppColors.textMuted,
                 fontSize: 14,
               ),
             ),
-            Icon(Icons.calendar_today_outlined, color: Colors.grey[600], size: 20),
+            Icon(Icons.calendar_today_outlined, color: AppColors.textMuted, size: 20),
           ],
         ),
       ),

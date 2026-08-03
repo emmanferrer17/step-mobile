@@ -268,7 +268,7 @@ class _WelcomePageState extends State<WelcomePage> {
               child: RichText(
                 textAlign: TextAlign.center,
                 text: TextSpan(
-                  style: const TextStyle(fontFamily: 'Nunito', color: AppColors.textBlack),
+                  style: TextStyle(fontFamily: 'Nunito', color: AppColors.textBlack),
                   children: <TextSpan>[
                     const TextSpan(text: "Don't have an account? "),
                     TextSpan(text: 'Register.', style: TextStyle(color: AppColors.primaryRed, fontSize: 14.s)),
@@ -292,7 +292,7 @@ class _WelcomePageState extends State<WelcomePage> {
         child: Container(
           width: double.infinity,
           height: MediaQuery.of(context).size.height,
-          decoration: const BoxDecoration(color: AppColors.primaryRed),
+          decoration: BoxDecoration(color: AppColors.primaryRed),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.start,

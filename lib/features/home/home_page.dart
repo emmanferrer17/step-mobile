@@ -6,6 +6,7 @@ import '../../app/config/app_colors.dart';
 import '../../app/config/ui_constants.dart';
 import '../../app/controllers/auth_controller.dart';
 import '../../app/controllers/home_controller.dart';
+import '../../app/controllers/theme_controller.dart';
 import '../../data/models/user_model.dart';
 import '../../data/services/api_service.dart';
 import 'widgets/item_details_modal.dart';
@@ -163,13 +164,14 @@ class HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<ThemeController>();
     final double statusBarHeight = MediaQuery.of(context).padding.top;
     final user = context.watch<AuthController>().loggedInUser;
     final displayName = user?.fullName ?? 'User';
     final profilePhoto = user?.profilePhoto;
 
     return Container(
-      color: const Color(0xFFF5EFE6), // Light beige background
+      color: AppColors.backgroundLight,
       child: Column(
         children: [
           // Overlapping Header Section
@@ -185,9 +187,9 @@ class HomePageState extends State<HomePage> {
                   right: 20.s,
                   bottom: 40.s,
                 ),
-                decoration: const BoxDecoration(
-                  color: Color(0xFFBA1A1A),
-                  borderRadius: BorderRadius.only(
+                decoration: BoxDecoration(
+                  color: AppColors.primaryRed,
+                  borderRadius: const BorderRadius.only(
                     bottomLeft: Radius.circular(8),
                     bottomRight: Radius.circular(8),
                   ),
@@ -214,7 +216,7 @@ class HomePageState extends State<HomePage> {
             child: Container(
               margin: EdgeInsets.only(left: 20.s, right: 20.s, top: 8.s, bottom: 30.s), // Increased top margin, added bottom margin
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppColors.backgroundWhite,
                 borderRadius: BorderRadius.circular(10.s),
               ),
               clipBehavior: Clip.antiAlias,
@@ -237,9 +239,9 @@ class HomePageState extends State<HomePage> {
     return Container(
       width: double.infinity,
       padding: EdgeInsets.symmetric(horizontal: 15.s, vertical: 12.s),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(bottom: BorderSide(color: Color(0xFFEEEEEE))),
+      decoration: BoxDecoration(
+        color: AppColors.backgroundWhite,
+        border: Border(bottom: BorderSide(color: AppColors.divider)),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -249,7 +251,7 @@ class HomePageState extends State<HomePage> {
               Text(
                 _selectedCategory,
                 style: TextStyle(
-                  color: const Color(0xFFBA1A1A),
+                  color: AppColors.primaryRed,
                   fontSize: 14.s,
                   fontWeight: FontWeight.bold,
                 ),
@@ -260,7 +262,7 @@ class HomePageState extends State<HomePage> {
                   '${_filteredItems.length} items',
                   style: TextStyle(
                     fontSize: 13.s,
-                    color: Colors.grey.shade600,
+                    color: AppColors.textMuted,
                   ),
                 ),
               ),
@@ -355,6 +357,24 @@ class HomePageState extends State<HomePage> {
           ),
         ),
         SizedBox(width: 10.s),
+        // Dark mode toggle button
+        Consumer<ThemeController>(
+          builder: (context, theme, _) {
+            return IconButton(
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+              icon: Icon(
+                theme.isDarkMode
+                    ? Icons.light_mode_outlined
+                    : Icons.dark_mode_outlined,
+                color: Colors.white,
+                size: 22.s,
+              ),
+              onPressed: () => theme.toggleTheme(),
+            );
+          },
+        ),
+        SizedBox(width: 6.s),
         IconButton(
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints(),
@@ -382,7 +402,7 @@ class HomePageState extends State<HomePage> {
           child: Container(
             height: 50.s,
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AppColors.backgroundWhite,
               borderRadius: BorderRadius.circular(10.s),
               boxShadow: [
                 BoxShadow(
@@ -400,10 +420,10 @@ class HomePageState extends State<HomePage> {
               },
               decoration: InputDecoration(
                 hintText: 'Search...',
-                hintStyle: TextStyle(color: Colors.grey, fontSize: 15.s),
+                hintStyle: TextStyle(color: AppColors.iconMuted, fontSize: 15.s),
                 border: InputBorder.none,
                 contentPadding: EdgeInsets.symmetric(horizontal: 15.s, vertical: 15.s),
-                suffixIcon: const Icon(Icons.search, color: Colors.grey),
+                suffixIcon: Icon(Icons.search, color: AppColors.iconMuted),
               ),
             ),
           ),
@@ -413,7 +433,7 @@ class HomePageState extends State<HomePage> {
           height: 50.s,
           width: 50.s,
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: AppColors.backgroundWhite,
             borderRadius: BorderRadius.circular(10.s),
             boxShadow: [
               BoxShadow(
@@ -424,7 +444,7 @@ class HomePageState extends State<HomePage> {
             ],
           ),
           child: IconButton(
-            icon: const Icon(Icons.tune, color: Color(0xFF333333)),
+            icon: Icon(Icons.tune, color: AppColors.textDark),
             onPressed: () async {
               final result = await showModalBottomSheet<Map<String, dynamic>>(
                 context: context,
@@ -497,10 +517,10 @@ class HomePageState extends State<HomePage> {
                 width: containerWidth,
                 height: containerHeight,
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppColors.backgroundWhite,
                   borderRadius: BorderRadius.circular(containerHeight / 2),
                   border: Border.all(
-                    color: isSelected ? const Color(0xFFBA1A1A) : AppColors.categoryCircleUnselected,
+                    color: isSelected ? AppColors.primaryRed : AppColors.categoryCircleUnselected,
                     width: 1.5.s,
                   ),
                   boxShadow: [
@@ -513,56 +533,61 @@ class HomePageState extends State<HomePage> {
                 ),
                 clipBehavior: Clip.antiAlias,
                 child: isSelected
-                    ? Row(
-                        children: [
-                          Padding(
-                            padding: EdgeInsets.all(5.s),
-                            child: Container(
-                              // TWEAK SELECTED SOLID CIRCLE SIZE:
-                              // Adjust the inner circular container's width/height (default is 53.s)
-                              width: 53.s,
-                              height: 53.s,
-                              decoration: const BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Color(0xFFBA1A1A),
-                              ),
-                              alignment: Alignment.center,
-                              child: SvgPicture.asset(
-                                iconPath,
-                                colorFilter: const ColorFilter.mode(
-                                  Colors.white,
-                                  BlendMode.srcIn,
+                    ? OverflowBox(
+                        alignment: Alignment.centerLeft,
+                        minWidth: 190.s,
+                        maxWidth: 190.s,
+                        child: Row(
+                          children: [
+                            Padding(
+                              padding: EdgeInsets.all(5.s),
+                              child: Container(
+                                // TWEAK SELECTED SOLID CIRCLE SIZE:
+                                // Adjust the inner circular container's width/height (default is 53.s)
+                                width: 53.s,
+                                height: 53.s,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: AppColors.primaryRed,
                                 ),
-                                // TWEAK ICON SIZE inside the selected solid circle:
-                                width: 24.s,
-                                height: 24.s,
+                                alignment: Alignment.center,
+                                child: SvgPicture.asset(
+                                  iconPath,
+                                  colorFilter: const ColorFilter.mode(
+                                    Colors.white,
+                                    BlendMode.srcIn,
+                                  ),
+                                  // TWEAK ICON SIZE inside the selected solid circle:
+                                  width: 24.s,
+                                  height: 24.s,
+                                ),
                               ),
                             ),
-                          ),
-                          Expanded(
-                            child: Center(
-                              child: Padding(
-                                padding: EdgeInsets.only(right: 15.s),
-                                // FittedBox ensures that long labels (e.g. "Semi-expendable")
-                                // do not get cut off with "..." on smaller screen widths or large font scales.
-                                // It will automatically scale the text down to fit the available space.
-                                child: FittedBox(
-                                  fit: BoxFit.scaleDown,
-                                  child: Text(
-                                    name,
-                                    maxLines: 1,
-                                    style: TextStyle(
-                                      fontFamily: 'Nunito',
-                                      color: const Color(0xFFBA1A1A),
-                                      fontSize: 14.s,
-                                      fontWeight: FontWeight.bold,
+                            Expanded(
+                              child: Center(
+                                child: Padding(
+                                  padding: EdgeInsets.only(right: 15.s),
+                                  // FittedBox ensures that long labels (e.g. "Semi-expendable")
+                                  // do not get cut off with "..." on smaller screen widths or large font scales.
+                                  // It will automatically scale the text down to fit the available space.
+                                  child: FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Text(
+                                      name,
+                                      maxLines: 1,
+                                      style: TextStyle(
+                                        fontFamily: 'Nunito',
+                                        color: AppColors.primaryRed,
+                                        fontSize: 14.s,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
                                   ),
                                 ),
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       )
                     : Center(
                         child: SvgPicture.asset(
@@ -585,8 +610,8 @@ class HomePageState extends State<HomePage> {
 
   Widget _buildItemList() {
     if (_isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(color: Color(0xFFBA1A1A)),
+      return Center(
+        child: CircularProgressIndicator(color: AppColors.primaryRed),
       );
     }
 
@@ -597,19 +622,19 @@ class HomePageState extends State<HomePage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.error_outline, size: 40, color: Colors.red),
+              Icon(Icons.error_outline, size: 40, color: AppColors.error),
               const SizedBox(height: 10),
               Text(
                 _errorMessage!,
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.black87),
+                style: TextStyle(color: AppColors.textDark),
               ),
               const SizedBox(height: 15),
               ElevatedButton(
                 onPressed: fetchItems,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFBA1A1A),
-                  foregroundColor: Colors.white,
+                  backgroundColor: AppColors.primaryRed,
+                  foregroundColor: AppColors.buttonPrimaryForeground,
                 ),
                 child: const Text('RETRY'),
               ),
@@ -628,14 +653,14 @@ class HomePageState extends State<HomePage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.inventory_2_outlined, size: 50, color: Colors.grey),
+              Icon(Icons.inventory_2_outlined, size: 50, color: AppColors.iconMuted),
               const SizedBox(height: 12),
               Text(
                 _searchQuery.isNotEmpty 
                     ? 'No matching items found.' 
                     : 'No items assigned to your account.',
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.black54, fontSize: 15),
+                style: TextStyle(color: AppColors.textGrey, fontSize: 15),
               ),
             ],
           ),
@@ -645,13 +670,13 @@ class HomePageState extends State<HomePage> {
 
     return RefreshIndicator(
       onRefresh: fetchItems,
-      color: const Color(0xFFBA1A1A),
+      color: AppColors.primaryRed,
       child: ListView.separated(
         controller: widget.scrollController,
         physics: const AlwaysScrollableScrollPhysics(),
         padding: EdgeInsets.only(top: 10.s, bottom: 40.s),
         itemCount: filtered.length,
-        separatorBuilder: (context, index) => Divider(height: 1, color: const Color(0xFFEEEEEE)),
+        separatorBuilder: (context, index) => Divider(height: 1, color: AppColors.divider),
         itemBuilder: (context, index) {
           final item = filtered[index];
           final name = item['item_name'] ?? 'Unknown Item';
@@ -660,7 +685,7 @@ class HomePageState extends State<HomePage> {
           final isHighlighted = _highlightedMrIds.contains(mrId);
           return AnimatedContainer(
             duration: const Duration(milliseconds: 500),
-            color: isHighlighted ? const Color(0xFFC8E6C9) : Colors.transparent,
+            color: isHighlighted ? AppColors.highlightBackground : Colors.transparent,
             child: ListTile(
               dense: true,
               visualDensity: const VisualDensity(vertical: -1),
@@ -671,7 +696,7 @@ class HomePageState extends State<HomePage> {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  color: const Color(0xFFBA1A1A),
+                  color: AppColors.primaryRed,
                   fontWeight: FontWeight.w600,
                   fontSize: 16.s,
                 ),
@@ -696,7 +721,7 @@ class HomePageState extends State<HomePage> {
               ),
               trailing: Icon(
                 Icons.keyboard_double_arrow_right,
-                color: Colors.grey,
+                color: AppColors.iconMuted,
                 size: 22.s,
               ),
               onTap: () {

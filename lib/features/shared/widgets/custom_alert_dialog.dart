@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../app/config/app_colors.dart';
 import '../../../app/config/size_config.dart';
 import '../../../app/config/ui_constants.dart';
 
@@ -35,7 +36,7 @@ class CustomAlertDialog extends StatelessWidget {
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 24.s, vertical: 30.s),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.modalBackground,
           borderRadius: BorderRadius.circular(15.s),
         ),
         child: Stack(
@@ -47,7 +48,7 @@ class CustomAlertDialog extends StatelessWidget {
               top: icon == null ? -25.s : -20.s,
               right: -14.s,
               child: IconButton(
-                icon: Icon(Icons.close, color: Colors.black54, size: 22.s),
+                icon: Icon(Icons.close, color: AppColors.textGrey, size: 22.s),
                 onPressed: () {
                   Navigator.pop(context);
                   if (onClose != null) {
@@ -67,10 +68,14 @@ class CustomAlertDialog extends StatelessWidget {
                     height: 90.s,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Colors.white,
+                      color: color.withValues(alpha: 0.1),
+                      border: Border.all(
+                        color: color.withValues(alpha: 0.3),
+                        width: 2.s,
+                      ),
                       boxShadow: [
                         BoxShadow(
-                          color: color.withValues(alpha: 0.12),
+                          color: color.withValues(alpha: 0.15),
                           blurRadius: 15.s,
                           spreadRadius: 3.s,
                           offset: Offset(0, 5.s),
@@ -105,7 +110,7 @@ class CustomAlertDialog extends StatelessWidget {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 13.s,
-                      color: Colors.black54,
+                      color: AppColors.textGrey,
                       height: 1.4,
                     ),
                   ),

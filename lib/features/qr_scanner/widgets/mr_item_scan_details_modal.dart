@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:mobile/app/config/constants.dart';
 import 'package:mobile/app/config/ui_constants.dart';
+import 'package:mobile/app/config/app_colors.dart';
 
 class MrItemScanDetailsModal extends StatelessWidget {
   final Map<String, dynamic> itemDetails;
@@ -60,7 +61,7 @@ class MrItemScanDetailsModal extends StatelessWidget {
         IconButton(
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints(),
-          icon: Icon(Icons.arrow_back, color: Colors.black87, size: 24.s),
+          icon: Icon(Icons.arrow_back, color: AppColors.textDark, size: 24.s),
           onPressed: () => Navigator.pop(context),
         ),
         SizedBox(width: 10.s),
@@ -68,9 +69,9 @@ class MrItemScanDetailsModal extends StatelessWidget {
         Container(
           width: 36.s,
           height: 36.s,
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: Color(0xFFBA1A1A),
+            color: AppColors.primaryRed,
           ),
           child: Center(
             child: SvgPicture.asset(
@@ -88,7 +89,7 @@ class MrItemScanDetailsModal extends StatelessWidget {
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
-              color: const Color(0xFFBA1A1A),
+              color: AppColors.primaryRed,
               fontSize: 17.s,
               fontWeight: FontWeight.bold,
             ),
@@ -110,16 +111,15 @@ class MrItemScanDetailsModal extends StatelessWidget {
     return Container(
       padding: EdgeInsets.fromLTRB(12.s, 14.s, 16.s, 20.s),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.modalBackground,
         borderRadius: BorderRadius.circular(20.s),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Fix #1: single row — back arrow + badge + name, all on same line
           _buildHeader(context, name, iconPath),
-          Divider(height: 24.s, color: const Color(0xFFEEEEEE)),
+          Divider(height: 24.s, color: AppColors.divider),
           _buildDetailRow('Owner',         owner),
           _buildDetailRow('Specification', spec),
           _buildDetailRow('Date Received', _formatDate(dateScanned)),
@@ -145,7 +145,7 @@ class MrItemScanDetailsModal extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.modalBackground,
         borderRadius: BorderRadius.circular(20.s),
       ),
       child: Column(
@@ -160,7 +160,7 @@ class MrItemScanDetailsModal extends StatelessWidget {
 
           Divider(
             height: 20.s,
-            color: const Color(0xFFEEEEEE),
+            color: AppColors.divider,
             indent: 16.s,
             endIndent: 16.s,
           ),
@@ -176,11 +176,11 @@ class MrItemScanDetailsModal extends StatelessWidget {
                   fullImageUrl,
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) => Container(
-                    color: Colors.grey[200],
+                    color: AppColors.inputFill,
                     child: Icon(
                       Icons.broken_image,
                       size: 50.s,
-                      color: const Color(0xFFBA1A1A),
+                      color: AppColors.primaryRed,
                     ),
                   ),
                 ),
@@ -219,7 +219,7 @@ class MrItemScanDetailsModal extends StatelessWidget {
             child: Text(
               label,
               style: TextStyle(
-                color: Colors.grey[600],
+                color: AppColors.textMuted,
                 fontSize: 14.s,
                 fontWeight: FontWeight.w500,
               ),
@@ -230,7 +230,7 @@ class MrItemScanDetailsModal extends StatelessWidget {
             child: Text(
               value,
               style: TextStyle(
-                color: const Color(0xFF333333),
+                color: AppColors.textDark,
                 fontSize: 14.s,
                 fontWeight: FontWeight.bold,
               ),
