@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../app/config/app_colors.dart';
 import '../../../app/config/size_config.dart';
 import '../../../app/config/ui_constants.dart';
 
@@ -11,8 +12,6 @@ class ConfirmationDialog extends StatelessWidget {
   final String? cancelText;
   final VoidCallback onConfirm;
   final VoidCallback? onCancel;
-  final bool showArrow;
-
   const ConfirmationDialog({
     super.key,
     required this.message,
@@ -23,7 +22,6 @@ class ConfirmationDialog extends StatelessWidget {
     this.cancelText = 'Cancel',
     required this.onConfirm,
     this.onCancel,
-    this.showArrow = true,
   });
 
   @override
@@ -38,7 +36,7 @@ class ConfirmationDialog extends StatelessWidget {
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 24.s, vertical: 30.s),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.modalBackground,
           borderRadius: BorderRadius.circular(15.s),
         ),
         child: Column(
@@ -51,10 +49,14 @@ class ConfirmationDialog extends StatelessWidget {
               height: 90.s,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.white,
+                color: color.withValues(alpha: 0.1),
+                border: Border.all(
+                  color: color.withValues(alpha: 0.3),
+                  width: 2.s,
+                ),
                 boxShadow: [
                   BoxShadow(
-                    color: color.withOpacity(0.12),
+                    color: color.withValues(alpha: 0.15),
                     blurRadius: 15.s,
                     spreadRadius: 3.s,
                     offset: Offset(0, 5.s),
@@ -87,7 +89,7 @@ class ConfirmationDialog extends StatelessWidget {
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 13.s,
-                  color: Colors.black54,
+                  color: AppColors.textGrey,
                   height: 1.4,
                 ),
               ),
@@ -103,8 +105,8 @@ class ConfirmationDialog extends StatelessWidget {
                         if (onCancel != null) onCancel!();
                       },
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.grey.shade600,
-                        side: BorderSide(color: Colors.grey.shade300, width: 1.5.s),
+                        foregroundColor: AppColors.textMuted,
+                        side: BorderSide(color: AppColors.borderLight, width: 1.5.s),
                         padding: EdgeInsets.symmetric(vertical: 14.s),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10.s),
@@ -146,10 +148,6 @@ class ConfirmationDialog extends StatelessWidget {
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        if (showArrow) ...[
-                          SizedBox(width: 8.s),
-                          Icon(Icons.arrow_forward, size: 18.s),
-                        ],
                       ],
                     ),
                   ),

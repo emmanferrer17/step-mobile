@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../app/config/app_colors.dart';
 import '../../../app/config/ui_constants.dart';
 
 /// A centered dialog pop-up displaying the system Help Center options in an elegant manner.
@@ -12,7 +13,7 @@ class HelpCenterDialog extends StatelessWidget {
         maxHeight: MediaQuery.of(context).size.height * 0.85,
       ),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.modalBackground,
         borderRadius: BorderRadius.circular(20.s),
       ),
       child: Column(
@@ -24,7 +25,7 @@ class HelpCenterDialog extends StatelessWidget {
             child: Row(
               children: [
                 IconButton(
-                  icon: Icon(Icons.arrow_back, color: Colors.black87, size: 24.s),
+                  icon: Icon(Icons.arrow_back, color: AppColors.textDark, size: 24.s),
                   onPressed: () => Navigator.pop(context),
                 ),
                 Expanded(
@@ -32,7 +33,7 @@ class HelpCenterDialog extends StatelessWidget {
                     child: Text(
                       'Help Center',
                       style: TextStyle(
-                        color: const Color(0xFFBA1A1A),
+                        color: AppColors.primaryRed,
                         fontSize: 18.s,
                         fontWeight: FontWeight.bold,
                       ),
@@ -43,7 +44,7 @@ class HelpCenterDialog extends StatelessWidget {
               ],
             ),
           ),
-          Divider(height: 1.s, color: const Color(0xFFEEEEEE)),
+          Divider(height: 1.s, color: AppColors.divider),
 
           // Scrollable Body Content
           Flexible(
@@ -59,7 +60,7 @@ class HelpCenterDialog extends StatelessWidget {
                       fontSize: 17.s,
                       fontWeight: FontWeight.w500,
                       height: 1.4,
-                      color: Colors.black87,
+                      color: AppColors.textDark,
                     ),
                   ),
                   SizedBox(height: 25.s),
@@ -110,7 +111,7 @@ class HelpCenterDialog extends StatelessWidget {
             style: TextStyle(
               fontSize: 16.s,
               fontWeight: FontWeight.bold,
-              color: const Color(0xFFBA1A1A),
+              color: AppColors.primaryRed,
             ),
           ),
           SizedBox(height: 8.s),
@@ -120,7 +121,7 @@ class HelpCenterDialog extends StatelessWidget {
             children: [
               Icon(
                 Icons.alternate_email,
-                color: Colors.grey.shade500,
+                color: AppColors.iconMuted,
                 size: 20.s,
               ),
               SizedBox(width: 12.s),
@@ -129,7 +130,7 @@ class HelpCenterDialog extends StatelessWidget {
                   email,
                   style: TextStyle(
                     fontSize: 15.s,
-                    color: Colors.black87,
+                    color: AppColors.textDark,
                     fontWeight: FontWeight.w400,
                   ),
                 ),
@@ -143,7 +144,7 @@ class HelpCenterDialog extends StatelessWidget {
             children: [
               Icon(
                 Icons.phone_outlined,
-                color: Colors.grey.shade500,
+                color: AppColors.iconMuted,
                 size: 20.s,
               ),
               SizedBox(width: 12.s),
@@ -152,7 +153,7 @@ class HelpCenterDialog extends StatelessWidget {
                   phone,
                   style: TextStyle(
                     fontSize: 15.s,
-                    color: Colors.black87,
+                    color: AppColors.textDark,
                     fontWeight: FontWeight.w400,
                   ),
                 ),

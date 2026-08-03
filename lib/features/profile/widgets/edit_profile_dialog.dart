@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../app/config/app_colors.dart';
 import 'package:provider/provider.dart';
 import '../../../data/models/user_model.dart';
 import 'package:mobile/app/controllers/profile_controller.dart';
@@ -101,7 +102,7 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
         maxHeight: MediaQuery.of(context).size.height * 0.85,
       ),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.modalBackground,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Column(
@@ -111,11 +112,11 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
             child: Row(
-              children: const [
+              children: [
                 Text(
                   'General Information',
                   style: TextStyle(
-                    color: Color(0xFFBA1A1A),
+                    color: AppColors.primaryRed,
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
@@ -123,7 +124,7 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
               ],
             ),
           ),
-          const Divider(height: 1, color: Color(0xFFEEEEEE)),
+          Divider(height: 1, color: AppColors.divider),
 
           // Scrollable Body Content (Form)
           Expanded(
@@ -141,19 +142,19 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
                         margin: const EdgeInsets.only(bottom: 20),
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                         decoration: BoxDecoration(
-                          color: Colors.green.shade50,
+                          color: AppColors.isDarkMode ? Colors.green.shade900.withOpacity(0.2) : Colors.green.shade50,
                           borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: Colors.green.shade300),
+                          border: Border.all(color: Colors.green.shade400),
                         ),
                         child: Row(
                           children: [
-                            Icon(Icons.check_circle_outline, color: Colors.green.shade800),
+                            Icon(Icons.check_circle_outline, color: Colors.green.shade600),
                             const SizedBox(width: 12),
                             Expanded(
                               child: Text(
                                 _apiSuccessMessage!,
                                 style: TextStyle(
-                                  color: Colors.green.shade800,
+                                  color: Colors.green.shade600,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
@@ -165,7 +166,7 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
                                   _apiSuccessMessage = null;
                                 });
                               },
-                              child: Icon(Icons.close, color: Colors.green.shade800, size: 18),
+                              child: Icon(Icons.close, color: Colors.green.shade600, size: 18),
                             ),
                           ],
                         ),
@@ -175,19 +176,19 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
                         margin: const EdgeInsets.only(bottom: 20),
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                         decoration: BoxDecoration(
-                          color: Colors.red.shade50,
+                          color: AppColors.isDarkMode ? Colors.red.shade900.withOpacity(0.2) : Colors.red.shade50,
                           borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: Colors.red.shade300),
+                          border: Border.all(color: Colors.red.shade400),
                         ),
                         child: Row(
                           children: [
-                            Icon(Icons.error_outline, color: Colors.red.shade800),
+                            Icon(Icons.error_outline, color: AppColors.error),
                             const SizedBox(width: 12),
                             Expanded(
                               child: Text(
                                 _apiGeneralErrorMessage!,
                                 style: TextStyle(
-                                  color: Colors.red.shade800,
+                                  color: AppColors.error,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
@@ -199,7 +200,7 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
                                   _apiGeneralErrorMessage = null;
                                 });
                               },
-                              child: Icon(Icons.close, color: Colors.red.shade800, size: 18),
+                              child: Icon(Icons.close, color: AppColors.error, size: 18),
                             ),
                           ],
                         ),
@@ -300,7 +301,7 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
             ),
           ),
 
-          const Divider(height: 1, color: Color(0xFFEEEEEE)),
+          Divider(height: 1, color: AppColors.divider),
           // Sticky Bottom Actions
           Padding(
             padding: const EdgeInsets.all(20),
@@ -322,10 +323,10 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
   Widget _buildSectionTitle(String title) {
     return Text(
       title,
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 16,
         fontWeight: FontWeight.bold,
-        color: Colors.black87,
+        color: AppColors.textDark,
       ),
     );
   }
@@ -346,7 +347,7 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
       keyboardType: keyboardType,
       validator: validator,
       style: TextStyle(
-        color: enabled ? Colors.black87 : Colors.black54,
+        color: enabled ? AppColors.textDark : AppColors.textMuted,
         fontSize: 14,
         fontWeight: FontWeight.w500,
       ),
@@ -354,32 +355,32 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
         labelText: label,
         errorText: errorText,
         labelStyle: TextStyle(
-          color: enabled ? Colors.grey.shade700 : Colors.grey.shade600,
+          color: AppColors.textMuted,
           fontSize: 12,
         ),
         hintText: hintText,
         hintStyle: TextStyle(
-          color: Colors.grey.shade400,
+          color: AppColors.borderLight,
           fontSize: 14,
         ),
         filled: !enabled,
-        fillColor: enabled ? Colors.transparent : Colors.grey.shade100,
+        fillColor: enabled ? Colors.transparent : AppColors.inputFill,
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: Colors.grey.shade400),
+          borderSide: BorderSide(color: AppColors.borderLight),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: Colors.grey.shade400),
+          borderSide: BorderSide(color: AppColors.borderLight),
         ),
         disabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: Colors.grey.shade300),
+          borderSide: BorderSide(color: AppColors.borderLight),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: Color(0xFFBA1A1A), width: 1.5),
+          borderSide: BorderSide(color: AppColors.primaryRed, width: 1.5),
         ),
       ),
     );
@@ -398,8 +399,8 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
       controller: controller,
       obscureText: obscureText,
       validator: validator,
-      style: const TextStyle(
-        color: Colors.black87,
+      style: TextStyle(
+        color: AppColors.textDark,
         fontSize: 14,
         fontWeight: FontWeight.w500,
       ),
@@ -407,26 +408,26 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
         labelText: label,
         errorText: errorText,
         labelStyle: TextStyle(
-          color: Colors.grey.shade700,
+          color: AppColors.textMuted,
           fontSize: 12,
         ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: Colors.grey.shade400),
+          borderSide: BorderSide(color: AppColors.borderLight),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: Colors.grey.shade400),
+          borderSide: BorderSide(color: AppColors.borderLight),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: Color(0xFFBA1A1A), width: 1.5),
+          borderSide: BorderSide(color: AppColors.primaryRed, width: 1.5),
         ),
         suffixIcon: IconButton(
           icon: Icon(
             obscureText ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-            color: Colors.grey.shade500,
+            color: AppColors.iconMuted,
             size: 20,
           ),
           onPressed: onToggle,
@@ -444,19 +445,19 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
         width: double.infinity,
         height: 50,
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.backgroundWhite,
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: Colors.grey.shade400),
+          border: Border.all(color: AppColors.borderLight),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.arrow_back, color: Colors.grey.shade700, size: 20),
+            Icon(Icons.arrow_back, color: AppColors.textMuted, size: 20),
             const SizedBox(width: 8),
             Text(
               'Go Back',
               style: TextStyle(
-                color: Colors.grey.shade700,
+                color: AppColors.textMuted,
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
               ),
@@ -557,7 +558,7 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
         width: double.infinity,
         height: 50,
         decoration: BoxDecoration(
-          color: _isLoading ? Colors.grey : const Color(0xFFBA1A1A),
+          color: _isLoading ? AppColors.iconMuted : AppColors.primaryRed,
           borderRadius: BorderRadius.circular(10),
         ),
         child: Row(

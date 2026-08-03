@@ -60,7 +60,18 @@ class AppRoutes {
     }
   }
 
-  static MaterialPageRoute _buildRoute(RouteSettings settings, Widget page) {
-    return MaterialPageRoute(settings: settings, builder: (_) => page);
+  static Route<dynamic> _buildRoute(RouteSettings settings, Widget page) {
+    return PageRouteBuilder(
+      settings: settings,
+      pageBuilder: (context, animation, secondaryAnimation) => page,
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        return FadeTransition(
+          opacity: animation,
+          child: child,
+        );
+      },
+      transitionDuration: const Duration(milliseconds: 200),
+      reverseTransitionDuration: const Duration(milliseconds: 200),
+    );
   }
 }

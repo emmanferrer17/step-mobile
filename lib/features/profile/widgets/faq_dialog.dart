@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../app/config/app_colors.dart';
 
 /// A centered dialog pop-up displaying the system FAQs in an elegant, interactive manner.
 class FaqDialog extends StatelessWidget {
@@ -11,7 +12,7 @@ class FaqDialog extends StatelessWidget {
         maxHeight: MediaQuery.of(context).size.height * 0.85,
       ),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.modalBackground,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Column(
@@ -23,15 +24,15 @@ class FaqDialog extends StatelessWidget {
             child: Row(
               children: [
                 IconButton(
-                  icon: const Icon(Icons.arrow_back, color: Colors.black87),
+                  icon: Icon(Icons.arrow_back, color: AppColors.textDark),
                   onPressed: () => Navigator.pop(context),
                 ),
-                const Expanded(
+                Expanded(
                   child: Center(
                     child: Text(
                       'FAQs',
                       style: TextStyle(
-                        color: Color(0xFFBA1A1A),
+                        color: AppColors.primaryRed,
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
@@ -42,7 +43,7 @@ class FaqDialog extends StatelessWidget {
               ],
             ),
           ),
-          const Divider(height: 1, color: Color(0xFFEEEEEE)),
+          Divider(height: 1, color: AppColors.divider),
 
           // Scrollable FAQ Content
           Flexible(
@@ -88,12 +89,12 @@ class FaqDialog extends StatelessWidget {
   Widget _buildFaqItem({required String question, required String answer}) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.backgroundWhite,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFBA1A1A).withOpacity(0.2)),
+        border: Border.all(color: AppColors.primaryRed.withOpacity(0.2)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: AppColors.shadow,
             blurRadius: 6,
             offset: const Offset(0, 3),
           ),
@@ -102,24 +103,24 @@ class FaqDialog extends StatelessWidget {
       child: ExpansionTile(
         title: Text(
           question,
-          style: const TextStyle(
-            color: Color(0xFFBA1A1A),
+          style: TextStyle(
+            color: AppColors.primaryRed,
             fontSize: 14,
             fontWeight: FontWeight.bold,
           ),
         ),
-        iconColor: const Color(0xFFBA1A1A),
-        collapsedIconColor: const Color(0xFFBA1A1A).withOpacity(0.8),
+        iconColor: AppColors.primaryRed,
+        collapsedIconColor: AppColors.primaryRed.withOpacity(0.8),
         childrenPadding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
         expandedCrossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Divider(height: 1, color: Color(0xFFEEEEEE)),
+          Divider(height: 1, color: AppColors.divider),
           const SizedBox(height: 10),
           Text(
             answer,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
-              color: Colors.black87,
+              color: AppColors.textDark,
               height: 1.4,
             ),
           ),

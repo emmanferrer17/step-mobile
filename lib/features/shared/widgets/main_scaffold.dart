@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:provider/provider.dart';
 import '../../../app/config/app_colors.dart';
 import '../../../app/config/size_config.dart';
 import '../../../app/config/ui_constants.dart';
 import '../../home/home_page.dart';
 import '../../profile/profile_page.dart';
+import '../../../app/controllers/theme_controller.dart';
 import 'camera_permission_modal.dart';
 
 class MainScaffold extends StatefulWidget {
@@ -80,6 +82,7 @@ class _MainScaffoldState extends State<MainScaffold> with SingleTickerProviderSt
 
   @override
   Widget build(BuildContext context) {
+    context.watch<ThemeController>();
     SizeConfig().init(context);
 
     return Scaffold(
@@ -105,7 +108,7 @@ class _MainScaffoldState extends State<MainScaffold> with SingleTickerProviderSt
           index: _selectedIndex,
           children: [
             HomePage(key: _homeKey, scrollController: _scrollController),
-            const ProfilePage(),
+            ProfilePage(),
           ],
         ),
       ),
@@ -253,10 +256,10 @@ class _MainScaffoldState extends State<MainScaffold> with SingleTickerProviderSt
       height: _qrButtonSizeScaled,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: Colors.white,
+        color: AppColors.navBarBackground,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
+            color: AppColors.shadow,
             blurRadius: 4.s,
             offset: Offset(0, 2.s),
           ),
@@ -270,11 +273,11 @@ class _MainScaffoldState extends State<MainScaffold> with SingleTickerProviderSt
             color: AppColors.primaryRed,
             width: 2.s,
           ),
-          color: Colors.white, // Inner white ring
+          color: AppColors.navBarBackground, // Inner white ring
         ),
         padding: EdgeInsets.all(2.s), // Thickness of the inner white ring
         child: Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: AppColors.primaryRed,
           ),
@@ -377,7 +380,7 @@ class FloatingNavbarPainter extends CustomPainter {
 
     // 1. Fill the background
     final Paint fillPaint = Paint()
-      ..color = Colors.white
+      ..color = AppColors.navBarBackground
       ..style = PaintingStyle.fill;
     canvas.drawPath(path, fillPaint);
 

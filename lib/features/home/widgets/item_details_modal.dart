@@ -5,6 +5,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../../../app/config/constants.dart';
+import '../../../app/config/app_colors.dart';
 import '../../../app/config/size_config.dart';
 import '../../../app/config/ui_constants.dart';
 import '../../../app/controllers/home_controller.dart';
@@ -196,7 +197,7 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
           maxHeight: MediaQuery.of(context).size.height * 0.9,
         ),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.modalBackground,
         borderRadius: BorderRadius.circular(20.s),
       ),
       child: Column(
@@ -208,7 +209,7 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
             child: Row(
               children: [
                 IconButton(
-                  icon: Icon(Icons.arrow_back, color: Colors.black87, size: 24.s),
+                  icon: Icon(Icons.arrow_back, color: AppColors.textDark, size: 24.s),
                   onPressed: () => Navigator.pop(context, _hasChanges),
                 ),
                 Expanded(
@@ -220,7 +221,7 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
                         textAlign: TextAlign.center,
                         maxLines: 2,
                         style: TextStyle(
-                          color: const Color(0xFFBA1A1A),
+                          color: AppColors.primaryRed,
                           fontSize: 18.s,
                           fontWeight: FontWeight.bold,
                         ),
@@ -232,7 +233,7 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
               ],
             ),
           ),
-          Divider(height: 1, color: const Color(0xFFEEEEEE)),
+          Divider(height: 1, color: AppColors.divider),
 
           // Scrollable Body Content
           Flexible(
@@ -250,10 +251,10 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
                         width: double.infinity,
                         height: 205.s, 
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: AppColors.backgroundWhite,
                           borderRadius: BorderRadius.circular(15.s),
                           border: Border.all(
-                            color: const Color(0xFFBA1A1A),
+                            color: AppColors.primaryRed,
                             width: 1.5.s,
                           ),
                         ),
@@ -290,17 +291,17 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
                                 width: 32.s,
                                 height: 32.s,
                                 decoration: BoxDecoration(
-                                  color: Colors.white,
+                                  color: AppColors.backgroundWhite,
                                   borderRadius: BorderRadius.circular(8.s),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: Colors.black.withValues(alpha: 0.1),
+                                      color: AppColors.shadow,
                                       blurRadius: 4.s,
                                       offset: Offset(0, 2.s),
                                     ),
                                   ],
                                 ),
-                                child: Icon(Icons.chevron_left, color: Colors.black, size: 24.s),
+                                child: Icon(Icons.chevron_left, color: AppColors.textBlack, size: 24.s),
                               ),
                             ),
                           ),
@@ -332,17 +333,17 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
                                 width: 32.s,
                                 height: 32.s,
                                 decoration: BoxDecoration(
-                                  color: Colors.white,
+                                  color: AppColors.backgroundWhite,
                                   borderRadius: BorderRadius.circular(8.s),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: Colors.black.withValues(alpha: 0.1),
+                                      color: AppColors.shadow,
                                       blurRadius: 4.s,
                                       offset: Offset(0, 2.s),
                                     ),
                                   ],
                                 ),
-                                child: Icon(Icons.chevron_right, color: Colors.black, size: 24.s),
+                                child: Icon(Icons.chevron_right, color: AppColors.textBlack, size: 24.s),
                               ),
                             ),
                           ),
@@ -360,18 +361,18 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
 
                   // Metadata Table / Details List
                   _buildLocationRow(),
-                  Divider(height: 1, color: const Color(0xFFEEEEEE)),
+                  Divider(height: 1, color: AppColors.divider),
                   _buildDetailRow('Date Received', _formatDate(dateScanned)),
-                  Divider(height: 1, color: const Color(0xFFEEEEEE)),
+                  Divider(height: 1, color: AppColors.divider),
                   _buildDetailRow('Stock No.', stock),
-                  Divider(height: 1, color: const Color(0xFFEEEEEE)),
+                  Divider(height: 1, color: AppColors.divider),
                   _buildDetailRow('Unit', unit),
-                  Divider(height: 1, color: const Color(0xFFEEEEEE)),
+                  Divider(height: 1, color: AppColors.divider),
                   _buildDescriptionDetailRow(
                     'Description',
                     description,
                   ),
-                  Divider(height: 1, color: const Color(0xFFEEEEEE)),
+                  Divider(height: 1, color: AppColors.divider),
                   _buildDetailRow('Quantity', quantity),
                 ],
               ),
@@ -385,9 +386,9 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
 
   Widget _buildPhotoContent() {
     if (_isUploading) {
-      return const Center(
+      return Center(
         child: CircularProgressIndicator(
-          color: Color(0xFFBA1A1A),
+          color: AppColors.primaryRed,
         ),
       );
     }
@@ -463,8 +464,8 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
                   child: Image.network(
                     '${ApiConstants.storageUrl}$path',
                     fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => const Center(
-                      child: Icon(Icons.broken_image, size: 50, color: Color(0xFFBA1A1A)),
+                    errorBuilder: (context, error, stackTrace) => Center(
+                      child: Icon(Icons.broken_image, size: 50, color: AppColors.primaryRed),
                     ),
                   ),
                 ),
@@ -488,19 +489,19 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
                 width: 38,
                 height: 38,
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppColors.backgroundWhite,
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.2),
+                      color: AppColors.shadow,
                       blurRadius: 4,
                       offset: const Offset(0, 2),
                     ),
                   ],
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.file_upload_outlined,
-                  color: Color(0xFFBA1A1A),
+                  color: AppColors.primaryRed,
                   size: 20,
                 ),
               ),
@@ -516,13 +517,13 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
 
   Widget _buildSaveButton() {
     return _isUploading
-        ? const SizedBox(
+        ? SizedBox(
             width: 38,
             height: 38,
             child: CircularProgressIndicator(
-                color: Color(0xFFBA1A1A),
+                color: AppColors.primaryRed,
                 strokeWidth: 3,
-                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFBA1A1A))),
+                valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryRed)),
           )
         : GestureDetector(
             onTap: () => _handleSaveImages(),
@@ -530,10 +531,10 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
               width: 38,
               height: 38,
               decoration: BoxDecoration(
-                color: const Color(0xFFBA1A1A),
+                color: AppColors.primaryRed,
                 borderRadius: BorderRadius.circular(8),
                 boxShadow: [
-                  BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 4, offset: const Offset(0, 2)),
+                  BoxShadow(color: AppColors.shadow, blurRadius: 4, offset: const Offset(0, 2)),
                 ],
               ),
               child: const Icon(Icons.check, color: Colors.white, size: 20),
@@ -555,13 +556,13 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
         width: 38,
         height: 38,
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.backgroundWhite,
           borderRadius: BorderRadius.circular(8),
           boxShadow: [
-            BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 4, offset: const Offset(0, 2)),
+            BoxShadow(color: AppColors.shadow, blurRadius: 4, offset: const Offset(0, 2)),
           ],
         ),
-        child: const Icon(Icons.close, color: Color(0xFFBA1A1A), size: 20),
+        child: Icon(Icons.close, color: AppColors.primaryRed, size: 20),
       ),
     );
   }
@@ -576,7 +577,7 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
       imageWidget = Image.network(
         '${ApiConstants.storageUrl}${_currentImagePaths[index]}',
         fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) => const Center(child: Icon(Icons.broken_image, color: Colors.grey)),
+        errorBuilder: (context, error, stackTrace) => Center(child: Icon(Icons.broken_image, color: AppColors.iconMuted)),
       );
     } else {
       imageWidget = Image.file(
@@ -591,7 +592,13 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
         GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: isPrimary ? null : () => _handleSwapWithPrimary(index),
-          child: SizedBox.expand(child: imageWidget),
+          child: Padding(
+            padding: EdgeInsets.all(isPrimary ? 0 : 1.s),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(isPrimary ? 12.5.s : 8.5.s),
+              child: SizedBox.expand(child: imageWidget),
+            ),
+          ),
         ),
         // Tray slots remove buttons (Primary remove button is at build() level)
         if (!isPrimary)
@@ -613,18 +620,18 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
         height: isPrimary ? 38 : null,
         padding: EdgeInsets.all(isPrimary ? 8 : 4),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.backgroundWhite,
           shape: isPrimary ? BoxShape.rectangle : BoxShape.circle,
           borderRadius: isPrimary ? BorderRadius.circular(8) : null,
-          border: isPrimary ? Border.all(color: const Color(0xFFBA1A1A), width: 1.5) : null,
+          border: isPrimary ? Border.all(color: AppColors.primaryRed, width: 1.5) : null,
           boxShadow: [
-            BoxShadow(color: Colors.black.withValues(alpha: 0.15), blurRadius: 4, spreadRadius: 1),
+            BoxShadow(color: AppColors.shadow, blurRadius: 4, spreadRadius: 1),
           ],
         ),
         child: Icon(
           isPrimary ? Icons.delete_outline : Icons.close, 
           size: isPrimary ? 20 : 10, 
-          color: isPrimary ? const Color(0xFFBA1A1A) : Colors.black,
+          color: isPrimary ? AppColors.primaryRed : AppColors.textBlack,
         ),
       ),
     );
@@ -641,7 +648,7 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
           message: 'Delete Image',
           subtitle: 'Are you sure you want to remove this image?',
           icon: Icons.delete_outline,
-          color: const Color(0xFFBA1A1A),
+          color: AppColors.primaryRed,
           confirmText: 'Remove',
           onConfirm: () async {
             setState(() {
@@ -693,34 +700,34 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
             height: 60,
             fit: BoxFit.contain,
             errorBuilder: (context, error, stackTrace) {
-              return const Icon(Icons.cloud_upload_outlined, size: 45, color: Color(0xFFBA1A1A));
+              return Icon(Icons.cloud_upload_outlined, size: 45, color: AppColors.primaryRed);
             },
           ),
         ),
         const SizedBox(height: 6),
         GestureDetector(
           onTap: () => _showGalleryAccessModal(context),
-          child: const Text(
+          child: Text(
             'Tap to upload photo',
-            style: TextStyle(color: Color(0xFFBA1A1A), fontSize: 12, fontWeight: FontWeight.bold),
+            style: TextStyle(color: AppColors.primaryRed, fontSize: 12, fontWeight: FontWeight.bold),
           ),
         ),
         const SizedBox(height: 6),
         Row(
           children: [
-            Expanded(child: Divider(color: Colors.grey[300], thickness: 1)),
+            Expanded(child: Divider(color: AppColors.divider, thickness: 1)),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 10),
-              child: Text('or', style: TextStyle(color: Colors.grey[400], fontSize: 11)),
+              child: Text('or', style: TextStyle(color: AppColors.textMuted, fontSize: 11)),
             ),
-            Expanded(child: Divider(color: Colors.grey[300], thickness: 1)),
+            Expanded(child: Divider(color: AppColors.divider, thickness: 1)),
           ],
         ),
         const SizedBox(height: 6),
         ElevatedButton(
           onPressed: () => _showCameraPermissionModal(context),
           style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFFBA1A1A),
+            backgroundColor: AppColors.primaryRed,
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             elevation: 0,
@@ -751,10 +758,10 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
               right: index == 3 ? 0 : 5,
             ),
             decoration: BoxDecoration(
-              color: const Color(0xFFF2F2F2),
+              color: AppColors.inputFill,
               borderRadius: BorderRadius.circular(10),
               border: Border.all(
-                color: hasImage ? const Color(0xFFBA1A1A) : Colors.grey.shade300,
+                color: hasImage ? AppColors.primaryRed : AppColors.borderLight,
                 width: hasImage ? 1 : 0.5,
               ),
             ),
@@ -764,8 +771,8 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
                 : (isFirstEmpty && totalCount < 5
                     ? InkWell(
                         onTap: () => _showAddMoreOptions(context),
-                        child: const Center(
-                          child: Icon(Icons.add, color: Color(0xFFBA1A1A), size: 24),
+                        child: Center(
+                          child: Icon(Icons.add, color: AppColors.primaryRed, size: 24),
                         ),
                       )
                     : null),
@@ -778,7 +785,7 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
   void _showAddMoreOptions(BuildContext context) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.modalBackground,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -786,7 +793,7 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
         mainAxisSize: MainAxisSize.min,
         children: [
           ListTile(
-            leading: const Icon(Icons.photo_library, color: Color(0xFFBA1A1A)),
+            leading: Icon(Icons.photo_library, color: AppColors.primaryRed),
             title: const Text('Add from Gallery'),
             onTap: () {
               Navigator.pop(context);
@@ -794,7 +801,7 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
             },
           ),
           ListTile(
-            leading: const Icon(Icons.camera_alt, color: Color(0xFFBA1A1A)),
+            leading: Icon(Icons.camera_alt, color: AppColors.primaryRed),
             title: const Text('Add from Camera'),
             onTap: () {
               Navigator.pop(context);
@@ -817,13 +824,13 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
             width: 110.s,
             child: Text(
               label,
-              style: TextStyle(color: Colors.grey, fontSize: 15.s, fontWeight: FontWeight.w500),
+              style: TextStyle(color: AppColors.textMuted, fontSize: 15.s, fontWeight: FontWeight.w500),
             ),
           ),
           Expanded(
             child: Text(
               value,
-              style: TextStyle(color: Colors.black87, fontSize: 15.s, fontWeight: FontWeight.bold),
+              style: TextStyle(color: AppColors.textDark, fontSize: 15.s, fontWeight: FontWeight.bold),
             ),
           ),
         ],
@@ -839,7 +846,7 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
         children: [
           SizedBox(
             width: 110.s,
-            child: Text('Location', style: TextStyle(color: Colors.grey, fontSize: 15.s, fontWeight: FontWeight.w500)),
+            child: Text('Location', style: TextStyle(color: AppColors.textMuted, fontSize: 15.s, fontWeight: FontWeight.w500)),
           ),
           Expanded(
             child: _buildLocationViewMode(),
@@ -859,7 +866,7 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
           child: Text(
             hasLocation ? _currentLocation! : 'Add Location',
             style: TextStyle(
-              color: hasLocation ? Colors.black87 : Colors.grey.shade500,
+              color: hasLocation ? AppColors.textDark : AppColors.textMuted,
               fontSize: 15.s,
               fontWeight: hasLocation ? FontWeight.bold : FontWeight.w500,
             ),
@@ -871,8 +878,8 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
           child: Container(
             width: 38.s,
             height: 38.s,
-            decoration: BoxDecoration(color: const Color(0xFFF2F2F2), borderRadius: BorderRadius.circular(8.s)),
-            child: Icon(Icons.edit_outlined, color: Colors.black87, size: 20.s),
+            decoration: BoxDecoration(color: AppColors.inputFill, borderRadius: BorderRadius.circular(8.s)),
+            child: Icon(Icons.edit_outlined, color: AppColors.textDark, size: 20.s),
           ),
         ),
       ],
@@ -888,13 +895,13 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
       context: context,
       builder: (dialogContext) => CustomAlertDialog(
         message: 'Edit Location',
-        color: const Color(0xFFBA1A1A),
+        color: AppColors.primaryRed,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
               decoration: BoxDecoration(
-                color: const Color(0xFFF2F2F2),
+                color: AppColors.inputFill,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: TextField(
@@ -911,7 +918,7 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
             const SizedBox(height: 10),
             Container(
               decoration: BoxDecoration(
-                color: const Color(0xFFF2F2F2),
+                color: AppColors.inputFill,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: TextField(
@@ -930,8 +937,8 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
               width: double.infinity,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFBA1A1A),
-                  foregroundColor: Colors.white,
+                  backgroundColor: AppColors.primaryRed,
+                  foregroundColor: AppColors.buttonPrimaryForeground,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   elevation: 0,
@@ -970,7 +977,7 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
                         message: 'Update failed',
                         subtitle: result['error'],
                         icon: Icons.error_outline,
-                        color: Colors.red,
+                        color: AppColors.error,
                       );
                     }
                   }
@@ -991,7 +998,7 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
 
   Widget _buildDescriptionDetailRow(String label, String description) {
     final style = TextStyle(
-      color: Colors.black87,
+      color: AppColors.textDark,
       fontSize: 12.s,
       fontWeight: FontWeight.bold,
       fontFamily: 'Nunito',
@@ -1006,7 +1013,7 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
             width: 110.s,
             child: Text(
               label,
-              style: TextStyle(color: Colors.grey, fontSize: 15.s, fontWeight: FontWeight.w500),
+              style: TextStyle(color: AppColors.textMuted, fontSize: 15.s, fontWeight: FontWeight.w500),
             ),
           ),
           Expanded(
@@ -1040,7 +1047,7 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
                             TextSpan(
                               text: '... see more',
                               style: TextStyle(
-                                color: const Color(0xFFBA1A1A),
+                                color: AppColors.primaryRed,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 12.s,
                               ),
@@ -1085,7 +1092,7 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
                         child: Text(
                           'see less',
                           style: TextStyle(
-                            color: const Color(0xFFBA1A1A),
+                            color: AppColors.primaryRed,
                             fontWeight: FontWeight.bold,
                             fontSize: 12.s,
                           ),
@@ -1117,13 +1124,19 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
   }
 
   Future<void> _pickImagesFromGallery() async {
+    final int availableSlots = 5 - (_currentImagePaths.length + _tempSelectedImages.length);
+    if (availableSlots <= 0) return;
+
     final ImagePicker picker = ImagePicker();
-    final List<XFile> images = await picker.pickMultiImage(imageQuality: 70);
+    final List<XFile> images = await picker.pickMultiImage(
+      imageQuality: 70,
+      limit: availableSlots,
+    );
     
     if (images.isEmpty) return;
     if (!mounted) return;
 
-    final int availableSlots = 5 - (_currentImagePaths.length + _tempSelectedImages.length);
+    final bool exceeded = images.length > availableSlots;
     final List<XFile> toProcess = images.take(availableSlots).toList();
 
     for (var xfile in toProcess) {
@@ -1135,6 +1148,15 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
     setState(() {
       _isAddingMore = false; 
     });
+
+    if (exceeded) {
+      _showAlertDialog(
+        message: 'Slots Limit Exceeded',
+        subtitle: 'You can only add up to $availableSlots more image${availableSlots == 1 ? "" : "s"}. Only the first $availableSlots selected image${availableSlots == 1 ? " was" : "s were"} added.',
+        icon: Icons.warning_amber_outlined,
+        color: AppColors.warningAccent,
+      );
+    }
   }
 
   Future<void> _pickImage(ImageSource source) async {
@@ -1158,7 +1180,7 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
        _showAlertDialog(
         message: 'Item ID not found.',
         icon: Icons.error_outline,
-        color: Colors.red,
+        color: AppColors.error,
       );
       return;
     }
@@ -1200,14 +1222,14 @@ class _ItemDetailsModalState extends State<ItemDetailsModal> {
         message: wasDeleted ? 'Image successfully deleted' : 'Image updated successfully!',
         subtitle: wasDeleted ? 'The image has been removed from this item.' : 'You can now see your uploaded image.',
         icon: Icons.check,
-        color: const Color(0xFF7CB342),
+        color: AppColors.success,
       );
     } else {
       _showAlertDialog(
         message: 'Upload failed',
         subtitle: syncResult['error'],
         icon: Icons.error_outline,
-        color: Colors.red,
+        color: AppColors.error,
       );
     }
   }

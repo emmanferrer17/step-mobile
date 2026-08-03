@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../app/config/app_colors.dart';
 import '../../../app/config/size_config.dart';
 import '../../../app/config/ui_constants.dart';
 
@@ -28,23 +29,28 @@ class StandardPermissionLayout extends StatelessWidget {
   Widget build(BuildContext context) {
     SizeConfig().init(context);
 
+    final Color gradStart = AppColors.isDarkMode
+        ? AppColors.primaryRed.withOpacity(0.08)
+        : const Color(0xFFFFEAEA);
+    final Color gradEnd = AppColors.modalBackground;
+
     final content = Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.modalBackground,
         borderRadius: isBottomSheet
             ? BorderRadius.only(
                 topLeft: Radius.circular(24.s),
                 topRight: Radius.circular(24.s),
               )
             : BorderRadius.circular(24.s),
-        gradient: const LinearGradient(
+        gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            Color(0xFFFFEAEA), // Gradient
-            Colors.white,
+            gradStart,
+            gradEnd,
           ],
-          stops: [0.0, 0.25],
+          stops: const [0.0, 0.25],
         ),
       ),
       padding: EdgeInsets.symmetric(vertical: 32.s, horizontal: 24.s),
@@ -56,11 +62,11 @@ class StandardPermissionLayout extends StatelessWidget {
             width: 100.s,
             height: 100.s,
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AppColors.modalBackground,
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: AppColors.shadow,
                   blurRadius: 16.s,
                   spreadRadius: 2.s,
                   offset: Offset(0, 4.s),
@@ -71,7 +77,7 @@ class StandardPermissionLayout extends StatelessWidget {
               child: Text(
                 centralText,
                 style: TextStyle(
-                  color: const Color(0xFFBA1A1A),
+                  color: AppColors.primaryRed,
                   fontSize: 48.s,
                   fontWeight: FontWeight.w300,
                 ),
@@ -83,7 +89,7 @@ class StandardPermissionLayout extends StatelessWidget {
           Text(
             title,
             style: TextStyle(
-              color: const Color(0xFFBA1A1A),
+              color: AppColors.primaryRed,
               fontSize: 20.s,
               fontWeight: FontWeight.bold,
             ),
@@ -96,7 +102,7 @@ class StandardPermissionLayout extends StatelessWidget {
               subtitle,
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: Colors.grey.shade600,
+                color: AppColors.textGrey,
                 fontSize: 15.s,
                 height: 1.4,
               ),
@@ -113,8 +119,8 @@ class StandardPermissionLayout extends StatelessWidget {
                 child: OutlinedButton(
                   onPressed: onCancel,
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.grey.shade600,
-                    side: BorderSide(color: Colors.grey.shade300, width: 1.5.s),
+                    foregroundColor: AppColors.textMuted,
+                    side: BorderSide(color: AppColors.borderLight, width: 1.5.s),
                     padding: EdgeInsets.symmetric(vertical: 14.s),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10.s),
@@ -136,8 +142,8 @@ class StandardPermissionLayout extends StatelessWidget {
                 child: ElevatedButton(
                   onPressed: onAllow,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFBA1A1A),
-                    foregroundColor: Colors.white,
+                    backgroundColor: AppColors.primaryRed,
+                    foregroundColor: AppColors.buttonPrimaryForeground,
                     elevation: 0,
                     padding: EdgeInsets.symmetric(vertical: 14.s),
                     shape: RoundedRectangleBorder(

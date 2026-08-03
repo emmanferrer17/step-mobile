@@ -12,6 +12,7 @@ import '../../app/config/app_colors.dart';
 import '../../app/config/ui_constants.dart';
 import 'package:mobile/app/controllers/auth_controller.dart';
 import 'package:mobile/app/controllers/profile_controller.dart';
+import '../../app/controllers/theme_controller.dart';
 import '../../data/models/user_model.dart';
 import '../../data/services/api_service.dart';
 import 'widgets/general_info_dialog.dart';
@@ -90,12 +91,13 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<ThemeController>();
     // Get status bar height so we manually push content below system status bar icons
     final double statusBarHeight = MediaQuery.of(context).padding.top;
     final user = context.watch<AuthController>().loggedInUser;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5EFE6), // Light beige background
+      backgroundColor: AppColors.backgroundLight,
       body: SingleChildScrollView(
         child: Stack(
           alignment: Alignment.topCenter,
@@ -105,7 +107,7 @@ class _ProfilePageState extends State<ProfilePage> {
               width: double.infinity,
               height: 220.s + statusBarHeight,
               decoration: BoxDecoration(
-                color: const Color(0xFFBA1A1A),
+                color: AppColors.primaryRed,
                 borderRadius: BorderRadius.vertical(
                   bottom: Radius.circular(5.s),
                 ),
@@ -185,7 +187,7 @@ class _ProfilePageState extends State<ProfilePage> {
           margin: EdgeInsets.only(top: 60.s, left: 15.s, right: 15.s),
           padding: EdgeInsets.only(top: 70.s, left: 20.s, right: 20.s, bottom: 20.s),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: AppColors.backgroundWhite,
             borderRadius: BorderRadius.circular(15.s),
             boxShadow: [
               BoxShadow(
@@ -203,7 +205,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 style: TextStyle(
                   fontSize: 18.s,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black87,
+                  color: AppColors.textDark,
                 ),
               ),
               SizedBox(height: 2.s),
@@ -213,7 +215,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 style: TextStyle(
                   fontSize: 15.s,
                   fontWeight: FontWeight.w600,
-                  color: const Color(0xFFBA1A1A),
+                  color: AppColors.primaryRed,
                 ),
               ),
               SizedBox(height: 25.s),
@@ -255,7 +257,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(color: Colors.blueAccent, width: 4.s),
-                    color: Colors.white,
+                    color: AppColors.backgroundWhite,
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withValues(alpha: 0.1),
@@ -285,9 +287,9 @@ class _ProfilePageState extends State<ProfilePage> {
                     child: Container(
                       padding: EdgeInsets.all(6.s),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFBA1A1A),
+                        color: AppColors.primaryRed,
                         shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 1.5.s),
+                        border: Border.all(color: AppColors.backgroundWhite, width: 1.5.s),
                       ),
                       child: Icon(Icons.file_upload_outlined, size: 18.s, color: Colors.white),
                     ),
@@ -314,16 +316,16 @@ class _ProfilePageState extends State<ProfilePage> {
         width: double.infinity,
         padding: EdgeInsets.symmetric(horizontal: 20.s, vertical: 14.s),
         decoration: BoxDecoration(
-          color: isPrimary ? const Color(0xFFBA1A1A) : Colors.white,
+          color: isPrimary ? AppColors.primaryRed : AppColors.backgroundWhite,
           borderRadius: BorderRadius.circular(12.s),
-          border: isPrimary ? null : Border.all(color: const Color.fromARGB(255, 202, 202, 202), width: 1.5.s),
+          border: isPrimary ? null : Border.all(color: AppColors.borderLight, width: 1.5.s),
         ),
         child: Row(
           children: [
             if (icon != null) ...[
               Icon(
                 icon,
-                color: isPrimary ? Colors.white : const Color.fromARGB(255, 0, 0, 0),
+                color: isPrimary ? Colors.white : AppColors.textDark,
                 size: 24.s,
               ),
               SizedBox(width: 15.s),
@@ -331,7 +333,7 @@ class _ProfilePageState extends State<ProfilePage> {
             Text(
               label,
               style: TextStyle(
-                color: isPrimary ? Colors.white : Colors.black,
+                color: isPrimary ? Colors.white : AppColors.textBlack,
                 fontSize: 16.s,
                 fontWeight: FontWeight.w600,
               ),
@@ -351,19 +353,19 @@ class _ProfilePageState extends State<ProfilePage> {
           child: Container(
             padding: EdgeInsets.all(12.s),
             decoration: BoxDecoration(
-              color: const Color(0xFFBA1A1A).withValues(alpha: 0.05),
+              color: AppColors.primaryRed.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(8.s),
-              border: Border.all(color: const Color(0xFFBA1A1A).withValues(alpha: 0.3)),
+              border: Border.all(color: AppColors.primaryRed.withValues(alpha: 0.3)),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.refresh, color: const Color(0xFFBA1A1A), size: 18.s),
+                Icon(Icons.refresh, color: AppColors.primaryRed, size: 18.s),
                 SizedBox(width: 8.s),
                 Text(
                   'Failed to load counts. Tap to retry.',
                   style: TextStyle(
-                    color: const Color(0xFFBA1A1A),
+                    color: AppColors.primaryRed,
                     fontSize: 12.s,
                     fontWeight: FontWeight.w600,
                   ),
@@ -382,9 +384,6 @@ class _ProfilePageState extends State<ProfilePage> {
     final appliancesCount = _isLoading
         ? '-'
         : _items.where((item) => item['category'] == 'Semi-Expendable').length.toString();
-    final suppliesCount = _isLoading
-        ? '-'
-        : _items.where((item) => item['category'] == 'Supplies').length.toString();
 
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 15.0.s),
@@ -403,10 +402,6 @@ class _ProfilePageState extends State<ProfilePage> {
               _buildStatBox(
                 svgPath: 'assets/images/semi-expendable.svg',
                 count: appliancesCount,
-              ),
-              _buildStatBox(
-                svgPath: 'assets/images/supplies.svg',
-                count: suppliesCount,
               ),
             ],
           ),
@@ -430,7 +425,7 @@ class _ProfilePageState extends State<ProfilePage> {
             constraints: BoxConstraints(minHeight: 80.s),
             padding: EdgeInsets.only(top: 42.s, left: 4.s, right: 4.s, bottom: 10.s),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AppColors.backgroundWhite,
               borderRadius: BorderRadius.circular(12.s),
               border: Border.all(color: AppColors.navBarOutlineLight),
               boxShadow: [
@@ -447,7 +442,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 Text(
                   count,
                   style: TextStyle(
-                    color: const Color(0xFFBA1A1A),
+                    color: AppColors.primaryRed,
                     fontSize: 26.s,
                     fontWeight: FontWeight.bold,
                   ),
@@ -461,18 +456,18 @@ class _ProfilePageState extends State<ProfilePage> {
               width: 68.s,
               height: 68.s,
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppColors.backgroundWhite,
                 shape: BoxShape.circle,
-                border: Border.all(color: const Color(0xFFBA1A1A), width: 1.5.s),
+                border: Border.all(color: AppColors.primaryRed, width: 1.5.s),
               ),
               padding: EdgeInsets.all(18.s),
               child: SvgPicture.asset(
                 svgPath,
-                colorFilter: const ColorFilter.mode(Color(0xFFBA1A1A), BlendMode.srcIn),
+                colorFilter: ColorFilter.mode(AppColors.primaryRed, BlendMode.srcIn),
                 errorBuilder: (context, error, stackTrace) {
                   return Icon(
                     Icons.broken_image_outlined,
-                    color: const Color(0xFFBA1A1A),
+                    color: AppColors.primaryRed,
                     size: 30.s,
                   );
                 },
@@ -507,7 +502,6 @@ class _ProfilePageState extends State<ProfilePage> {
         color: const Color(0xFF00C853),
         confirmText: 'Download Manual',
         cancelText: null,
-        showArrow: false,
         onConfirm: () => _downloadManual(context),
       ),
     );
@@ -584,7 +578,6 @@ class _ProfilePageState extends State<ProfilePage> {
           icon: Icons.priority_high,
           color: const Color(0xFFBA1A1A),
           confirmText: 'Confirm',
-          showArrow: false,
           onConfirm: () async {
             final authController = context.read<AuthController>();
             await authController.logout();

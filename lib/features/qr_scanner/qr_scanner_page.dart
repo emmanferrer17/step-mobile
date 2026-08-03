@@ -356,7 +356,6 @@ class _QRScannerPageState extends State<QRScannerPage> with SingleTickerProvider
         icon: Icons.priority_high,
         color: Colors.red,
         buttonText: 'Try again',
-        showArrow: false,
         onButtonPressed: () {
           Navigator.pop(dialogCtx);
           setState(() => _isScanCompleted = false);

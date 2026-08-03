@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../app/config/app_colors.dart';
 import '../../app/config/size_config.dart';
 import '../../app/config/ui_constants.dart';
 import '../../app/controllers/auth_controller.dart';
+import '../../app/controllers/theme_controller.dart';
 import '../../data/services/api_service.dart';
 import '../home/widgets/item_details_modal.dart';
 
@@ -111,11 +113,12 @@ class _ArchivePageState extends State<ArchivePage> {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<ThemeController>();
     SizeConfig().init(context);
     return Scaffold(
-      backgroundColor: const Color(0xFFF5EFE6), // Matching home screen light beige background
+      backgroundColor: AppColors.backgroundLight, // Matching home screen light beige background
       appBar: AppBar(
-        backgroundColor: const Color(0xFFBA1A1A), // Dark red university brand color
+        backgroundColor: AppColors.primaryRed, // Dark red university brand color
         elevation: 0,
         centerTitle: true,
         toolbarHeight: 60.s,
@@ -138,9 +141,9 @@ class _ArchivePageState extends State<ArchivePage> {
 
   Widget _buildBody() {
     if (_isLoading) {
-      return const Center(
+      return Center(
         child: CircularProgressIndicator(
-          color: Color(0xFFBA1A1A),
+          color: AppColors.primaryRed,
         ),
       );
     }
@@ -152,19 +155,19 @@ class _ArchivePageState extends State<ArchivePage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.error_outline, color: Color(0xFFBA1A1A), size: 48),
+              Icon(Icons.error_outline, color: AppColors.primaryRed, size: 48),
               const SizedBox(height: 16),
               Text(
                 _errorMessage!,
                 textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 16, color: Colors.black87),
+                style: TextStyle(fontSize: 16, color: AppColors.textDark),
               ),
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: _fetchArchiveItems,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFBA1A1A),
-                  foregroundColor: Colors.white,
+                  backgroundColor: AppColors.primaryRed,
+                  foregroundColor: AppColors.buttonPrimaryForeground,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -182,13 +185,13 @@ class _ArchivePageState extends State<ArchivePage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.inventory_2_outlined, color: Colors.grey.shade400, size: 64.s),
+            Icon(Icons.inventory_2_outlined, color: AppColors.iconMuted, size: 64.s),
             SizedBox(height: 16.s),
             Text(
               'Your archive is empty',
               style: TextStyle(
                 fontSize: 18.s,
-                color: Colors.grey.shade600,
+                color: AppColors.textGrey,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -200,7 +203,7 @@ class _ArchivePageState extends State<ArchivePage> {
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 14.s,
-                  color: Colors.grey.shade500,
+                  color: AppColors.textMuted,
                 ),
               ),
             ),
@@ -236,12 +239,12 @@ class _ArchivePageState extends State<ArchivePage> {
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 20.s),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.backgroundWhite,
         borderRadius: BorderRadius.circular(12.s),
-        border: Border.all(color: Colors.grey.shade300, width: 1.0.s),
+        border: Border.all(color: AppColors.borderLight, width: 1.0.s),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: AppColors.shadow,
             blurRadius: 4.s,
             offset: Offset(0, 2.s),
           ),
@@ -256,20 +259,20 @@ class _ArchivePageState extends State<ArchivePage> {
             child: Text(
               dateLabel,
               style: TextStyle(
-                color: Colors.grey.shade500,
+                color: AppColors.textMuted,
                 fontSize: 13.s,
                 fontWeight: FontWeight.w600,
               ),
             ),
           ),
-          const Divider(height: 1, color: Color(0xFFEEEEEE)),
+          Divider(height: 1, color: AppColors.divider),
 
           // Item listings inside the group
           ListView.separated(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: items.length,
-            separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFEEEEEE)),
+            separatorBuilder: (context, index) => Divider(height: 1, color: AppColors.divider),
             itemBuilder: (context, index) {
               final item = items[index];
               final String name = item['item_name'] ?? 'Unknown Item';
@@ -289,7 +292,7 @@ class _ArchivePageState extends State<ArchivePage> {
                           Text(
                             name,
                             style: TextStyle(
-                              color: const Color(0xFFBA1A1A),
+                              color: AppColors.primaryRed,
                               fontSize: 16.s,
                               fontWeight: FontWeight.bold,
                             ),
@@ -298,7 +301,7 @@ class _ArchivePageState extends State<ArchivePage> {
                           Text(
                             'Quantity: $qty $unit',
                             style: TextStyle(
-                              color: Colors.grey.shade500,
+                              color: AppColors.textMuted,
                               fontSize: 12.s,
                               fontWeight: FontWeight.w500,
                             ),
@@ -314,7 +317,7 @@ class _ArchivePageState extends State<ArchivePage> {
                       child: Container(
                         padding: EdgeInsets.symmetric(horizontal: 10.s, vertical: 8.s),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFBA1A1A),
+                          color: AppColors.primaryRed,
                           borderRadius: BorderRadius.circular(8.s),
                         ),
                         child: Row(

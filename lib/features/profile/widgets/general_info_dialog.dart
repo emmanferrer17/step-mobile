@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../app/config/app_colors.dart';
 import 'package:provider/provider.dart';
 import 'package:mobile/app/controllers/profile_controller.dart';
 import 'package:mobile/features/shared/widgets/custom_alert_dialog.dart';
@@ -57,7 +58,7 @@ class _GeneralInfoDialogState extends State<GeneralInfoDialog> {
           maxHeight: MediaQuery.of(context).size.height * 0.85,
         ),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.modalBackground,
           borderRadius: BorderRadius.circular(20),
         ),
         child: _isChangingPassword
@@ -78,15 +79,15 @@ class _GeneralInfoDialogState extends State<GeneralInfoDialog> {
           child: Row(
             children: [
               IconButton(
-                icon: const Icon(Icons.arrow_back, color: Colors.black87),
+                icon: Icon(Icons.arrow_back, color: AppColors.textDark),
                 onPressed: () => Navigator.pop(context),
               ),
-              const Expanded(
+              Expanded(
                 child: Center(
                   child: Text(
                     'General Information',
                     style: TextStyle(
-                      color: Color(0xFFBA1A1A),
+                      color: AppColors.primaryRed,
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
@@ -97,7 +98,7 @@ class _GeneralInfoDialogState extends State<GeneralInfoDialog> {
             ],
           ),
         ),
-        const Divider(height: 1, color: Color(0xFFEEEEEE)),
+        Divider(height: 1, color: AppColors.divider),
 
         // Scrollable Body Content
         Flexible(
@@ -140,7 +141,7 @@ class _GeneralInfoDialogState extends State<GeneralInfoDialog> {
           child: Row(
             children: [
               IconButton(
-                icon: const Icon(Icons.arrow_back, color: Colors.black87),
+                icon: Icon(Icons.arrow_back, color: AppColors.textDark),
                 onPressed: () {
                   setState(() {
                     _isChangingPassword = false;
@@ -148,12 +149,12 @@ class _GeneralInfoDialogState extends State<GeneralInfoDialog> {
                   });
                 },
               ),
-              const Expanded(
+              Expanded(
                 child: Center(
                   child: Text(
                     'Change Password',
                     style: TextStyle(
-                      color: Color(0xFFBA1A1A),
+                      color: AppColors.primaryRed,
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
@@ -164,7 +165,7 @@ class _GeneralInfoDialogState extends State<GeneralInfoDialog> {
             ],
           ),
         ),
-        const Divider(height: 1, color: Color(0xFFEEEEEE)),
+        Divider(height: 1, color: AppColors.divider),
 
         // Scrollable Body Content
         Flexible(
@@ -176,12 +177,12 @@ class _GeneralInfoDialogState extends State<GeneralInfoDialog> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text(
+                  Text(
                     'Password',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black87,
+                      color: AppColors.textDark,
                     ),
                   ),
                   const SizedBox(height: 15),
@@ -189,18 +190,18 @@ class _GeneralInfoDialogState extends State<GeneralInfoDialog> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       decoration: BoxDecoration(
-                        color: Colors.red.shade50,
+                        color: AppColors.isDarkMode ? Colors.red.shade900.withOpacity(0.2) : Colors.red.shade50,
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.red.shade200),
+                        border: Border.all(color: Colors.red.shade400),
                       ),
                       child: Row(
                         children: [
-                          Icon(Icons.error_outline, color: Colors.red.shade800, size: 18),
+                          Icon(Icons.error_outline, color: AppColors.error, size: 18),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
                               _apiGeneralErrorMessage!,
-                              style: TextStyle(color: Colors.red.shade800, fontSize: 13, fontWeight: FontWeight.w500),
+                              style: TextStyle(color: AppColors.error, fontSize: 13, fontWeight: FontWeight.w500),
                             ),
                           ),
                         ],
@@ -212,18 +213,18 @@ class _GeneralInfoDialogState extends State<GeneralInfoDialog> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       decoration: BoxDecoration(
-                        color: Colors.green.shade50,
+                        color: AppColors.isDarkMode ? Colors.green.shade900.withOpacity(0.2) : Colors.green.shade50,
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.green.shade200),
+                        border: Border.all(color: Colors.green.shade400),
                       ),
                       child: Row(
                         children: [
-                          Icon(Icons.check_circle_outline, color: Colors.green.shade800, size: 18),
+                          Icon(Icons.check_circle_outline, color: Colors.green.shade600, size: 18),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
                               _apiSuccessMessage!,
-                              style: TextStyle(color: Colors.green.shade800, fontSize: 13, fontWeight: FontWeight.w500),
+                              style: TextStyle(color: Colors.green.shade600, fontSize: 13, fontWeight: FontWeight.w500),
                             ),
                           ),
                         ],
@@ -293,8 +294,8 @@ class _GeneralInfoDialogState extends State<GeneralInfoDialog> {
       controller: controller,
       obscureText: obscureText,
       validator: validator,
-      style: const TextStyle(
-        color: Colors.black87,
+      style: TextStyle(
+        color: AppColors.textDark,
         fontSize: 14,
         fontWeight: FontWeight.w500,
       ),
@@ -302,26 +303,26 @@ class _GeneralInfoDialogState extends State<GeneralInfoDialog> {
         labelText: label,
         errorText: errorText,
         labelStyle: TextStyle(
-          color: Colors.grey.shade700,
+          color: AppColors.textMuted,
           fontSize: 12,
         ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: Colors.grey.shade400),
+          borderSide: BorderSide(color: AppColors.borderLight),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: Colors.grey.shade400),
+          borderSide: BorderSide(color: AppColors.borderLight),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: Color(0xFFBA1A1A), width: 1.5),
+          borderSide: BorderSide(color: AppColors.primaryRed, width: 1.5),
         ),
         suffixIcon: IconButton(
           icon: Icon(
             obscureText ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-            color: Colors.grey.shade500,
+            color: AppColors.iconMuted,
             size: 20,
           ),
           onPressed: onToggle,
@@ -337,9 +338,9 @@ class _GeneralInfoDialogState extends State<GeneralInfoDialog> {
       child: ElevatedButton(
         onPressed: _isLoading ? null : _handleSaveChanges,
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFFBA1A1A),
-          foregroundColor: Colors.white,
-          disabledBackgroundColor: Colors.grey,
+          backgroundColor: AppColors.primaryRed,
+          foregroundColor: AppColors.buttonPrimaryForeground,
+          disabledBackgroundColor: AppColors.iconMuted,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
           ),
@@ -384,7 +385,7 @@ class _GeneralInfoDialogState extends State<GeneralInfoDialog> {
           });
         },
         style: OutlinedButton.styleFrom(
-          side: BorderSide(color: Colors.grey.shade400),
+          side: BorderSide(color: AppColors.borderLight),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
           ),
@@ -392,12 +393,12 @@ class _GeneralInfoDialogState extends State<GeneralInfoDialog> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.arrow_back, color: Colors.grey.shade700, size: 20),
+            Icon(Icons.arrow_back, color: AppColors.textMuted, size: 20),
             const SizedBox(width: 8),
             Text(
               'Go Back',
               style: TextStyle(
-                color: Colors.grey.shade700,
+                color: AppColors.textMuted,
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
               ),
@@ -447,10 +448,10 @@ class _GeneralInfoDialogState extends State<GeneralInfoDialog> {
         showDialog(
           context: context,
           barrierDismissible: true,
-          builder: (dialogCtx) => const CustomAlertDialog(
+          builder: (dialogCtx) => CustomAlertDialog(
             message: 'New password has been saved!',
             icon: Icons.check,
-            color: Color(0xFF00C853),
+            color: AppColors.success,
           ),
         );
       } else {
@@ -488,10 +489,10 @@ class _GeneralInfoDialogState extends State<GeneralInfoDialog> {
       padding: const EdgeInsets.only(bottom: 8),
       child: Text(
         title,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.bold,
-          color: Colors.black87,
+          color: AppColors.textDark,
         ),
       ),
     );
@@ -508,17 +509,17 @@ class _GeneralInfoDialogState extends State<GeneralInfoDialog> {
             label,
             style: TextStyle(
               fontSize: 12,
-              color: Colors.grey.shade500,
+              color: AppColors.textMuted,
               fontWeight: FontWeight.w500,
             ),
           ),
           const SizedBox(height: 2),
           Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.bold,
-              color: Colors.black87,
+              color: AppColors.textDark,
             ),
           ),
         ],
@@ -540,17 +541,17 @@ class _GeneralInfoDialogState extends State<GeneralInfoDialog> {
                 label,
                 style: TextStyle(
                   fontSize: 12,
-                  color: Colors.grey.shade500,
+                  color: AppColors.textMuted,
                   fontWeight: FontWeight.w500,
                 ),
               ),
               const SizedBox(height: 2),
-              const Text(
+              Text(
                 '••••••••••••',
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black87,
+                  color: AppColors.textDark,
                   letterSpacing: 2,
                 ),
               ),
@@ -568,14 +569,14 @@ class _GeneralInfoDialogState extends State<GeneralInfoDialog> {
               child: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF5F5F5),
+                  color: AppColors.inputFill,
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.grey.shade300),
+                  border: Border.all(color: AppColors.borderLight),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.edit_outlined,
                   size: 20,
-                  color: Color.fromARGB(255, 73, 40, 40),
+                  color: AppColors.textDark,
                 ),
               ),
             ),
