@@ -357,24 +357,24 @@ class HomePageState extends State<HomePage> {
           ),
         ),
         SizedBox(width: 10.s),
-        // Dark mode toggle button
-        Consumer<ThemeController>(
-          builder: (context, theme, _) {
-            return IconButton(
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(),
-              icon: Icon(
-                theme.isDarkMode
-                    ? Icons.light_mode_outlined
-                    : Icons.dark_mode_outlined,
-                color: Colors.white,
-                size: 22.s,
-              ),
-              onPressed: () => theme.toggleTheme(),
-            );
-          },
-        ),
-        SizedBox(width: 6.s),
+        // Dark mode toggle button (commented out — not yet available in release)
+        // Consumer<ThemeController>(
+        //   builder: (context, theme, _) {
+        //     return IconButton(
+        //       padding: EdgeInsets.zero,
+        //       constraints: const BoxConstraints(),
+        //       icon: Icon(
+        //         theme.isDarkMode
+        //             ? Icons.light_mode_outlined
+        //             : Icons.dark_mode_outlined,
+        //         color: Colors.white,
+        //         size: 22.s,
+        //       ),
+        //       onPressed: () => theme.toggleTheme(),
+        //     );
+        //   },
+        // ),
+        // SizedBox(width: 6.s),
         IconButton(
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints(),
